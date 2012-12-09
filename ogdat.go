@@ -4,9 +4,17 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 	"encoding/json"
 	"net/url"
+	"time"
 
-//	"time"
 //	"fmt"
+)
+
+const OGDTimeSpecifier = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
+const (
+	OGDTime1 = time.RFC3339Nano
+	OGDTime2 = time.RFC3339
+	OGDTime3 = OGDTimeSpecifier
+	OGDTimeUnknow
 )
 
 type Beschreibung struct {
@@ -78,12 +86,46 @@ type Url struct {
 }
 
 type Identfier struct {
-	uuid.UUID
+	*uuid.UUID
 	Raw string
 }
 
 func (id *Identfier) String() string {
 	return id.Raw
+}
+
+type OGDTime struct {
+	*time.Time
+	Raw    string
+	Format string
+}
+
+func (time *OGDTime) String() string {
+	return time.Raw
+}
+
+func (ogdtime *OGDTime) UnmarshalJSON(data []byte) error {
+	var raw string
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	ogdtime.Raw = raw
+
+	ogdtime.Format = OGDTime1
+	t, err := time.Parse(ogdtime.Format, raw)
+	if err != nil {
+		ogdtime.Format = OGDTime2
+		t, err = time.Parse(ogdtime.Format, raw)
+		if err != nil {
+			ogdtime.Format = OGDTime3
+			t, err = time.Parse(ogdtime.Format, raw)
+			if err != nil {
+				ogdtime.Format = OGDTimeUnknow
+			}
+		}
+	}
+	ogdtime.Time = &t
+	return nil
 }
 
 func (u *Url) UnmarshalJSON(data []byte) error {
@@ -108,7 +150,7 @@ func (id *Identfier) UnmarshalJSON(data []byte) error {
 
 	id.Raw = string(raw)
 	if uuid := uuid.Parse(raw); uuid != nil {
-		id.UUID = uuid
+		id.UUID = &uuid
 	}
 	return nil
 }
@@ -131,18 +173,27 @@ func (kat *Kategorie) UnmarshalJSON(data []byte) error {
 }
 
 type Extras struct {
+	// Core
 	Metadata_Identifier Identfier   `json:"metadata_identifier"` // CKAN uses since API Version 2 a UUID V4, cf. https://github.com/okfn/ckan/blob/master/ckan/model/types.py
 	Metadata_Modified   string      `json:"metadata_modified"`
 	Categorization      []Kategorie `json:"categorization"`
-	Begin_DateTime      string      `json:"begin_datetime"`
+	Begin_DateTime      OGDTime     `json:"begin_datetime"`
+
+	// Optional
+	Schema_Name string `json:"schema_name"`
 }
 
 type Resource struct {
+	// Core
 	URL    *Url              `json:"url"`
 	Format ResourceSpecifier `json:"format"`
+
+	// Optional
+	Resource_Name string
 }
 
-type Core struct {
+type MetaData struct {
+	// Core
 	Title       string `json:"title"`
 	Description string `json:"notes"`
 
@@ -150,8 +201,12 @@ type Core struct {
 
 	Maintainer string `json:"maintainer"`
 	License    string `json:"license"` // Sollte URI des Lizenzdokuments sein
-	Extras     `json:"extras"`
-	Resource   []Resource `json:"resources"`
+
+	// Optional
+
+	// nested structures
+	Extras   `json:"extras"`
+	Resource []Resource `json:"resources"`
 }
 
 func init() {
