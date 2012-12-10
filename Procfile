@@ -1,1 +1,1 @@
-test: ogdatwatcher
+ogdatwatcher: sh -c 'cd ./ogdatwatcher/ && exec ogdatwatcher -serve'
