@@ -2,9 +2,11 @@ package main
 
 import (
 	"cgl.tideland.biz/net/atom"
+	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/bmizerany/pq"
 	"github.com/the42/ogdat"
 	"io/ioutil"
 	"log"
@@ -12,18 +14,20 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
 const DEBUG = true
+
 const dataseturl = "http://www.data.gv.at/katalog/api/2/rest/dataset/"
 const iso639canonicallocation = "http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt"
 const lockfilename = ".lock.pid"
 
 var logger *log.Logger
 
-var resettdb = flag.Bool("reset", false, "Delete the tracking database. You will be prompted before actual deletion. Process will terminate afterwards.")
-var inittdb = flag.Bool("init", false, "Initialize the tracking database. In case there are old entries in the tracking database, use init in conjunction with reset. Process will terminate afterwards.")
+var resettdb = flag.Bool("resetdb", false, "Delete the tracking database. You will be prompted before actual deletion. Process will terminate afterwards.")
+var inittdb = flag.Bool("initdb", false, "Initialize the tracking database. In case there are old entries in the tracking database, use init in conjunction with reset. Process will terminate afterwards.")
 var initisolangs = flag.Bool("initisolangs", false, fmt.Sprintf("Download ISO-639-alpha3 code table from %s (required for checking language codes). Process will terminate afterwards.", iso639canonicallocation))
 var servetdb = flag.Bool("serve", false, "Start in watchdog mode. Process will continue to run until it receives a (clean shutdown) or gets killed")
 
@@ -50,21 +54,19 @@ func getdataforid(id ogdat.Identfier) (*ogdat.MetaData, error) {
 func getalldatasetids() ([]ogdat.Identfier, error) {
 
 	var allsets []ogdat.Identfier
-	if !DEBUG {
-		resp, err := http.Get(dataseturl)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
+	resp, err := http.Get(dataseturl)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
 
-		bytedata, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
+	bytedata, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
-		if err := json.Unmarshal(bytedata, &allsets); err != nil {
-			return nil, err
-		}
+	if err := json.Unmarshal(bytedata, &allsets); err != nil {
+		return nil, err
 	}
 	return allsets, nil
 }
@@ -75,7 +77,7 @@ func createlockfile(filename string) *os.File {
 		fmt.Printf("Could not create lock file %s. Probably an instance of %s is running?\n", lockfilename, filepath.Base(os.Args[0]))
 		logger.Fatalln("Fatal: Lockfile creation error")
 	}
-	logger.Println("Lockfile successfully created")
+	logger.Println("Info: Lockfile successfully created")
 	return lockfile
 }
 
@@ -104,7 +106,9 @@ func writeinfotolockfile(lockfile *os.File) {
 }
 
 func getisolangfile() {
+
 	localisofilename := filepath.Base(iso639canonicallocation)
+	logger.Println("Info: requesting donwload of ISO language file")
 
 	resp, err := http.Get(iso639canonicallocation)
 	if err != nil {
@@ -130,7 +134,17 @@ func getisolangfile() {
 	logger.Println("Info: ISO language file successfully downloaded")
 }
 
-func main() {
+func gotyesonprompt() bool {
+	var prompt string
+	fmt.Scanf("%s", &prompt)
+	prompt = strings.ToLower(strings.TrimSpace(prompt))
+	if len(prompt) > 0 {
+		return prompt[0] == 'y'
+	}
+	return false
+}
+
+func mymain() int {
 
 	if flag.NFlag() == 0 {
 		fmt.Println("No command line flags given. Usage:")
@@ -147,8 +161,46 @@ func main() {
 		getisolangfile()
 	}
 
+	// From here we need a database connect string
+	var dburl, dbconnstring string
+	if dburl = os.Getenv("DATABASE_URL"); dburl == "" {
+		dburl = "postgres://"
+	}
+
+	dbconnstring, err := pq.ParseURL(dburl)
+	if err != nil {
+		fmt.Printf("Invalid Database Url: %s\n", dburl)
+		logger.Fatalf("Fatal: Invalid Database Url: %s\n", dburl)
+	}
+
+	db, err := sql.Open("postgres", dbconnstring)
+	if err != nil {
+		fmt.Println("Unable to connect to dabase")
+		logger.Fatalln("Unable to connect to dabase")
+	}
+	defer db.Close()
+
+	// TODO: { Remove test
+	res, err := db.Exec("SELECT * from heartbeat")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Result: %v\n", res)
+	// }
+
+	if *resettdb {
+		logger.Println("Warning: Requesting database reset")
+		fmt.Print("\n\nALL RECORDED DATA IN DATABASE  WILL BE DELETED.\nDO YOU REALLY WANT TO PROCEED? [N,y]\n")
+		if !gotyesonprompt() {
+			fmt.Println("\nABORTING\n")
+			logger.Println("Info: Database reset canceled")
+		} else {
+		}
+	}
+
 	if *resettdb || *initisolangs || *inittdb {
-		return
+		logger.Println("Info: Earyl exit due to maintainance switches")
+		return 2
 	}
 
 	if *servetdb && !DEBUG {
@@ -193,9 +245,14 @@ func main() {
 			fmt.Println("Datasets have changed")
 		}
 	}
+	return 0
+}
+
+func main() {
+	os.Exit(mymain())
 }
 
 func init() {
-	logger = log.New(os.Stderr, filepath.Base(os.Args[0]), log.LstdFlags)
+	logger = log.New(os.Stderr, filepath.Base(os.Args[0])+": ", log.LstdFlags)
 	flag.Parse()
 }
