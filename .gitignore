@@ -1,3 +1,4 @@
 .lock.pid
 ISO-639-2_utf-8.txt
 Procfile.local
+.env
