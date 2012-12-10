@@ -37,7 +37,7 @@ func getdataforid(id ogdat.Identfier) (*ogdat.MetaData, error) {
 func getalldatasetids() ([]ogdat.Identfier, error) {
 
 	var allsets []ogdat.Identfier
-	if !debug {
+	if !DEBUG {
 		resp, err := http.Get(dataseturl)
 		if err != nil {
 			return nil, err
