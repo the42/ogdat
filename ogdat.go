@@ -32,10 +32,10 @@ type Beschreibung struct {
 }
 
 type Kategorie struct {
-	NumID       int
+	NumID       int `json:"-"`
 	ID          string
-	PrettyName  string
-	RDFProperty string
+	PrettyName  string `json:"-"`
+	RDFProperty string `json:"-"`
 }
 
 func (kat *Kategorie) String() string {
@@ -75,7 +75,7 @@ var categories = []Kategorie{Arbeit,
 	WirtTourism,
 }
 
-var categorymap map[string]*Kategorie
+var categorymap = make(map[string]Kategorie)
 
 type Tags string
 type ResourceSpecifier string
@@ -166,9 +166,9 @@ func (kat *Kategorie) UnmarshalJSON(data []byte) error {
 		kat.NumID = -1
 		kat.ID = raw
 		kat.PrettyName = "**** NON core category **** - " + kat.ID
-		return nil
+	} else {
+		*kat = corecat
 	}
-	*kat = *corecat
 	return nil
 }
 
@@ -210,9 +210,8 @@ type MetaData struct {
 }
 
 func init() {
-	categorymap = make(map[string]*Kategorie)
 
 	for _, val := range categories {
-		categorymap[val.ID] = &val
+		categorymap[val.ID] = val
 	}
 }
