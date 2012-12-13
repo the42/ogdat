@@ -161,32 +161,35 @@ func mymain() int {
 		getisolangfile()
 	}
 
-	// From here we need a database connect string
-	var dburl, dbconnstring string
-	if dburl = os.Getenv("DATABASE_URL"); dburl == "" {
-		dburl = "postgres://"
-	}
+	var db sql.DB
+	if *resettdb || *inittdb || *servetdb {
+		// From here we need a database connection string
+		var dburl, dbconnstring string
+		if dburl = os.Getenv("DATABASE_URL"); dburl == "" {
+			dburl = "postgres://"
+		}
 
-	dbconnstring, err := pq.ParseURL(dburl)
-	if err != nil {
-		fmt.Printf("Invalid Database Url: %s\n", dburl)
-		logger.Fatalf("Fatal: Invalid Database Url: %s\n", dburl)
-	}
+		dbconnstring, err := pq.ParseURL(dburl)
+		if err != nil {
+			fmt.Printf("Invalid Database Url: %s\n", dburl)
+			logger.Fatalf("Fatal: Invalid Database Url: %s\n", dburl)
+		}
 
-	db, err := sql.Open("postgres", dbconnstring)
-	if err != nil {
-		fmt.Println("Unable to connect to dabase")
-		logger.Fatalln("Unable to connect to dabase")
+		db, err := sql.Open("postgres", dbconnstring)
+		if err != nil {
+			fmt.Println("Unable to connect to dabase")
+			logger.Fatalln("Unable to connect to dabase")
+		}
+
+		// TODO: { Remove test
+		res, err := db.Exec("SELECT * from heartbeat")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("Result: %v\n", res)
+		// }
 	}
 	defer db.Close()
-
-	// TODO: { Remove test
-	res, err := db.Exec("SELECT * from heartbeat")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Result: %v\n", res)
-	// }
 
 	if *resettdb {
 		logger.Println("Warning: Requesting database reset")
