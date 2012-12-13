@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"net/url"
 	"time"
-
-//	"fmt"
 )
 
 const OGDTimeSpecifier = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
@@ -189,7 +187,8 @@ type Resource struct {
 	Format ResourceSpecifier `json:"format"`
 
 	// Optional
-	Resource_Name string
+	Resource_Name   string
+	Schema_Language string
 }
 
 type MetaData struct {
@@ -210,7 +209,6 @@ type MetaData struct {
 }
 
 func init() {
-
 	for _, val := range categories {
 		categorymap[val.ID] = val
 	}
