@@ -75,7 +75,7 @@ func createlockfile(filename string) *os.File {
 	lockfile, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_EXCL, os.FileMode(0666))
 	if lockfile == nil || err != nil {
 		fmt.Printf("Could not create lock file %s. Probably an instance of %s is running?\n", lockfilename, filepath.Base(os.Args[0]))
-		logger.Fatalln("Fatal: Lockfile creation error")
+		logger.Panicln("Fatal: Lockfile creation error")
 	}
 	logger.Println("Info: Lockfile successfully created")
 	return lockfile
@@ -84,23 +84,23 @@ func createlockfile(filename string) *os.File {
 func deletelockfile(lockfile *os.File) {
 	filename := lockfile.Name()
 	if err := lockfile.Close(); err != nil { // Windows want's it's file closed before unlinking
-		logger.Fatalln("Fatal: Can not close lockfile")
+		logger.Panicln("Fatal: Can not close lockfile")
 	}
 	if err := os.Remove(filename); err != nil {
-		logger.Fatalln("Fatal: Can not delete lockfile")
+		logger.Panicln("Fatal: Can not delete lockfile")
 	}
 	logger.Println("Info: Lockfile successfully deleted")
 }
 
 func writeinfotolockfile(lockfile *os.File) {
 	if err := lockfile.Truncate(0); err != nil {
-		logger.Fatalln("Fatal: Can not truncate lockfile")
+		logger.Panicln("Fatal: Can not truncate lockfile")
 	}
 	if _, err := lockfile.Seek(0, 0); err != nil {
-		logger.Fatalln("Fatal: Can not seek in lockfile")
+		logger.Panicln("Fatal: Can not seek in lockfile")
 	}
 	if _, err := lockfile.WriteString(fmt.Sprintf("%d:%s", os.Getpid(), time.Now())); err != nil {
-		logger.Fatalln("Fatal: Can not write to lockfile")
+		logger.Panicln("Fatal: Can not write to lockfile")
 	}
 	logger.Println("Info: Lockfile successfully written")
 }
@@ -112,24 +112,24 @@ func getisolangfile() {
 
 	resp, err := http.Get(iso639canonicallocation)
 	if err != nil {
-		logger.Fatalf("Fatal: Can not fetch ISO language file: %s\n", err)
+		logger.Panicf("Fatal: Can not fetch ISO language file: %s\n", err)
 	}
 	defer resp.Body.Close()
 
 	bytedata, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		logger.Fatalf("Fatal: While fetching ISO language file: Can not read from http stream: %s\n", err)
+		logger.Panicf("Fatal: While fetching ISO language file: Can not read from http stream: %s\n", err)
 	}
 
 	isofile, err := os.Create(localisofilename)
 	if err != nil {
-		logger.Fatalf("Fatal: Can not create local ISO language file %s: %s\n", localisofilename, err)
+		logger.Panicf("Fatal: Can not create local ISO language file %s: %s\n", localisofilename, err)
 	}
 	defer isofile.Close()
 
 	_, err = isofile.Write(bytedata)
 	if err != nil {
-		logger.Fatalf("Fatal: Can not write to local ISO file %s: %s\n", localisofilename, err)
+		logger.Panicf("Fatal: Can not write to local ISO file %s: %s\n", localisofilename, err)
 	}
 	logger.Println("Info: ISO language file successfully downloaded")
 }
@@ -149,7 +149,7 @@ func mymain() int {
 	if flag.NFlag() == 0 {
 		fmt.Println("No command line flags given. Usage:")
 		flag.PrintDefaults()
-		logger.Fatalln("Fatal: No command line flags given")
+		logger.Panicln("Fatal: No command line flags given")
 	}
 
 	lockfile := createlockfile(lockfilename)
@@ -172,13 +172,13 @@ func mymain() int {
 		dbconnstring, err := pq.ParseURL(dburl)
 		if err != nil {
 			fmt.Printf("Invalid Database Url: %s\n", dburl)
-			logger.Fatalf("Fatal: Invalid Database Url: %s\n", dburl)
+			logger.Panicf("Fatal: Invalid Database Url: %s\n", dburl)
 		}
 
 		db, err := sql.Open("postgres", dbconnstring)
 		if err != nil {
 			fmt.Println("Unable to connect to dabase")
-			logger.Fatalln("Unable to connect to dabase")
+			logger.Panicln("Unable to connect to dabase")
 		}
 
 		// TODO: { Remove test
