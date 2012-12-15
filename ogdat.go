@@ -307,7 +307,7 @@ type MetaData struct {
 }
 
 func init() {
-	for _, val := range categories {
-		categorymap[val.ID] = val
+	for idx, val := range categories {
+		categorymap[val.ID] = categories[idx]
 	}
 }
