@@ -12,6 +12,8 @@ type ISO6392Lang struct {
 }
 
 const iso639file = "ISO-639-2_utf-8.txt"
+const schema_langauge = "ger"
+const schema_characterset = "utf8"
 
 var isolangfilemap map[string]*ISO6392Lang
 
