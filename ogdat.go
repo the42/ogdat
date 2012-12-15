@@ -9,9 +9,9 @@ import (
 
 const OGDTimeSpecifier = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
 const (
-	OGDTime1 = time.RFC3339Nano
-	OGDTime2 = time.RFC3339
-	OGDTime3 = OGDTimeSpecifier
+	OGDTime2 = time.RFC3339Nano
+	OGDTime3 = time.RFC3339
+	OGDTime1 = OGDTimeSpecifier
 	OGDTimeUnknow
 )
 
