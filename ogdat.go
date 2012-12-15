@@ -199,10 +199,7 @@ func (u *Url) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	u.Raw = raw
-	url, err := url.Parse(raw)
-	if err != nil {
-		return err
-	}
+	url, _ := url.Parse(raw) // an actuall error is not important. If url can not be parsed, result will be nil, which is fine here
 	u.URL = url
 	return nil
 }
