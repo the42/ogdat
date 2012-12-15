@@ -43,7 +43,8 @@ var (
 	WirtTourism      = Kategorie{NumID: 14, ID: "wirtschaft-und-tourismus", PrettyName: "Wirtschaft und Tourismus", RDFProperty: ""}
 )
 
-var categories = []Kategorie{Arbeit,
+var categories = []Kategorie{
+	Arbeit,
 	Bevoelkerung,
 	BildungForschung,
 	FinanzRW,
@@ -78,17 +79,17 @@ func (id *Identfier) String() string {
 	return id.Raw
 }
 
-type OGDTime struct {
+type Time struct {
 	*time.Time
 	Raw    string
 	Format string
 }
 
-func (time *OGDTime) String() string {
+func (time *Time) String() string {
 	return time.Raw
 }
 
-func (ogdtime *OGDTime) UnmarshalJSON(data []byte) error {
+func (ogdtime *Time) UnmarshalJSON(data []byte) error {
 	var raw string
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -159,9 +160,9 @@ func (kat *Kategorie) UnmarshalJSON(data []byte) error {
 type Extras struct {
 	// Core
 	Metadata_Identifier Identfier   `json:"metadata_identifier"` // CKAN uses since API Version 2 a UUID V4, cf. https://github.com/okfn/ckan/blob/master/ckan/model/types.py
-	Metadata_Modified   string      `json:"metadata_modified"`
+	Metadata_Modified   *Time       `json:"metadata_modified"`
 	Categorization      []Kategorie `json:"categorization"`
-	Begin_DateTime      OGDTime     `json:"begin_datetime"`
+	Begin_DateTime      *Time       `json:"begin_datetime"`
 
 	// Optional
 	Schema_Name string `json:"schema_name"`
@@ -175,6 +176,8 @@ type Resource struct {
 	// Optional
 	Resource_Name   string
 	Schema_Language string
+	Created      *Time   `json:"created"`
+	LastModified *Time   `json:"last_modified"`
 }
 
 type MetaData struct {
