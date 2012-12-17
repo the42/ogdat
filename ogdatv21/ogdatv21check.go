@@ -1,4 +1,4 @@
-package ogdat
+package ogdatv21
 
 import (
 	"encoding/csv"

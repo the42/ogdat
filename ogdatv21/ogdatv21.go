@@ -1,4 +1,4 @@
-package ogdat
+package ogdatv21
 
 import (
 	"code.google.com/p/go-uuid/uuid"

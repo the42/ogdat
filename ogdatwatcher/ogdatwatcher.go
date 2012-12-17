@@ -7,7 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/bmizerany/pq"
-	"github.com/the42/ogdat"
+	ogdat "github.com/the42/ogdat/ogdatv21"
 	"io/ioutil"
 	"log"
 	"net/http"
