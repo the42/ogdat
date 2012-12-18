@@ -19,8 +19,9 @@ var isolangfilemap map[string]*ISO6392Lang
 
 func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lang) {
 	reader, err := os.Open(iso639file)
-	defer reader.Close()
+
 	if err == nil {
+		defer reader.Close()
 		isolangfilemap = make(map[string]*ISO6392Lang)
 		csvreader := csv.NewReader(reader)
 		csvreader.Comma = '|'
