@@ -365,5 +365,5 @@ func init() {
 	for idx, val := range categories {
 		categorymap[val.ID] = categories[idx]
 	}
-
+	specmap = loadogdatv21spec(ogdatv21specfile)
 }
