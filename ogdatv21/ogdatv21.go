@@ -2,19 +2,27 @@ package ogdatv21
 
 import (
 	"code.google.com/p/go-uuid/uuid"
+	"encoding/csv"
 	"encoding/json"
+	"github.com/the42/ogdat"
+	"io"
+	"log"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 )
 
 const OGDTimeSpecifier = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
+const ogdatv21specfile = "ogdat_spec-2.1.csv"
 const (
 	OGDTime2 = time.RFC3339Nano
 	OGDTime3 = time.RFC3339
 	OGDTime1 = OGDTimeSpecifier
 	OGDTimeUnknow
 )
+
+var specmap map[int]*ogdat.Beschreibung
 
 type Kategorie struct {
 	NumID       int `json:"-"`
@@ -306,8 +314,56 @@ type MetaData struct {
 	Resource []Resource `json:"resources"`
 }
 
+func loadogdatv21spec(filename string) (specmap map[int]*ogdat.Beschreibung) {
+	reader, err := os.Open(filename)
+	defer reader.Close()
+
+	if err == nil {
+		specmap = make(map[int]*ogdat.Beschreibung)
+		csvreader := csv.NewReader(reader)
+		csvreader.Comma = '|'
+
+		for record, err := csvreader.Read(); err != io.EOF; record, err = csvreader.Read() {
+			if len(record) < 12 {
+				return nil
+			}
+			id, err := strconv.Atoi(record[0])
+			if err != nil {
+				return nil
+			}
+			var occ ogdat.Occurrence
+			switch record[12][0] {
+			case 'R':
+				occ = ogdat.OccRequired
+			case 'O':
+				occ = ogdat.OccOptional
+			}
+			descrecord := ogdat.NewBeschreibung(id, occ, ogdat.Version21)
+			descrecord.ID = id
+			descrecord.Bezeichner = record[1]
+			descrecord.OGD_Kurzname = record[2]
+			descrecord.CKAN_Feld = record[3]
+			descrecord.Anzahl = byte(record[4][0])
+			descrecord.Definition_DE = record[5]
+			descrecord.Erlauterung = record[6]
+			descrecord.Beispiel = record[7]
+			descrecord.ONA2270 = record[8]
+			descrecord.ISO19115 = record[9]
+			descrecord.RDFProperty = record[10]
+			descrecord.Definition_EN = record[11]
+
+			specmap[id] = descrecord
+		}
+		log.Printf("Info: Read %d %s specifiaction records", len(specmap), ogdat.Version21)
+	} else {
+		log.Printf("Warning: Can not read %s specification records", len(isolangfilemap))
+	}
+	return
+}
+
 func init() {
 	for idx, val := range categories {
 		categorymap[val.ID] = categories[idx]
 	}
+
 }
