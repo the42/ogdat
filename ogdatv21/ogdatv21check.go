@@ -19,6 +19,7 @@ var isolangfilemap map[string]*ISO6392Lang
 
 func init() {
 	reader, err := os.Open(iso639file)
+	defer reader.Close()
 	if err == nil {
 		isolangfilemap = make(map[string]*ISO6392Lang)
 		csvreader := csv.NewReader(reader)
@@ -34,7 +35,7 @@ func init() {
 		}
 		log.Printf("Info: Read %d ISO language records", len(isolangfilemap))
 	} else {
-		log.Printf("Warning: Read %d ISO language records", len(isolangfilemap))
+		log.Printf("Warning: Can not read ISO language records")
 	}
 
 }
