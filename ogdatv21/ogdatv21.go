@@ -1,7 +1,6 @@
 package ogdatv21
 
 import (
-	"bufio"
 	"code.google.com/p/go-uuid/uuid"
 	"encoding/csv"
 	"encoding/json"
@@ -317,26 +316,18 @@ type MetaData struct {
 
 func loadogdatv21spec(filename string) (specmap map[int]*ogdat.Beschreibung) {
 	reader, err := os.Open(filename)
-
 	if err == nil {
 		defer reader.Close()
 		specmap = make(map[int]*ogdat.Beschreibung)
-
-		// skip the first line as it contains the field description
-		bufio.NewReader(reader).ReadLine()
-
 		csvreader := csv.NewReader(reader)
 		csvreader.Comma = '|'
+		csvreader.LazyQuotes = true
 
-		for record, err := csvreader.Read(); err != io.EOF; record, err = csvreader.Read() {
-			if len(record) < 12 {
-				return nil
-			}
+		// skip the first line as it contains the field description
+		record, err := csvreader.Read()
 
-			id, err := strconv.Atoi(record[0])
-			if err != nil {
-				return nil
-			}
+		for record, err = csvreader.Read(); err != io.EOF; record, err = csvreader.Read() {
+			id, _ := strconv.Atoi(record[0])
 			var occ ogdat.Occurrence
 			switch record[12][0] {
 			case 'R':
@@ -345,7 +336,7 @@ func loadogdatv21spec(filename string) (specmap map[int]*ogdat.Beschreibung) {
 				occ = ogdat.OccOptional
 			}
 			descrecord := ogdat.NewBeschreibung(id, occ, ogdat.Version21)
-			descrecord.ID = id
+
 			descrecord.Bezeichner = record[1]
 			descrecord.OGD_Kurzname = record[2]
 			descrecord.CKAN_Feld = record[3]
@@ -362,7 +353,7 @@ func loadogdatv21spec(filename string) (specmap map[int]*ogdat.Beschreibung) {
 		}
 		log.Printf("Info: Read %d %s specifiaction records", len(specmap), ogdat.Version21)
 	} else {
-		log.Printf("Warning: Can not read %s specification records", len(isolangfilemap))
+		log.Printf("Warning: Can not read %s specification records from file %s", ogdat.Version21, filename)
 	}
 	return
 }
