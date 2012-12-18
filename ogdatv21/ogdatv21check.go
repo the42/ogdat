@@ -17,7 +17,7 @@ const schema_characterset = "utf8"
 
 var isolangfilemap map[string]*ISO6392Lang
 
-func init() {
+func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lang) {
 	reader, err := os.Open(iso639file)
 	defer reader.Close()
 	if err == nil {
@@ -37,5 +37,9 @@ func init() {
 	} else {
 		log.Printf("Warning: Can not read ISO language records")
 	}
+	return
+}
 
+func init() {
+	isolangfilemap = loadisolanguagefile(iso639file)
 }
