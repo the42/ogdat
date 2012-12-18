@@ -10,9 +10,9 @@ const (
 type Occurrence int
 
 const (
-	OcUndef Occurrence = iota
-	OcRequired
-	OcOptional
+	OccUndef Occurrence = iota
+	OccRequired
+	OccOptional
 )
 
 func (desc *Beschreibung) Version() string {
