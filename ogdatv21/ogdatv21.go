@@ -1,6 +1,7 @@
 package ogdatv21
 
 import (
+	"bufio"
 	"code.google.com/p/go-uuid/uuid"
 	"encoding/csv"
 	"encoding/json"
@@ -316,10 +317,14 @@ type MetaData struct {
 
 func loadogdatv21spec(filename string) (specmap map[int]*ogdat.Beschreibung) {
 	reader, err := os.Open(filename)
-	defer reader.Close()
 
 	if err == nil {
+		defer reader.Close()
 		specmap = make(map[int]*ogdat.Beschreibung)
+
+		// skip the first line as it contains the field description
+		bufio.NewReader(reader).ReadLine()
+
 		csvreader := csv.NewReader(reader)
 		csvreader.Comma = '|'
 
@@ -327,6 +332,7 @@ func loadogdatv21spec(filename string) (specmap map[int]*ogdat.Beschreibung) {
 			if len(record) < 12 {
 				return nil
 			}
+
 			id, err := strconv.Atoi(record[0])
 			if err != nil {
 				return nil
