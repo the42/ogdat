@@ -28,8 +28,8 @@ type Beschreibung struct {
 	Bezeichner    string
 	OGD_Kurzname  string
 	CKAN_Feld     string
-	Anzahl        int
-	Defintion_DE  string
+	Anzahl        byte
+	Definition_DE string
 	Erlauterung   string
 	Beispiel      string
 	ONA2270       string
