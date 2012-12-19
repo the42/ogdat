@@ -314,6 +314,15 @@ type MetaData struct {
 	Resource []Resource `json:"resources"`
 }
 
+func GetSpecForID(id int) *ogdat.Beschreibung {
+	if specmap != nil {
+		if spec, ok := specmap[id]; ok {
+			return spec
+		}
+	}
+	return nil
+}
+
 func loadogdatv21spec(filename string) (specmap map[int]*ogdat.Beschreibung) {
 	reader, err := os.Open(filename)
 	if err == nil {
