@@ -10,6 +10,6 @@ func TestLoadOGDATV21SpecFile(t *testing.T) {
 			// t.Error("SUCCESS")
 		}
 	} else {
-	  t.Log("Specification file %s not loaded", ogdatv21specfile)
+		t.Log("Specification file %s not loaded", ogdatv21specfile)
 	}
 }
