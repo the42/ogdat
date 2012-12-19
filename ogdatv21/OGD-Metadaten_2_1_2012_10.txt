@@ -1,0 +1,2959 @@
+Cooperation OGD Österreich:
+Arbeitsgruppe Metadaten
+
+White Paper
+OGD Metadaten – 2.1
+Ergebnis der AG
+
+Kurzbeschreibung
+
+Primäre Aufgabe der Arbeitsgruppe Metadaten (AG) war die Entwicklung
+einer Metadatenstruktur, die als Empfehlung für OGD in Österreich
+verwendet werden soll. Es wurde auch die INSPIRE-Relevanz
+berücksichtigt.
+Als Ergebnis liegen ein sogenannter Metadatenkern, zusätzlich optionale
+Attribute und das Vokabular zum Metadatenkatalog Österreich vor.
+
+AutorInnen:
+
+Beiträge von:
+
+Christian Habernig (Stadt Wien),
+Robert Harm
+(Bundesrechenzentrum GmbH),
+Johann Höchtl (DonauUniversität Krems),
+Wolfgang Jörg (Stadt Wien),
+Martin Kaltenböck (Semantic
+Web Company),
+Brigitte Lutz (Stadt Wien),
+Manfred Mittlböck (Research
+Studios Austria Forschungsgesellschaft mbH),
+Stefan Pawel (Stadt Linz)
+
+Projektteam / Arbeitsgruppe
+
+Arbeitsgruppe Metadatenstruktur der
+Cooperation OGD Österreich
+
+Christian Aistleitner, Thomas Burg (STATISTIK AUSTRIA), Stefan Dürauer
+(Stadt Wien), Gregor Eibl (Bundeskanzleramt), Johannes Forsthuber
+GmbH, Roland Grillmayer (FH Wiener Neustadt), Gerhard Hartmann
+(Stadt Wien), Dominik Klauser (Bundeskanzleramt), Gustav Lebhart
+(Stadt Wien), Rudolf Legat (Umweltbundesamt), Erik Obersteiner
+(Umweltbundesamt), Carl-Markus Piswanger (Bundesrechenzentrum
+GmbH), Rainer Prager (Land Niederösterreich), Michael Rederer (Stadt
+Wien), Thomas Thurner (Semantic Web Company), Wolfgang Tinkl
+(Land-, forst- und wasserwirtschaftliches Rechenzentrum GmbH)
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 2 von 29
+Version 1.0: 24.10.2011
+Version 1.1: 12.03.2012
+Version 2.0: 10.10.2012
+Version 2.1: 15.10.2012
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 3 von 29
+
+Inhaltsverzeichnis
+
+(1)
+
+ALLGEMEINES ......................................................................................................................................... 4
+
+(2)
+
+MANAGEMENT SUMMARY ................................................................................................................... 4
+
+(3)
+
+ÄNDERUNGEN GEGENÜBER OGD METADATEN - 1.1 .................................................................. 5
+
+(4)
+
+IMPLEMENTIERUNGSHINWEISE ....................................................................................................... 6
+
+(5)
+
+GRUNDLAGEN ZUR METADATENSTRUKTUR ................................................................................ 7
+
+(6)
+
+ÜBERSICHT OGD METADATENFELDER 2.0 ..................................................................................... 8
+
+(7)
+
+METADATENKERN.................................................................................................................................. 9
+
+(8)
+
+ZUSÄTZLICHE OPTIONALE METADATENFELDER .................................................................... 15
+
+(9)
+
+VOKABULAR ZUR METADATENSTRUKTUR ................................................................................. 26
+A)
+B)
+C)
+D)
+
+OGD-FORMATE ........................................................................................................................................ 26
+KATEGORIEN ............................................................................................................................................. 27
+AKTUALISIERUNGSZYKLUS.......................................................................................................................... 28
+RDF NAMESPACE-PREFIXES UND IHRE VOLLSTÄNDIGEN URIS .................................................................... 29
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 4 von 29
+
+Cooperation OGD Österreich: Abschlussbericht
+der Arbeitsgruppe Metadaten
+
+(1) Allgemeines
+Die Cooperation OGD Österreich hat beim Treffen am 13. Juli 2011 in Wien beschlossen,
+eine Arbeitsgruppe Metadaten (AG Metadaten) ins Leben zu rufen, welche eine Empfehlung
+für die Metadatenstruktur für Open Government Data (OGD) in Österreich erarbeiten soll.
+Der Bericht der Arbeitsgruppe unter der Leitung der Stadt Wien wurde am 24.10.2011 als
+White Paper „OGD Metadaten - 1.0“ veröffentlicht.
+Aus den Ergebnissen der Abstimmungen mit weiteren Stakeholdern (z.B. INSPIRE) wurde
+„OGD Metadaten - 1.1“ erarbeitet und am 12.03.2012 veröffentlicht.
+In „OGD Metadaten - 2.0“ sind Stellungnahmen zur Version 1.1 eingeflossen und die
+Erfahrungen der OGD-Implementierungen seit Veröffentlichung von „OGD Metadaten - 1.1“.
+Insbesondere wurden die Erfahrungen, die bei der Integration der OGD-Portale der Städte
+und Länder in das Portal data.gv.at gemacht worden sind, einbezogen.
+Zur Verbesserung der Lesbarkeit und zum leichteren Verständnis wurden die
+Tabellendarstellungen, Erläuterungstexte und diverse Bezeichnungen geändert.
+
+(2) Management Summary
+Das Dokument enthält einen Vorschlag für die OGD - Metadatendefinition 2.0 der
+Cooperation OGD Österreich.
+Als Ergebnisse liegen vor
+•
+
+Metadatenkern mit 11 Pflichtfeldern
+
+•
+
+20 zusätzliche empfohlene optionale Metadatenfelder
+
+im Anhang:
+•
+
+Übersicht zu OGD-Formaten
+
+•
+
+Katalog für Kategorien
+
+•
+
+Codeliste „Aktualisierungszyklus“
+
+•
+
+RDF Namespace-Prefixes und ihre vollständigen URIs
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 5 von 29
+
+(3) Änderungen gegenüber OGD Metadaten - 1.1
+•
+
+In OGD Metadaten - 1.1 werden die Begriffe „Datensatz“ und „Ressource“ oft in der
+gleichen Bedeutung verwendet. In OGD Metadaten - 2.0 wird statt der beiden Begriffe
+der Begriff: „Datensatz oder Dienst“ verwendet. Das hat zur Folge, dass sich die
+Bezeichnungen (Namen) von Metadatenfeldern geändert haben (ID 14,15,16,29).
+
+•
+
+Jedes Metadatenfeld wird mit allen Elementen übersichtlich beschrieben.
+Aus Gründen der Lesbarkeit wurden Überschriften der beschreibenden Elemente
+geändert:
+OGD Metadaten - 1.1
+Beschreibung Deutsch
+Beschreibung Englisch
+Kommentar
+
+OGD Metadaten - 2.0
+Definition
+Definition Englisch
+Erläuterung
+
+•
+
+Die Metadatenfelder erhalten zusätzliche beschreibende Elemente (CKAN Feld, Beispiel,
+ON A 2270:2010 und ON/EN/ISO 19115:2003 und RDF Properties).
+
+•
+
+Die RDF Properties sind mit dem DCAT Modell gemappt, das bedeutet die volle
+Kompatibilität mit der Empfehlung der EC (ISA Programm) sowie des W3C (GLD
+Working Group Empfehlung).
+
+•
+
+Der Inhalt des Feldes „Erläuterung“ wurde so gestaltet, dass er auch als Hilfetext z.B.
+in CKAN geeignet ist.
+
+•
+
+Die Definition der Metadatenfelder, die Kategorien und die Codeliste für den
+Aktualisierungszyklus liegen in Englisch vor (zwecks internationaler Überprüfbarkeit,
+bietet eine erste Empfehlung für verwendete Vokabulare und ermöglicht eine erste
+Evaluierung von Listen zur Hinterlegung von Kategorien, etc.).
+
+•
+
+Feld ID=1: CKAN Zuordnung geändert.
+
+•
+
+Feld ID=5: Name und CKAN Zuordnung geändert
+
+•
+
+Feld ID=6: Erläuterungstext angepasst und Kardinalität / Anzahl auf N geändert.
+
+•
+
+Eine der wichtigsten Änderungen betrifft das Metadatenfeld mit ID=14 „Datensatz oder
+Dienst Link“ (in OGD Metadaten -1.1 „Ressourcen-Link“).
+In OGD-Metadaten - 2.0 wird empfohlen in „Datensatz oder Dienst Link“ nur dann auf
+mehrere Datensätze zu verlinken, wenn sichergestellt ist, dass diese tatsächlich
+vergleichbare Inhalte aufweisen.
+Das ist gegeben, wenn beispielsweise auf gleiche Datensätze in unterschiedlichen
+Formaten verwiesen wird.
+Das ist nicht gegeben, wenn beispielsweise auf Datensätze einer Zeitreihe verwiesen
+wird, die mit unterschiedlichen, nicht vergleichbaren Erhebungsmethoden entwickelt
+wurden.
+Im Zweifelsfall ist für jeden Datensatz ein eigenes Metadatenblatt anzulegen!
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 6 von 29
+•
+
+Da für die meisten Datensätze eigene Metadatenblätter angelegt werden, wurde das
+Metadatenfeld ID=16 „Datensatz oder Dienst Bezeichner“ (in OGD Metadaten –
+1.1 „Ressourcen-Titel“) optional gesetzt und somit aus dem Metadatenkern entfernt.
+Auf bisherige Implementierungen hat das keinen Einfluss.
+Die Implementierung von Metadatenblättern wird somit einfacher: das Feld ID=16
+„Datensatz oder Dienst Bezeichner“ muss nicht zwangsweise ausgefüllt werden, d.h.
+mit dem gleichen Wert wie Feld ID=8 „Titel“ belegt werden.
+
+•
+
+Für ID=19 „Datenverantwortliche Stelle“ wurde in OGD Metadadaten – 1.1 das CKAN
+Feld author verwendet. Im Sinne der Bedeutung der datenverantwortlichen Stelle wird
+in OGD Metadaten – 2.0 das CKAN Feld maintainer verwendet.
+
+•
+
+In OGD-Metadaten - 2.0 wurden die optionalen Felder ID=30 „Lizenz Zitat“, ID=31
+„Sprache des Datensatzes oder Dienstes“ und ID=32 „Character Set Code des
+Datensatzes oder Dienstes“ eingeführt.
+
+•
+
+Das CKAN Attribut „name“ wird in OGD-Metadaten - 2.0 nicht verwendet.
+
+(4) Implementierungshinweise
+Standardmäßig vergeben Aggregationsportale wie data.gv.at auf CKAN-Basis eine eigene ID
+(CKAN-Feld „id“) auch für geharvestete Daten von anderen Portalen.
+Auch das Feld "Datum des Metadatensatzes" wird automatisch beim Erstellen eines
+Datensatzes neu erzeugt.
+Um eine Nachvollziehbarkeit über mehrere Datenportale (z.B Lokal - National - EU)
+sicherzustellen, müssen zwingend die eindeutigen Identifier der Quellsysteme ins Zielsystem
+übernommen werden. Bei der Verwendung von CKAN muss daher das CKAN-Feld
+"extras:metadata_identifier" (ID=1) zur eindeutigen Identifizierung verwendet werden - die
+Harvester sind dementsprechend zu konfigurieren und die Anzeige im Frontend muss dies
+ebenfalls berücksichtigen.
+Für das Feld "Datum des Metadatensatzes" darf daher auch nicht das Standard-Feld
+„metadata_date“ verwendet werden, sondern das CKAN-Feld "extras:metadata_modified"
+(ID=5).
+Eine empfohlene Umsetzung dieser Logik zur Befüllung von Metadatenblätten in den
+Stammportalen ist es, eine Datenbankprozedur zu implementieren, welche automatisch beim
+Erstellen eines Datensatzes den Wert des CKAN-Feldes „id“ in das Feld
+„extras:metadata_identifier“ und den Wert des Feldes „metadata_date“ in das Feld
+„extras:metadata_modified“ kopiert.
+Alternativ können diese Felder natürlich auch manuell befüllt werden. Es muss lediglich
+sichergestellt sein, dass eine UUID (nach RFC:4122) vergeben wird und z.B. keine ID wie 1,
+2 oder 3, weil dadurch die Eindeutigkeit nach Aggregation durch Metadatenportale nicht
+garantiert werden kann.
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 7 von 29
+
+(5) Grundlagen zur Metadatenstruktur
+•
+
+Der Metadatenkern beinhaltet ausschließlich Pflichtfelder
+
+•
+
+Als Designrichtlinie wurde festgesetzt, die Anzahl der Attribute des Metadatenkerns,
+also jene Attribute, die jedenfalls zu befüllen sind, so gering als möglich zu halten.
+
+•
+
+Die Pflichtfelder des Metadatenkerns müssen angeführt werden, ansonsten kann der
+OGD-Metadatensatz nicht als gültig betrachtet werden. Dies ist deswegen notwendig,
+da bei Nichtangabe die Integrität der verschiedenen Kataloge bei einer (künftigen)
+Vernetzung sehr stark gefährdet, wenn nicht gar unmöglich wäre.
+
+•
+
+Für die Metadatenstruktur OGD Österreich werden zusätzliche optionale
+Metadatenfelder angeboten, die kein Bestandteil des Metadatenkerns und auch keine
+Pflichtfelder sind.
+
+•
+
+Jedes optionale OGD-Metadatenfeld sollte jedoch angeführt und dokumentiert werden,
+wenn ausreichend Information für das jeweilige Metadatenfeld vorhanden sind.
+
+•
+
+ALLE OGD-Metadatenfelder sollen für die Dokumentation österreichischer OGD
+Datensätze oder Dienste (Dokumente, Services, Medien etc.) angegeben werden.
+
+•
+
+Jede OGD Community ist darüber hinaus eingeladen, eigene zusätzliche
+Metadatenfelder frei zu definieren und in das jeweilige Community Profil zu integrieren.
+Diese Metadatenfelder stellen aber keinen Bestandteil der Metadatenstruktur für OGD
+Österreich dar.
+
+•
+
+Bei INSPIRE – Daten übernimmt bzw. harvestet ein OGD-Metadatensatz die
+entsprechenden INSPIRE-Metadaten. Es ist nicht vorgesehen, dass INSPIRE OGDMetadaten harvestet.
+
+•
+
+Ein Metadatenblatt muss sowohl für den Menschen, als auch für die „Maschine“ gut
+lesbar und interpretierbar sein.
+
+•
+
+Die Metadatenstruktur muss erweiterbar sein. D.h. sie muss ermöglichen, Attribute zu
+ergänzen, was bedeutet, dass mehrere Versionen der empfohlenen Metadatenstruktur
+zulässig sind. Dies bedeutet, dass die Versionen voneinander eindeutig unterscheidbar
+sein müssen.
+
+•
+
+Die Metadatenstruktur soll in Hinsicht auf international vorhandene
+Metadatenstrukturen im Bereich Open (Government) Data kompatibel sein
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 8 von 29
+
+(6) Übersicht OGD Metadatenfelder 2.0
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+metadata_identifier
+
+extras:metadata_identifier
+
+Datum des Metadatensatzes
+
+metadata_modified
+
+extras:metadata_modified
+
+8
+
+Titel
+
+title
+
+title
+
+9
+
+Beschreibung
+
+description
+
+notes
+
+10
+
+Kategorie
+
+categorization
+
+extras: categorization[“…“,“…“]
+
+11
+
+Schlagworte
+
+keywords
+
+Tags
+
+14
+
+Datensatz oder Dienst Link
+
+resource_url
+
+resources:url
+
+15
+
+Datensatz oder Dienst Format
+
+resource_format
+
+resources:format
+
+19
+
+Datenverantwortliche Stelle
+
+maintainer
+
+maintainer
+
+21
+
+Lizenz
+
+license
+
+license
+
+24
+
+Zeitliche Ausdehnung (Anfang)
+
+begin_datetime
+
+extras:begin_datetime
+
+2
+
+Bezeichnung der Metadatenstruktur
+
+schema_name
+
+extras:schema_name
+
+3
+
+Sprache des Metadatensatzes
+
+schema_language
+
+extras:schema_language
+
+4
+
+Character Set Code des Metadatensatzes
+
+schema_characterset
+
+extras:schema_characterset
+
+6
+
+Weiterführende Metadaten
+
+metadata_linkage
+
+extras:metadata_linkage
+
+12
+
+Attributbeschreibung
+
+attribute_description
+
+extras:attribute_description
+
+13
+
+Kontaktseite der datenverantwortlichen Stelle
+
+maintainer_link
+
+extras:maintainer_link
+
+16
+
+Datensatz oder Dienst Bezeichner
+
+resource_name
+
+resources:name
+
+17
+
+Datensatz oder Dienst Veröffentlichungsdatum
+
+resource_created
+
+resources:created
+
+18
+
+Datensatz oder Dienst Änderungsdatum
+
+resource_lastmodified
+
+resources:last_modified
+
+20
+
+Veröffentlichende Stelle
+
+publisher
+
+extras:publisher
+
+22
+
+Geographische Abdeckung/Lage
+
+geographic_toponym
+
+extras:geographic_toponym
+
+23
+
+Geographische Ausdehnung
+
+geographic_bbox
+
+extras:geographic_bbox
+
+25
+
+Zeitliche Ausdehnung (Ende)
+
+end_datetime
+
+extras:end_datetime
+
+26
+
+Aktualisierungszyklus
+
+update_frequency
+
+extras:update_frequency
+
+27
+
+Datenqualität/Herkunft
+
+lineage_quality
+
+extras:lineage_quality
+
+28
+
+Titel und Beschreibung Englisch
+
+en_title_and_desc
+
+extras:en_title_and_desc
+
+29
+
+Größe des Datensatzes oder Dienstes
+
+resource_size
+
+resources:size
+
+30
+
+Lizenz Zitat
+
+license_citation
+
+extras:license_citation
+
+31
+
+Sprache des Datensatzes oder Dienstes
+
+resource_language
+
+resources:language
+
+32
+
+Zusätzliche optionale Metadatenfelder
+
+Eindeutiger Identifikator
+
+5
+
+Metadatenkern
+
+1
+
+Character Set Code des Datensatzes oder Dienstes
+
+resource_encoding
+
+resources:characterset
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Metadatenkern
+
+Seite 9 von 29
+
+(7) Metadatenkern
+11 Pflichtfelder bilden den „Metadatenkern“.
+
+Eindeutiger Identifikator
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+1
+
+Eindeutiger Identifikator
+
+metadata_identifier
+
+extras:
+metadata_identifier
+
+1
+
+Definition
+
+Eindeutiger Identifikator für den Metadatensatz. Der Eintrag beschreibt die
+eindeutige Identifikation für einen Metadatensatz. Es sollte eine UUID (nach
+RFC:4122) gewählt werden.
+
+Erläuterung
+
+Der Identifikator soll automatisch vom System (Software) generiert werden.
+Falls dieser vorhanden ist (Harvesten bestehender Metadatensätze) muss
+dieser übernommen werden.
+
+Beispiel
+
+550e8400-e29b-11d4-a716-446655441234
+
+ON A
+2270:2010
+
+1.1
+
+ON/EN/ISO
+19115:2003
+
+mdFileID (2)
+
+RDF property
+
+dcterms:identifier
+
+Definition
+Englisch
+
+Unique Identifier of metadata. Should the a UUID conforming to RFC:4122
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Metadatenkern
+
+Seite 10 von 29
+
+Datum des Metadatensatzes
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+5
+
+Datum des Metadatensatzes
+
+metadata_modified
+
+extras:
+metadata_modified
+
+1
+
+Definition
+
+Datum, an dem der Metadatensatz erzeugt bzw. aktualisiert wurde. Die
+Datumsangabe erfolgt gemäß ÖNORM ISO 8601 YYYY-MM-DD.
+
+Erläuterung
+
+Datum, an dem der Metadatensatz erzeugt bzw. aktualisiert wurde. Dieses
+Metadatenelement sollte automatisch vom System (Software) befüllt
+werden. Wird für eine inkrementelle Aktualisierung (Harvesten) in einem
+Metadatenverbund benötigt.
+
+Beispiel
+
+2011-05-22
+
+ON A
+2270:2010
+
+1.6
+
+ON/EN/ISO
+19115:2003
+
+mdDateSt (9)
+
+RDF property
+
+dcterms:issued
+
+Definition
+Englisch
+
+Metadata creation or update timestamp. Specification according to ÖNORM
+ISO 8601 as YYYY-MM-DD
+
+Titel
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+8
+
+Titel des Metadatensatzes
+
+title
+
+title
+
+1
+
+Definition
+
+Titel des beschriebenen Metadatensatzes.
+
+Erläuterung
+
+Titel des beschriebenen Metadatensatzes.
+
+Beispiel
+
+Schulstandorte, Pendlerstatistik Linz 2010
+
+ON A
+2270:2010
+
+2.1.1
+
+ON/EN/ISO
+19115:2003
+
+resTitle (360)
+
+RDF property
+
+dcterms:title (mit language tag "de")
+
+Definition
+Englisch
+
+Resource title
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Metadatenkern
+
+Seite 11 von 29
+
+Beschreibung
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+9
+
+Beschreibung
+
+description
+
+notes
+
+1
+
+Definition
+
+Inhaltliche Beschreibung des Datensatzes bzw. Dienstes.
+
+Erläuterung
+
+Kurze inhaltliche Beschreibung des Datensatzes bzw. Dienstes für
+BenutzerInnen.
+
+Beispiel
+
+Hauptwohnsitzbevölkerung der Stadt Linz für das Jahr 2010 gruppiert nach
+Geschlecht, Alter etc..
+
+ON A
+2270:2010
+
+2.2
+
+ON/EN/ISO
+19115:2003
+
+idAbs (25)
+
+RDF property
+
+dcterms:abstract
+
+Definition
+Englisch
+
+Description of the resources content.
+
+Kategorie
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+10
+
+Kategorie
+
+categorization
+
+extras:
+categorization[“…“,“…“]
+
+N
+
+Definition
+
+Kategorisierung des Datensatzes bzw. Dienstes. Vorgegebenes
+Kategorienschema für Österreich, siehe Anhang b).
+
+Erläuterung
+
+Es muss die Zuordnung des Datensatzes bzw. Dienstes an das
+vorgegebene Kategorienschema durchgeführt und zur Anwendung gebracht
+werden. Mehrfachzuordnungen sind möglich.
+
+Beispiel
+
+Gesundheit
+
+ON A
+2270:2010
+
+2.7.1 & 2.7.2
+
+ON/EN/ISO
+19115:2003
+
+keyword (53) & thesaName (55)
+
+RDF property
+
+dcat:theme
+
+Definition
+Englisch
+
+Categorisation of the resources content.
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Metadatenkern
+
+Seite 12 von 29
+
+Schlagworte
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+11
+
+Schlagworte
+
+keywords
+
+tags
+
+N
+
+Definition
+
+Beschlagwortung des Datensatzes bzw. Dienstes.
+
+Erläuterung
+
+Beschlagwortung des Datensatzes bzw. Dienstes.
+
+Beispiel
+
+Habitatmodell, Braunbär, Ursus arctos
+
+ON A
+2270:2010
+
+2.7.1
+
+ON/EN/ISO
+19115:2003
+
+keyword (53)
+
+RDF property
+
+dcat:keyword
+
+Definition
+Englisch
+
+Key words describing the resource
+
+Datensatz oder Dienst Link
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+14
+
+Datensatz oder Dienst Link
+
+resource_url
+
+resources:url
+
+N
+
+Definition
+
+URL für den Zugriff auf den Datensatz oder Dienst
+
+Erläuterung
+
+URL für den Zugriff auf den Datensatz oder Dienst. Die Angabe zielt auf
+unterschiedliche Daten- und Dienstformate ab. Es muss sichergestellt sein,
+dass ausschließlich vergleichbare Information in einer Datensatz/Dienstegruppe abgebildet werden. Im Zweifelsfall sollen eigenständige
+Metadatensätze angelegt werden.
+
+Beispiel
+
+http://www.wien.gv.at/statistik/ogd/vie-district-pop-foreignborn.csv
+
+ON A
+2270:2010
+
+6.1.4.1.1
+
+ON/EN/ISO
+19115:2003
+
+linkage (397)
+
+RDF property
+
+dcat:accessURL
+
+Definition
+Englisch
+
+URL to the resource
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Metadatenkern
+
+Seite 13 von 29
+
+Datensatz oder Dienst Format
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+15
+
+Datensatz oder Dienst Format
+
+resource_format
+
+resources:format
+
+N
+
+Definition
+
+Angabe zum Format des Datensatzes oder Dienstes. Diese ist als
+Dateiformat, Download- oder Service- Link anzugeben. Liste von OGD
+Formaten, siehe Anhang a).
+
+Erläuterung
+
+OGD-Formate sollten grundsätzlich offene, maschinenlesbare Formate
+sein. Das bedeutet, dass publizierte Spezifikationen existieren und die
+Formate ohne rechtliche Einschränkungen genutzt werden können. Die
+Angabe soll ohne Punkt und in Kleinbuchstaben erfolgen.
+
+Beispiel
+
+csv
+
+ON A
+2270:2010
+
+6.1.2.1
+
+ON/EN/ISO
+19115:2003
+
+formatName (285)
+
+RDF property
+
+dcterms:format
+
+Definition
+Englisch
+
+Specification of the resource. This may be a file type, download or service
+link. List of defined OGD formats in Appendix a).
+
+Datenverantwortliche Stelle
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+19
+
+Datenverantwortliche
+Stelle
+
+maintainer
+
+maintainer
+
+1
+
+Definition
+
+Bezeichnung bzw. Name der für den Datensatzes oder Dienst zuständigen
+Organisation bzw. Person
+
+Erläuterung
+
+Bezeichnung bzw. Name der für den Datensatzes oder Dienst zuständigen
+Organisation bzw. Person, kann in kleinen Organisationen gleichzeitig die
+veröffentlichende Stelle sein.
+
+Beispiel
+
+Magistrat Wien - Magistratsabteilung 33 - Wien Leuchtet
+
+ON A
+2270:2010
+
+2.5.1 / 2.5.2
+
+ON/EN/ISO
+19115:2003
+
+rpIndName (375) / rpOrgName (376)
+
+RDF property
+
+dcelements:creator
+
+Definition
+Englisch
+
+Name of the person or entity responsible for the resource.
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Metadatenkern
+
+Seite 14 von 29
+
+Lizenz
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+21
+
+Lizenz
+
+license
+
+license
+
+1
+
+Definition
+
+Rechtliche Nutzungsinformationen für die Verwendung des Datensatzes
+oder Dienstes.
+
+Erläuterung
+
+Angabe der Lizenzform für den Datensatz oder den bereitgestellten Dienst.
+Bei OGD Daten bezieht sich dies auf Creative Commons "Namensnennung
+3.0 Österreich (CC BY 3.0) ".
+
+Beispiel
+
+Namensnennung 3.0 Österreich (CC BY 3.0)
+
+ON A
+2270:2010
+
+2.8.1.1
+
+ON/EN/ISO
+19115:2003
+
+othConsts (72)
+
+RDF property
+
+dcterms:license (sollte URI des Lizenzdokuments sein)
+
+Definition
+Englisch
+
+Legal information concerning the usage of the resource
+
+Zeitliche Ausdehnung (Anfang)
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+24
+
+Zeitliche Ausdehnung
+(Anfang)
+
+begin_datetime
+
+extras:begin_datetime
+
+1
+
+Definition
+Erläuterung
+Beispiel
+
+Element zur Erfassung des Beginns der Gültigkeit eines Datensatzes oder
+Dienstes.
+Element zur zeitlichen Erfassung eines Datensatzes oder Dienstes. Die
+Angabe des Zeitpunktes erfolgt in folgender Form YYYY-MM-DDThh:mm:ss.
+TM_Primitive (nach ON EN 8601 bzw. ON EN ISO 19108).
+2008-12-23T22:30:12
+
+ON A
+2270:2010
+
+2.9.6.2.1
+
+ON/EN/ISO
+19115:2003
+
+exTemp (351)
+
+RDF property
+
+dcterms:temporal
+
+Definition
+Englisch
+
+Date specifying valid from of the resource according to ON EN 8601 or ON
+EN ISO 19108 respectively.
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 15 von 29
+
+(8) Zusätzliche optionale Metadatenfelder
+Für die Metadatenstruktur OGD Österreich werden 20 zusätzliche optionale Metadatenfelder
+angeboten, die kein Bestandteil des Metadatenkerns und auch keine Pflichtfelder sind.
+Jedes optionale OGD- Metadatenelement sollte jedoch angeführt und dokumentiert werden,
+wenn ausreichend Information für das jeweilige Metadatenelement vorhanden sind.
+Wenn es implementierungstechnisch erforderlich ist (z.B. bei CKAN-Instanzen), können
+optionale Felder wie ID16 auch als Pflichtfelder in Formularen umgesetzt werden. Eine
+Implementierung von Pflichtfeldern als optionale Felder darf jedoch auf keinen Fall
+durchgeführt werden.
+Datensatz oder Dienst Bezeichner
+Dieses Metadatenelement war in OGD Metadaten - 1.1 im Metadatenkern, d.h. ein
+Pflichtfeld und ist ab OGD Metadaten- 2.0 ein optionales Metadatenfeld!
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+16
+
+Datensatz oder Dienst
+Bezeichner
+
+resource_name
+
+resources:name
+
+N
+
+Definition
+
+Bezeichner für den einzelnen Datensatz bzw. Dienst. Das Attribut
+korrespondiert mit dem Metadaten – Datensatz oder Dienst Link (ID 14).
+
+Erläuterung
+
+CKAN verwendet dieses optionale Element als Bezeichner für die URL, die
+auf den Datensatz oder Dienst zeigt.
+
+Beispiel
+
+Hauptwohnsitzbevölkerung
+
+ON A
+2270:2010
+
+2.1.1 + 6.1.2.1
+
+ON/EN/ISO
+19115:2003
+
+-
+
+RDF property
+
+rdfs:literal
+
+Definition
+Englisch
+
+Specifier for the single resource link within a metadata sheet. Will be used
+as an end user friendly text instead of the resource link.
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 16 von 29
+
+Bezeichnung der Metadatenstruktur
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+2
+
+Bezeichnung der
+Metadatenstruktur
+
+schema_name
+
+extras:schema_name
+
+1
+
+Definition
+
+Name der Metadatenstruktur
+
+Erläuterung
+
+Die Angabe für OGD Metadaten ist optional, sollte aber wenn möglich
+erfolgen. Bei einer Adaptierung der OGD Metadatenstruktur wird eine
+konsistente Metadatenführung erleichtert. Dieses Metadatenelement sollte
+automatisch vom System (Software) befüllt werden
+
+Beispiel
+
+OGD Austria Metadata 2.0
+
+ON A
+2270:2010
+
+1.4
+
+ON/EN/ISO
+19115:2003
+
+mdStanName (10)
+
+RDF property
+
+dcterms:alternative
+
+Definition
+Englisch
+
+OGD Austria Metadata 2.0.
+
+Sprache des Metadatensatzes
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+3
+
+Sprache des
+Metadatensatzes
+
+schema_language
+
+extras:
+schema_language
+
+1
+
+Definition
+
+ISO 639-2 dreistelliger ISO Sprachcode für den Metadatensatz
+
+Erläuterung
+
+Sprache in welcher der Metadatensatz erstellt wurde. Dieses
+Metadatenelement sollte automatisch vom System (Software) befüllt werden
+
+Beispiel
+
+ger
+
+ON A
+2270:2010
+
+1.2
+
+ON/EN/ISO
+19115:2003
+
+mdLang (3)
+
+RDF property
+
+dcterms:language
+
+Definition
+Englisch
+
+Metadata language, always ger (German)
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 17 von 29
+
+Character Set Code des Metadatensatzes
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+4
+
+Character Set Code
+des Metadatensatzes
+
+schema_characterset
+
+extras:
+schema_characterset
+
+1
+
+Definition
+
+Characterset Code zur Beschreibung des Metadatensatzes nach ISO\IEC
+10646-1
+
+Erläuterung
+
+Für eine europäische Integration wird dieses Metadatenelement zwingend
+gebraucht, da eine Zusammenführung sonst nicht möglich ist. Dieses
+Metadatenelement sollte automatisch vom System (Software) befüllt
+werden.
+
+Beispiel
+
+utf8
+
+ON A
+2270:2010
+
+1.3
+
+ON/EN/ISO
+19115:2003
+
+mdC (4)
+
+RDF property
+
+cnt:characterEncoding
+
+Definition
+Englisch
+
+Metadata payload character encoding, always utf8
+
+Weiterführende Metadaten
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+6
+
+Weiterführende
+Metadaten
+
+metadata_linkage
+
+extras:
+metadata_linkage
+
+N
+
+Definition
+
+URL zu erweiterten Metadaten des Datensatzes bzw. Dienstes
+
+Erläuterung
+
+URL zur weiteren ausführlicheren Beschreibung der Metadaten. Optional.
+Der originäre Metadaten Link ist anzugeben.
+Links auf zusätzliche Informationen in anderen Metadatenkatalogen können
+angeführt werden.
+
+Beispiel
+
+http://data.wien.gv.at/katalog/bevoelkerung-geburtsbundesland-wien.html
+
+ON A
+2270:2010
+
+1.7.11
+
+ON/EN/ISO
+19115:2003
+
+linkage (397)
+
+RDF property
+
+dcat:dataDictionary
+
+Definition
+Englisch
+
+URL providing further descriptive metadata
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 18 von 29
+
+Attributbeschreibung
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+12
+
+Attributbeschreibung
+
+attribute_description
+
+extras:
+attribute_description
+
+1
+
+Definition
+
+Beschreibung der Attributinformation des Datensatzes bzw. Dienstes
+
+Erläuterung
+
+Menschenlesbare Beschreibung der Bedeutung der Datenfelder in einem
+Datensatz bzw. Dienst
+
+Beispiel
+
+ADRESSE: Adresse (Straßenname, Orientierungsnummer);
+OEFFNUNGSZEITEN1-6: Öffnungszeiten; TELEFON: Telefonnummer,
+DISTRICT_CODE: Gemeindebezirkskennzahl, ACCOUNTS_TRANSFER:
+Laufende Transferzahlungen
+
+ON A
+2270:2010
+
+2.11.3 & 2.11.4
+
+ISO
+19110:2005
+
+memberName (4.1) & definition (4.2)
+
+RDF property
+
+dcterms:description
+
+Definition
+Englisch
+
+Human-readable description of dataset fields
+
+Kontaktseite der datenverantwortlichen Stelle
+ID
+13
+
+Bezeichner
+Kontaktseite der
+datenverantwortlichen
+Stelle
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+maintainer_link
+
+extras:
+maintainer_link
+
+1
+
+Definition
+
+Kontaktseite der datenverantwortlichen Stelle
+
+Erläuterung
+
+URL zur daten- bzw. dienstverantwortlichen Stelle
+
+Beispiel
+
+http://www.wien.gv.at/freizeit/bildungjugend/
+
+ON A
+2270:2010
+
+6.1.1.1.6
+
+ON/EN/ISO
+19115:2003
+
+Linkage (397)
+
+RDF property
+
+dcterms:creator
+
+Definition
+Englisch
+
+URL to the dataset maintainig entity
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 19 von 29
+
+Veröffentlichungsdatum
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+17
+
+Datensatz oder Dienst
+Veröffentlichungsdatum
+
+resource_created
+
+resources:created
+
+1
+
+Definition
+
+Datum der Veröffentlichung des Datensatzes oder Dienstes.
+
+Erläuterung
+
+Beschreibt den Zeitpunkt der Veröffentlichung der Daten (z.B. das Datum,
+an dem der Datensatz oder Dienst auf der Website der Behörde verfügbar
+gemacht wurde).
+
+Beispiel
+
+2011-03-21 ( YYYY-MM-DD)
+
+ON A
+2270:2010
+
+2.1.3.1 & 2.1.3.2
+
+ON/EN/ISO
+19115:2003
+
+refDate (394) & refDateType (395)
+
+RDF property
+
+dcterms:issued
+
+Definition
+Englisch
+
+Resource publication timestamp
+
+Änderungsdatum
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+18
+
+Datensatz oder Dienst
+Änderungsdatum
+
+resource_lastmodified
+
+resources:
+last_modified
+
+1
+
+Definition
+
+Datum der letzten Aktualisierung des Datensatzes oder Dienstes.
+
+Erläuterung
+
+Letztes Aktualisierungsdatum des Datensatzes oder Dienstes.
+
+Beispiel
+
+2012-01-15 ( YYYY-MM-DD )
+
+ON A
+2270:2010
+
+2.1.3.1 & 2.1.3.2
+
+ON/EN/ISO
+19115:2003
+
+refDate (394) & refDateType (395)
+
+RDF property
+
+dcterms:modified
+
+Definition
+Englisch
+
+Resource last update timestamp
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 20 von 29
+
+Veröffentlichende Stelle
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+20
+
+Veröffentlichende
+Stelle
+
+publisher
+
+extras:publisher
+
+1
+
+Definition
+
+Bezeichnung bzw. Name der für den Metadatensatz zuständigen
+Organisation bzw. Person
+
+Erläuterung
+
+Bezeichnung bzw. Name der für den Metadatensatz zuständigen
+Organisation bzw. Person
+
+Beispiel
+
+Magistrat Wien - Abteilung 53 - Presse- und Informationsdienst
+
+ON A
+2270:2010
+
+2.5.1 / 2.5.2
+
+ON/EN/ISO
+19115:2003
+
+rpIndName (375) / rpOrgName (376)
+
+RDF property
+
+dcelements:publisher
+
+Definition
+Englisch
+
+Name of the publishing entity or person
+
+Geographische Abdeckung/Lage
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+22
+
+Geographische
+Abdeckung/Lage
+
+geographic_toponym
+
+extras:
+geographic_toponym
+
+1
+
+Definition
+
+Geographische Ortsidentifikation eines Datensatzes oder Dienstes
+
+Erläuterung
+
+Menschenlesbare Beschreibung der räumlichen Lage eines Datensatzes
+oder Dienstes
+
+Beispiel
+
+Linz
+
+ON A
+2270:2010
+
+2.9.6.1.3.1.1
+
+ON/EN/ISO
+19115:2003
+
+identCode (207)
+
+RDF property
+
+dcterms:description
+
+Definition
+Englisch
+
+Human-readable description of the resources spatial context
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 21 von 29
+
+Geographische Ausdehnung
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+23
+
+Geographische
+Ausdehnung
+
+geographic_bbox
+
+extras:
+geographic_bbox
+
+1
+
+Definition
+
+Dokumentation der geographischen Ausdehnung eines Datensatzes mit der
+Definition eines umrahmenden Rechtecks.
+
+Erläuterung
+
+Beschreibung der räumlichen Ausdehnung eines Datensatzes mit einem
+umschreibenden Rechteck. Die Angabe erfolgt im Koordinatensystem
+EPSG:4326 (WGS84) mit einer Mindestgenauigkeit von zwei Dezimalstellen
+in einer "Well Known Text String" Repräsentation. POLYGON
+(Rechtswert_min Hochwert_min, Rechtswert_max Hochwert_max)
+
+Beispiel
+
+POLYGON (-180.00 -90.00, 180.00 90.00)
+
+ON A
+2270:2010
+
+2.9.6.1.1.1 & 2.9.6.1.1.2 & 2.9.6.1.1.3 & 2.9.6.1.1.4
+
+ON/EN/ISO
+19115:2003
+
+westBL (344) & eastBL (345) & southBL (346) & northBL (347)
+
+RDF property
+
+dcterms:spatial
+
+Definition
+Englisch
+
+Bounding box specifying the resources spatial coverage
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 22 von 29
+
+Zeitliche Ausdehnung (Ende)
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+25
+
+Zeitliche Ausdehnung
+(Ende)
+
+end_datetime
+
+extras:end_datetime
+
+1
+
+Definition
+
+Ende der Gültigkeit eines Datensatzes oder Dienstes.
+
+Erläuterung
+
+Element zur zeitlichen Erfassung eines Datensatzes oder Dienstes. Die
+Angabe des Zeitpunktes erfolgt in folgender Form YYYY-MM-DDThh:mm:ss.
+TM_Primitive (nach ON EN 8601 bzw. ON EN ISO 19108)
+
+Beispiel
+
+2009-11-23T20:36:00
+
+ON A
+2270:2010
+
+2.9.6.2.1
+
+ON/EN/ISO
+19115:2003
+
+exTemp (351)
+
+RDF property
+
+dcterms:temporal
+
+Definition
+Englisch
+
+Date specifying valid to of the resource according to ON EN 8601 or ON EN
+ISO 19108 respectively.
+
+Aktualisierungszyklus
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+26
+
+Aktualisierungszyklus
+
+update_frequency
+
+extras:
+update_frequency
+
+1
+
+Definition
+
+Menschenlesbare Frequenz der Aktualisierung des Datensatzes bzw.
+Dienstes. Codeliste im Anhang c)
+
+Erläuterung
+
+Zeitliche Nachführungssequenz für einen Datensatz oder Dienst
+
+Beispiel
+
+monatlich, jährlich
+
+ON A
+2270:2010
+
+2.9.7.1
+
+ON/EN/ISO
+19115:2003
+
+maintFreq (143)
+
+RDF property
+
+dcterms:accrualPeriodicity
+
+Definition
+Englisch
+
+Human readable resource update frequency
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 23 von 29
+
+Datenqualität/Herkunft
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+27
+
+Datenqualität/Herkunft
+
+lineage_quality
+
+extras:lineage_quality
+
+1
+
+Definition
+
+Menschenlesbare Beschreibung der Qualitäts- und /oder Entstehungsgenese des Datensatzes oder Dienstes z.B. die Methode der Erhebung.
+
+Erläuterung
+
+Allgemeine Angaben zur Qualität und/oder Entstehungsgenese des
+Datensatzes oder Dienstes
+
+Beispiel
+
+Der Datensatz wurde basierend auf der ÖK50, Stand 2011 digitalisiert. Es
+wurden alle Waldbestände für die Gemeinde Kopfing erfasst.
+
+ON A
+2270:2010
+
+3.2.1
+
+ON/EN/ISO
+19115:2003
+
+statement (83)
+
+RDF property
+
+dcat:dataQuality
+
+Definition
+Englisch
+
+Human readable indication of resource quality and / or data origin, possibly
+the methodology describing the data collection or acquisition.
+
+Titel und Beschreibung Englisch
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+28
+
+Titel und Beschreibung
+Englisch
+
+en_title_and_desc
+
+extras:
+en_title_and_desc
+
+1
+
+Definition
+
+Englische Angabe von Titel und Beschreibung des Datensatzes oder
+Dienstes.
+
+Erläuterung
+
+Titel des Datensatzes oder Dienstes und kurze inhaltliche Beschreibung des
+Datensatzes bzw. Dienstes für BenutzerInnen in Englisch.
+
+Beispiel
+
+Population of Vienna 2010. Contains the population of permanent residents
+of Vienna and it’s districts as a moving average in the census period 1st
+January 2010 to 31st December 2012
+
+ON A
+2270:2010
+
+2.1.1 & 7.1
+
+ON/EN/ISO
+19115:2003
+
+resTitle (360) & language
+
+RDF property
+
+dcterms:abstract (mit language tag "en")
+
+Definition
+Englisch
+
+Resource title and description in English
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 24 von 29
+
+Größe des Datensatzes oder Dienstes
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+29
+
+Größe des Datensatzes
+oder Dienstes
+
+resource_size
+
+resources:size
+
+1
+
+Definition
+
+Dateigröße.
+
+Erläuterung
+
+Die Größe des Datensatzes in Bytes. Die Angabe der Größe ist für Services
+/ Dienste nicht sinnvoll.
+
+Beispiel
+
+899652
+
+ON A
+2270:2010
+
+-
+
+ON/EN/ISO
+19115:2003
+
+-
+
+RDF property
+
+dcat:bytes
+
+Definition
+Englisch
+
+Resource size
+
+Lizenz Zitat
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+30
+
+Lizenz Zitat
+
+license_citation
+
+extras:license_citation
+
+1
+
+Definition
+
+Die richtige Namensnennung (CC-BY) der Datenquelle laut den
+Nutzungsbedingungen des jeweiligen Datenportals. Entspricht dem Feld
+„Datenquelle“ von OGD-Metadaten – 1.1.
+
+Erläuterung
+
+Dient dazu, um bei der automatisierten Wiederverwendung von Daten aus
+einer oder mehreren Datenquellen die richtige Zitierung zu erleichtern.
+
+Beispiel
+
+Datenquelle: CC-BY-3.0: Stadt Linz - data.linz.gv.at
+
+ON A
+2270:2010
+
+2.8.1.2
+
+ON/EN/ISO
+19115:2003
+
+accessConsts (70)
+
+RDF property
+
+cc:attributionName
+
+Definition
+Englisch
+
+Attribution as required by CC-BY license
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Zusätzliche optionale Metadatenfelder
+
+Seite 25 von 29
+
+Sprache des Datensatzes oder Dienstes
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+31
+
+Sprache des
+Datensatzes oder
+Dienstes
+
+resource_language
+
+resources:language
+
+1
+
+Definition
+
+ISO 639-2 dreistelliger ISO Sprachcode für den Datensatz oder Dienst
+
+Erläuterung
+
+Sprache, welche der Datensatz oder Dienst verwendet
+
+Beispiel
+
+ger
+
+ON A
+2270:2010
+
+2.9.3
+
+ON/EN/ISO
+19115:2003
+
+dataLang (39)
+
+RDF property
+
+dcterms:language
+
+Definition
+Englisch
+
+Resource language
+
+Character Set Code des Datensatzes oder Dienstes
+ID
+
+Bezeichner
+
+OGD-Kurzname
+
+CKAN Feld
+
+Anzahl
+
+Character Set Code
+resource_encoding resources:characterset
+1
+des Datensatzes oder
+Dienstes
+Definition
+Characterset Code des Datensatzes oder Dienstes nach ISO\IEC 10646-1
+32
+
+Erläuterung
+
+Zeichensatz, der im Datensatz oder Dienst verwendet wird
+
+Beispiel
+
+utf8
+
+ON A
+2270:2010
+
+2.9.4
+
+ON/EN/ISO
+19115:2003
+
+dataChar (40)
+
+RDF property
+
+cnt:characterEncoding
+
+Definition
+Englisch
+
+Resource character encoding
+
+ID … laufende, eindeutige Nummerierung im OGD-Metadatenkatalog Österreich
+Anzahl… 1= Single-Value-Feld N=Multi-Value-Feld
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 26 von 29
+
+(9) Vokabular zur Metadatenstruktur
+a) OGD-Formate
+Text- und Tabellenformate
+
+Endung
+
+Klassische Textdateien
+
+txt
+
+Comma Separated Value
+
+csv
+
+Hypertext Markup Language für unstrukturierte
+Texte (HTML)1
+
+html
+
+Extensible Markup Language
+
+xml
+
+Resource Description Framework
+
+rdf
+
+Open Document Formats
+
+odt, ods…
+
+Newsfeed/Webfeed Syndication
+
+rss, atom
+
+JSON (JavaScript Object Notation)
+
+json
+
+Bildformate
+
+Endung
+
+Portable Network Graphics
+
+png
+
+JPEG
+
+jpg, jpeg, jp2
+
+Scalable Vector Graphics
+
+svg
+
+Geodatenformate
+
+Endung
+
+Geography Markup Language
+
+gml
+
+GPS Exchange Format
+
+gpx
+
+Keyhole Markup Language
+
+kml
+
+ESRI Shapefile
+
+shp, shx, dbf, prj
+
+GeoRSS
+
+rss
+
+Schnittstellen und Services
+
+Endung
+
+Web Map Service (WMS)
+
+wms
+
+Web Feature Service (WFS)
+
+wfs
+
+Web Map Tile Service (WMTS)
+
+wmts
+
+Web Catalogue Service (WCAS) bzw.
+Catalog Service for the Web (CSW)
+
+wcas
+csw
+
+1
+
+HTML Dokumente entsprechen den Prinzipien von OGD, wenn HTML als logische Strukturierung von
+Daten verwendet wird. HTML-Seiten, die visuelle Aufbereitung und logische Strukturierung mischen,
+entsprechen im Allgemeinen nicht den OGD Anforderungen. Der Verweis auf bestehende Webseiten,
+die bildliche und unstrukturierte Informationen enthalten, ist im allgemeinen kein gültiges OGD
+Dokument.
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 27 von 29
+
+b) Kategorien
+OGD-Kategorien
+Österreich
+Arbeit
+
+Bevölkerung
+Bildung und Forschung
+Finanzen und
+Rechnungswesen
+
+englisch
+
+publicdata.eu
+
+employment
+
+Employment
+
+population
+education and
+science
+
+Zuordnung Themenkategorien
+nach EN ISO 19115
+
+Population
+Education and
+Communication
+Finance and
+Budgeting
+
+finance
+
+Geographie und Planung
+
+geography and
+planning
+
+Geography
+
+Gesellschaft und Soziales
+
+society
+
+Social Questions
+
+Grenzen
+Bauwerke
+Höhenangaben
+Planungsunterlagen/Kataster
+Ortsangaben
+Geowissenschaften
+Bilddaten/Basiskarten/Landbedeckung
+Gesellschaft
+
+Gesundheit
+
+health
+
+Health
+
+Gesundheitswesen
+
+Kunst und Kultur
+
+culture
+
+Land- und Forstwirtschaft
+
+agriculture
+
+Culture and Arts
+Agriculture,
+Fisheries, Forestry
+
+Sport und Freizeit
+
+recreation
+
+Umwelt
+
+•
+
+•
+
+Transportation
+
+government and
+politics
+
+Wirtschaft und Tourismus
+
+•
+
+transport
+
+Verwaltung und Politik
+
+•
+
+Environment
+
+Verkehr und Technik
+
+•
+
+environment
+
+economy and
+tourism
+
+Government
+Services
+Politics and
+Transparency
+Economy and
+Industry
+
+Landwirtschaft Umwelt
+Biologie
+Klimatologie/Meteorologie/Atmosphäre
+Meere
+Binnengewässer
+Verkehrswesen
+Ver- und
+Entsorgung/Nachrichtenwesen
+Aufklärung/Militär
+Wirtschaft
+
+11 der 14 Kategorien beruhen auf der der Bereichsabgrenzungsverordnung
+(E-Gov-BerAbgrV, StF: BGBl. II Nr. 289/2004, Anlage zu § 3 Abs. 1, Teil 1) und der
+BLSG-Konvention "E-Government Verfahrens-/Leistungsbereiche" (vlb 1.3)
+(http://reference.e-government.gv.at/EP-VV-vlb-1-3-0-Version-vom.563.0.html).
+Es wurden die Kategorien der Open Government Data Portale von Wien, Linz, Berlin,
+publicdata.eu, London, Seattle, Groß-Britannien, Belgien, Canada und Kenia und der
+Menü-Seite der Statistik Austria auf Übereinstimmung geprüft.
+Ergänzt wurden 3 Kategorien, die aus der OGD-Praxis vorliegen (in der Tabelle kursiv
+bezeichnet).
+Die aus diesen Quellen erstellte thematische Klassifikation wird als
+Normierungsgrundlage eingebracht, die aus der best practice Perspektive der
+Cooperation OGD Österreich erweitert werden kann.
+Die englischen Ausdrücke können für die URL-Konvention verwendet werden.
+Die Erstellung eines Mapping zu Kategorien aus publicdata.eu und EN ISO 19115 ist
+aus der vorliegenden Tabelle ebenfalls möglich.
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+Seite 28 von 29
+
+c) Aktualisierungszyklus
+Eintrag basiert auf der Codeliste, die in der ON EN ISO 19115:2003, Abschnitt B5.18 definiert
+ist: „MaintFreqCd frequency with which modifications and deletions are made to the data
+after it is first produced“
+Deutsch
+kontinuierlich
+
+Name
+continual
+
+täglich
+
+daily
+
+002
+
+wöchentlich
+
+weekly
+
+003
+
+14-tägig
+
+fortnightly
+
+004
+
+monatlich
+
+monthly
+
+005
+
+quartalsweise
+
+quarterly
+
+006
+
+halbjährlich
+
+biannually
+
+007
+
+jährlich
+
+annually
+
+008
+
+nach Bedarf
+
+asNeeded
+
+009
+
+unregelmäßig
+
+irregular
+
+010
+
+nicht geplant
+
+notPlanned
+
+011
+
+unbekannt
+
+unknown
+
+012
+
+OGD Metadaten 2.1
+
+Domain code
+001
+
+Definition
+data is repeatedly
+and frequently
+updated
+data is updated each
+day
+data is updated on a
+weekly basis
+data is updated
+every two weeks
+data is updated each
+month
+data is updated
+every three months
+data is updated twice
+each year
+data is updated
+every year
+data is updated as
+deemed necessary
+data is updated in
+intervals that are
+uneven in duration
+there are no plans to
+update the data
+frequency of
+maintenance for the
+data is not known
+
+15.10.2012
+
+Seite 29 von 29
+
+d) RDF Namespace-Prefixes und ihre vollständigen URIs
+dcterms
+
+http://dublincore.org/documents/dcmi-terms
+
+dcelements
+
+http://purl.org/dc/elements/1.1/
+
+dcat
+
+http://www.w3.org/ns/dcat#
+
+cnt
+
+http://www.w3.org/2011/content#
+
+cc
+
+https://creativecommons.org/ns#
+
+rdfs
+
+http://www.w3.org/2000/01/rdf-schema#
+
+OGD Metadaten 2.1
+
+15.10.2012
+
+
