@@ -64,50 +64,50 @@ func (set OGDSet) GetSpecForID(id int) *Beschreibung {
 }
 
 func Register(version, specfile string) {
-	specmap := Loadogdatspec(version, specfile)
+	specmap, _ := Loadogdatspec(version, specfile)
 	specification[version] = specmap
 }
 
-func Loadogdatspec(version, filename string) (spec OGDSet) {
+func Loadogdatspec(version, filename string) (OGDSet, error) {
 	reader, err := os.Open(filename)
-	if err == nil {
-		defer reader.Close()
-		spec = make(OGDSet)
-		csvreader := csv.NewReader(reader)
-		csvreader.Comma = '|'
-		csvreader.LazyQuotes = true
-
-		// skip the first line as it contains the field description
-		record, err := csvreader.Read()
-
-		for record, err = csvreader.Read(); err != io.EOF; record, err = csvreader.Read() {
-			id, _ := strconv.Atoi(record[0])
-			var occ Occurrence
-			switch record[12][0] {
-			case 'R':
-				occ = OccRequired
-			case 'O':
-				occ = OccOptional
-			}
-			descrecord := NewBeschreibung(id, occ, version)
-
-			descrecord.Bezeichner = record[1]
-			descrecord.OGD_Kurzname = record[2]
-			descrecord.CKAN_Feld = record[3]
-			descrecord.Anzahl = byte(record[4][0])
-			descrecord.Definition_DE = record[5]
-			descrecord.Erlauterung = record[6]
-			descrecord.Beispiel = record[7]
-			descrecord.ONA2270 = record[8]
-			descrecord.ISO19115 = record[9]
-			descrecord.RDFProperty = record[10]
-			descrecord.Definition_EN = record[11]
-
-			spec[id] = descrecord
-		}
-		log.Printf("Info: Read %d %s specifiaction records", len(spec), version)
-	} else {
-		log.Printf("Warning: Can not read %s specification records from file %s", version, filename)
+	if err != nil {
+		return nil, err
 	}
-	return
+	defer reader.Close()
+	spec := make(OGDSet)
+	csvreader := csv.NewReader(reader)
+	csvreader.Comma = '|'
+	csvreader.LazyQuotes = true
+
+	// skip the first line as it contains the field description
+	record, err := csvreader.Read()
+
+	for record, err = csvreader.Read(); err != io.EOF; record, err = csvreader.Read() {
+		id, _ := strconv.Atoi(record[0])
+		var occ Occurrence
+		switch record[12][0] {
+		case 'R':
+			occ = OccRequired
+		case 'O':
+			occ = OccOptional
+		}
+		descrecord := NewBeschreibung(id, occ, version)
+
+		descrecord.Bezeichner = record[1]
+		descrecord.OGD_Kurzname = record[2]
+		descrecord.CKAN_Feld = record[3]
+		descrecord.Anzahl = byte(record[4][0])
+		descrecord.Definition_DE = record[5]
+		descrecord.Erlauterung = record[6]
+		descrecord.Beispiel = record[7]
+		descrecord.ONA2270 = record[8]
+		descrecord.ISO19115 = record[9]
+		descrecord.RDFProperty = record[10]
+		descrecord.Definition_EN = record[11]
+
+		spec[id] = descrecord
+	}
+	log.Printf("Info: Read %d %s specifiaction records", len(spec), version)
+
+	return spec, nil
 }
