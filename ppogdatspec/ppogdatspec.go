@@ -1,4 +1,4 @@
-package ppogdatspec
+package main
 
 import (
 	"flag"
