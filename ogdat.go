@@ -13,7 +13,7 @@ import (
 	Version20 = "OGD Austria Metadata 2.0" // Version 2.0: 10.10.2012
 	Version21 = "OGD Austria Metadata 2.1" // Version 2.1: 15.10.2012
 */
-type OGDSet map[int]*Beschreibung
+type OGDSet []*Beschreibung
 
 var specification = make(map[string]OGDSet)
 
@@ -56,8 +56,10 @@ func NewBeschreibung(ID int, occur Occurrence, ver string) *Beschreibung {
 
 func (set OGDSet) GetSpecForID(id int) *Beschreibung {
 	if set != nil {
-		if spec, ok := set[id]; ok {
-			return spec
+		for idx, elm := range set {
+			if elm.ID == id {
+				return set[idx]
+			}
 		}
 	}
 	return nil
@@ -74,7 +76,7 @@ func Loadogdatspec(version, filename string) (OGDSet, error) {
 		return nil, err
 	}
 	defer reader.Close()
-	spec := make(OGDSet)
+	spec := make(OGDSet, 0)
 	csvreader := csv.NewReader(reader)
 	csvreader.Comma = '|'
 	csvreader.LazyQuotes = true
@@ -105,7 +107,7 @@ func Loadogdatspec(version, filename string) (OGDSet, error) {
 		descrecord.RDFProperty = record[10]
 		descrecord.Definition_EN = record[11]
 
-		spec[id] = descrecord
+		spec = append(spec, descrecord)
 	}
 	log.Printf("Info: Read %d %s specifiaction records", len(spec), version)
 
