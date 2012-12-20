@@ -35,6 +35,13 @@ func main() {
 		log.Panicf("Could not load specification file %s, the error was %s\n", *inputfile, err)
 	}
 
+	var tpl Templater
+	if *html {
+		tpl = htmltpl.Must(htmltpl.ParseFiles(*templateset))
+	} else {
+		tpl = texttpl.Must(texttpl.ParseFiles(*templateset))
+	}
+
 	var ofile *os.File
 	if *outputfile == "" {
 		ofile = os.Stdout
@@ -47,11 +54,5 @@ func main() {
 		defer ofile.Close()
 	}
 
-	var tpl Templater
-	if *html {
-		tpl = htmltpl.Must(htmltpl.ParseFiles(*templateset))
-	} else {
-		tpl = texttpl.Must(texttpl.ParseFiles(*templateset))
-	}
 	tpl.Execute(ofile, spec)
 }
