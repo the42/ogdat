@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/the42/ogdat"
 	htmltpl "html/template"
 	"io"
@@ -12,8 +13,9 @@ import (
 
 var inputfile = flag.String("if", "", "Eingabe mit OGD-Spezifikation (Standard: stdin)")
 var outputfile = flag.String("of", "", "Ausgabe der Spezifikation nach (Standard: stdout)")
-var templateset = flag.String("ts", "render.html.tpl", "(Satz von) Template-Dateien, die die Transformation der Spezifikation ins Ausgabeformat beschreibt")
+var templateset = flag.String("ts", "", "(Satz von) Template-Dateien, die die Transformation der Spezifikation ins Ausgabeformat beschreibt")
 var html = flag.Bool("html", true, "Anwendung von HTML-Escaping in der Ausgabe")
+var printbuiltin = flag.Bool("printbuiltin", true, "Ausgabe von eingebautem Template (stdout)")
 var help = flag.Bool("help", false, "Hilfe zur Verwendung")
 
 type Templater interface {
@@ -27,6 +29,11 @@ func main() {
 		return
 	}
 
+	if *printbuiltin {
+		fmt.Print(builtintpl)
+		return
+	}
+
 	if *inputfile == "" {
 		*inputfile = os.Stdin.Name()
 	}
@@ -36,10 +43,14 @@ func main() {
 	}
 
 	var tpl Templater
-	if *html {
-		tpl = htmltpl.Must(htmltpl.ParseFiles(*templateset))
+	if *templateset != "" {
+		if *html {
+			tpl = htmltpl.Must(htmltpl.ParseFiles(*templateset))
+		} else {
+			tpl = texttpl.Must(texttpl.ParseFiles(*templateset))
+		}
 	} else {
-		tpl = texttpl.Must(texttpl.ParseFiles(*templateset))
+		tpl = htmltpl.Must(htmltpl.New("").Parse(builtintpl))
 	}
 
 	var ofile *os.File
@@ -53,6 +64,10 @@ func main() {
 		}
 		defer ofile.Close()
 	}
-
-	tpl.Execute(ofile, spec)
+	if err := tpl.Execute(ofile, spec); err != nil {
+		log.Panicf("Template execution failed: %s\n", err)
+	}
 }
+
+const builtintpl = `
+`
