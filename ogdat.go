@@ -64,11 +64,11 @@ func (set OGDSet) GetSpecForID(id int) *Beschreibung {
 }
 
 func Register(version, specfile string) {
-	specmap := loadogdatspec(version, specfile)
+	specmap := Loadogdatspec(version, specfile)
 	specification[version] = specmap
 }
 
-func loadogdatspec(version, filename string) (spec OGDSet) {
+func Loadogdatspec(version, filename string) (spec OGDSet) {
 	reader, err := os.Open(filename)
 	if err == nil {
 		defer reader.Close()
