@@ -11,7 +11,7 @@ import (
 )
 
 var inputfile = flag.String("if", "", "Eingabe mit OGD-Spezifikation (Standard: stdin)")
-var outputfile = flag.String("if", "", "Ausgabe der Spezifikation nach (Standard: stdout)")
+var outputfile = flag.String("of", "", "Ausgabe der Spezifikation nach (Standard: stdout)")
 var templateset = flag.String("ts", "render.html.tpl", "(Satz von) Template-Dateien, die die Transformation der Spezifikation ins Ausgabeformat beschreibt")
 var html = flag.Bool("html", true, "Anwendung von HTML-Escaping in der Ausgabe")
 var help = flag.Bool("help", false, "Hilfe zur Verwendung")
