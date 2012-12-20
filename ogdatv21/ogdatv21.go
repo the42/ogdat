@@ -2,27 +2,24 @@ package ogdatv21
 
 import (
 	"code.google.com/p/go-uuid/uuid"
-	"encoding/csv"
 	"encoding/json"
 	"github.com/the42/ogdat"
-	"io"
-	"log"
 	"net/url"
-	"os"
 	"strconv"
 	"time"
 )
 
-const OGDTimeSpecifier = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
-const ogdatv21specfile = "ogdat_spec-2.1.csv"
-const (
-	OGDTime2 = time.RFC3339Nano
-	OGDTime3 = time.RFC3339
-	OGDTime1 = OGDTimeSpecifier
-	OGDTimeUnknow
-)
+const Version21 = "OGD Austria Metadata 2.1" // Version 2.1: 15.10.2012
+const specfile = "ogdat_spec-2.1.csv"
+const TimeSpecifier = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
 
-var specmap map[int]*ogdat.Beschreibung
+/// BEGIN:check wheater this code may be factored out
+const (
+	Time2 = time.RFC3339Nano
+	Time3 = time.RFC3339
+	Time1 = TimeSpecifier
+	TimeFormatUnknow
+)
 
 type Kategorie struct {
 	NumID       int `json:"-"`
@@ -184,16 +181,16 @@ func (ogdtime *Time) UnmarshalJSON(data []byte) error {
 	}
 	ogdtime.Raw = raw
 
-	ogdtime.Format = OGDTime1
+	ogdtime.Format = Time1
 	t, err := time.Parse(ogdtime.Format, raw)
 	if err != nil {
-		ogdtime.Format = OGDTime2
+		ogdtime.Format = Time2
 		t, err = time.Parse(ogdtime.Format, raw)
 		if err != nil {
-			ogdtime.Format = OGDTime3
+			ogdtime.Format = Time3
 			t, err = time.Parse(ogdtime.Format, raw)
 			if err != nil {
-				ogdtime.Format = OGDTimeUnknow
+				ogdtime.Format = TimeFormatUnknow
 			}
 		}
 	}
@@ -241,6 +238,8 @@ func (kat *Kategorie) UnmarshalJSON(data []byte) error {
 	}
 	return nil
 }
+
+/// END:check wheater this code may be factored out
 
 type Extras struct {
 	// Core
@@ -314,62 +313,9 @@ type MetaData struct {
 	Resource []Resource `json:"resources"`
 }
 
-func GetSpecForID(id int) *ogdat.Beschreibung {
-	if specmap != nil {
-		if spec, ok := specmap[id]; ok {
-			return spec
-		}
-	}
-	return nil
-}
-
-func loadogdatv21spec(filename string) (specmap map[int]*ogdat.Beschreibung) {
-	reader, err := os.Open(filename)
-	if err == nil {
-		defer reader.Close()
-		specmap = make(map[int]*ogdat.Beschreibung)
-		csvreader := csv.NewReader(reader)
-		csvreader.Comma = '|'
-		csvreader.LazyQuotes = true
-
-		// skip the first line as it contains the field description
-		record, err := csvreader.Read()
-
-		for record, err = csvreader.Read(); err != io.EOF; record, err = csvreader.Read() {
-			id, _ := strconv.Atoi(record[0])
-			var occ ogdat.Occurrence
-			switch record[12][0] {
-			case 'R':
-				occ = ogdat.OccRequired
-			case 'O':
-				occ = ogdat.OccOptional
-			}
-			descrecord := ogdat.NewBeschreibung(id, occ, ogdat.Version21)
-
-			descrecord.Bezeichner = record[1]
-			descrecord.OGD_Kurzname = record[2]
-			descrecord.CKAN_Feld = record[3]
-			descrecord.Anzahl = byte(record[4][0])
-			descrecord.Definition_DE = record[5]
-			descrecord.Erlauterung = record[6]
-			descrecord.Beispiel = record[7]
-			descrecord.ONA2270 = record[8]
-			descrecord.ISO19115 = record[9]
-			descrecord.RDFProperty = record[10]
-			descrecord.Definition_EN = record[11]
-
-			specmap[id] = descrecord
-		}
-		log.Printf("Info: Read %d %s specifiaction records", len(specmap), ogdat.Version21)
-	} else {
-		log.Printf("Warning: Can not read %s specification records from file %s", ogdat.Version21, filename)
-	}
-	return
-}
-
 func init() {
 	for idx, val := range categories {
 		categorymap[val.ID] = categories[idx]
 	}
-	specmap = loadogdatv21spec(ogdatv21specfile)
+	ogdat.Register(Version21, specfile)
 }
