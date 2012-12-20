@@ -123,7 +123,7 @@ func (id *Identfier) String() string {
 }
 
 type Time struct {
-	*time.Time
+	time.Time
 	Raw    string
 	Format string
 }
@@ -194,7 +194,7 @@ func (ogdtime *Time) UnmarshalJSON(data []byte) error {
 			}
 		}
 	}
-	ogdtime.Time = &t
+	ogdtime.Time = t
 	return nil
 }
 
