@@ -84,46 +84,55 @@ const builtintpl = `
 <meta charset="UTF-8">
 <style>
 
-table {
- border-collapse:collapse;
+table.ogdatspectable{
+ /*border-collapse:collapse; */
+  width: 800px;
+}
+
+table.ogdatspectable colgroup.idcolumn {
+  width: 200px;
 }
 
 th {
   text-align: left;
 }
 
-table[ogdrequired="true"] {
+table.ogdatspectable[ogdrequired="true"] {
   background-color:hsl(30, 100%, 88%);
-  border: 1px solid hsl(30, 100%, 88%);  /* orange */
+  border: 1px solid hsl(30, 100%, 68%);  /* orange */
 }
 
-table[ogdrequired="false"] {
+table.ogdatspectable[ogdrequired="false"] {
   background-color:hsl(120, 100%, 88%);
-  border: 1px solid hsl(120, 100%, 88%);  /* grenish */
+  border: 1px solid hsl(120, 100%, 68%);  /* grenish */
 }
 
 
-table[ogdrequired="true"] th {
+table.ogdatspectable[ogdrequired="true"] th {
   background-color:hsl(30, 100%, 75%);
 }
 
-table[ogdrequired="false"] th {
+table.ogdatspectable[ogdrequired="false"] th {
   background-color: hsl(120, 100%, 75%);
 }
 
-table[ogdrequired="true"] .odd td {
+table.ogdatspectable[ogdrequired="true"] .odd td {
   background-color:hsl(30, 100%, 95%);
 }
 
-table[ogdrequired="false"]  .odd td {
+table.ogdatspectable[ogdrequired="false"]  .odd td {
   background-color: hsl(120, 100%, 95%);
 }
 </style>
 </head>
 <body>
+<h1>Open Government Data Österreich Metadatenspezifiaktion</h1>
 <div id=ogdatspecarea>{{range .Beschreibung}}
+<p>
 <table class="ogdatspectable" ogdrequired='{{.IsRequired}}'>
   <caption>{{.Bezeichner}} - {{if .IsRequired}}Pflichtfeld{{else}}optionaler Eintrag{{end}}</caption>
+  <colgroup class="idcolumn">
+  <colgroup class="valcolumn" span="4">
   <tbody>
     <tr>
       <th id="ID.desc.{{.ID}}">{{index $.Label 0}}</th>
@@ -157,15 +166,15 @@ table[ogdrequired="false"]  .odd td {
       <td id="ONA2270.item.{{.ID}}" colspan="4">{{.ONA2270}}</td>
     </tr>
     <tr class="odd">
-      <th id="ISO19115.desc.{{.ID}}">{{index $.Label 9}}</td>
+      <th id="ISO19115.desc.{{.ID}}">{{index $.Label 9}}</th>
       <td id="ISO19115.item.{{.ID}}" colspan="4">{{.ISO19115}}</td>
     </tr>
     <tr class="even">
-      <th id="RDFProperty.desc.{{.ID}}">{{index $.Label 10}}</td>
+      <th id="RDFProperty.desc.{{.ID}}">{{index $.Label 10}}</th>
       <td id="RDFProperty.item.{{.ID}}" colspan="4">{{.RDFProperty}}</td>
     </tr>
     <tr class="odd">
-      <th id="Definition_EN.desc.{{.ID}}">{{index $.Label 11}}</td>
+      <th id="Definition_EN.desc.{{.ID}}">{{index $.Label 11}}</th>
       <td id="Definition_EN.item.{{.ID}}" colspan="4">{{.Definition_EN}}</td>
     </tr>
   </tbody>
