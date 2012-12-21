@@ -80,58 +80,93 @@ const builtintpl = `
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <title></title>
-  <meta charset="UTF-8">
+<title></title>
+<meta charset="UTF-8">
+<style>
+
+table {
+ border-collapse:collapse;
+}
+
+th {
+  text-align: left;
+}
+
+table[ogdrequired="true"] {
+  background-color:hsl(30, 100%, 88%);
+  border: 1px solid hsl(30, 100%, 88%);  /* orange */
+}
+
+table[ogdrequired="false"] {
+  background-color:hsl(120, 100%, 88%);
+  border: 1px solid hsl(120, 100%, 88%);  /* grenish */
+}
+
+
+table[ogdrequired="true"] th {
+  background-color:hsl(30, 100%, 75%);
+}
+
+table[ogdrequired="false"] th {
+  background-color: hsl(120, 100%, 75%);
+}
+
+table[ogdrequired="true"] .odd td {
+  background-color:hsl(30, 100%, 95%);
+}
+
+table[ogdrequired="false"]  .odd td {
+  background-color: hsl(120, 100%, 95%);
+}
+</style>
 </head>
 <body>
-<div id=ogdspecarea>{{range .Beschreibung}}
-<table class="ogdatspectable[required='{{.IsRequired}}']">
-  <caption></caption>
+<div id=ogdatspecarea>{{range .Beschreibung}}
+<table class="ogdatspectable" ogdrequired='{{.IsRequired}}'>
+  <caption>{{.Bezeichner}} - {{if .IsRequired}}Pflichtfeld{{else}}optionaler Eintrag{{end}}</caption>
   <tbody>
     <tr>
-      <td class="ogddatspectableitem[description='true']" id="ID.desc.{{.ID}}">{{index $.Label 0}}</td>
-      <td class="ogddatspectableitem[description='true']" id="Bezeichner.desc.{{.ID}}">{{index $.Label 1}}</td>
-      <td class="ogddatspectableitem[description='true']" id="OGD_Kurzname.desc.{{.ID}}">{{index $.Label 2}}</td>
-      <td class="ogddatspectableitem[description='true']" id="CKAN_Feld.desc.{{.ID}}">{{index $.Label 3}}</td>
-      <td class="ogddatspectableitem[description='true']" id="Anzahl.desc.{{.ID}}">{{index $.Label 4}}</td>
+      <th id="ID.desc.{{.ID}}">{{index $.Label 0}}</th>
+      <th id="Bezeichner.desc.{{.ID}}">{{index $.Label 1}}</th>
+      <th id="OGDKurzname.desc.{{.ID}}">{{index $.Label 2}}</th>
+      <th id="CKANFeld.desc.{{.ID}}">{{index $.Label 3}}</th>
+      <th id="Anzahl.desc.{{.ID}}">{{index $.Label 4}}</th>
     </tr>
     <tr>
-      <td class="ogddatspectableitem[description='false']" id="ID.item.{{.ID}}">{{.ID}}</td>
-      <td class="ogddatspectableitem[description='false']" id="Bezeichner.item.{{.ID}}">{{.Bezeichner}}</td>
-      <td class="ogddatspectableitem[description='false']" id="OGD_Kurzname.item.{{.ID}}">{{.OGD_Kurzname}}</td>
-      <td class="ogddatspectableitem[description='false']" id="CKAN_Feld.item.{{.ID}}">{{.CKAN_Feld}}</td>
-      <td class="ogddatspectableitem[description='false']" id="Anzahl.item.{{.ID}}">{{.Anzahl}}</td>
-    <tr>
-    </tr>
+      <td id="ID.item.{{.ID}}">{{.ID}}</td>
+      <td id="Bezeichner.item.{{.ID}}">{{.Bezeichner}}</td>
+      <td id="OGDKurzname.item.{{.ID}}">{{.OGD_Kurzname}}</td>
+      <td id="CKANFeld.item.{{.ID}}">{{.CKAN_Feld}}</td>
+      <td id="Anzahl.item.{{.ID}}">{{.Anzahl}}</td>
   </tbody>
   <tbody>
-    <tr>
-      <td class="ogddatspectableitem[description='true']" id="Definition_DE.desc.{{.ID}}">{{index $.Label 5}}</td>
-      <td class="ogddatspectableitem[description='false']" id="Definition_DE.item.{{.ID}}">{{.Definition_DE}}</td>
+    <tr class="odd">
+      <th id="Definition_DE.desc.{{.ID}}">{{index $.Label 5}}</th>
+      <td id="Definition_DE.item.{{.ID}}" colspan="4">{{.Definition_DE}}</td>
     </tr>
-    <tr>
-      <td class="ogddatspectableitem[description='true']" id="Erlauterung.desc.{{.ID}}">{{index $.Label 6}}</td>
-      <td class="ogddatspectableitem[description='false']" id="Erlauterung.item.{{.ID}}">{{.Erlauterung}}</td>
+    <tr class="even">
+      <th id="Erlauterung.desc.{{.ID}}">{{index $.Label 6}}</th>
+      <td id="Erlauterung.item.{{.ID}}" colspan="4">{{.Erlauterung}}</td>
     </tr>
-    <tr>
-      <td class="ogddatspectableitem[description='true']" id="Beispiel.desc.{{.ID}}">{{index $.Label 7}}</td>
-      <td class="ogddatspectableitem[description='false']" id="Beispiel.item.{{.ID}}">{{.Beispiel}}</td>
+    <tr class="odd">
+      <th id="Beispiel.desc.{{.ID}}">{{index $.Label 7}}</th>
+      <td id="Beispiel.item.{{.ID}}" colspan="4">{{.Beispiel}}</td>
     </tr>
-    <tr>
-      <td class="ogddatspectableitem[description='true']" id="ONA2270.desc.{{.ID}}">{{index $.Label 8}}</td>
-      <td class="ogddatspectableitem[description='false']" id="ONA2270.item.{{.ID}}">{{.ONA2270}}</td>
+    <tr class="even">
+      <th id="ONA2270.desc.{{.ID}}">{{index $.Label 8}}</th>
+      <td id="ONA2270.item.{{.ID}}" colspan="4">{{.ONA2270}}</td>
     </tr>
-    <tr>
-      <td class="ogddatspectableitem[description='true']" id="ISO19115.desc.{{.ID}}">{{index $.Label 9}}</td>
-      <td class="ogddatspectableitem[description='false']" id="ISO19115.item.{{.ID}}">{{.ISO19115}}</td>
+    <tr class="odd">
+      <th id="ISO19115.desc.{{.ID}}">{{index $.Label 9}}</td>
+      <td id="ISO19115.item.{{.ID}}" colspan="4">{{.ISO19115}}</td>
     </tr>
-    <tr>
-      <td class="ogddatspectableitem[description='true']" id="RDFProperty.desc.{{.ID}}">{{index $.Label 10}}</td>
-      <td class="ogddatspectableitem[description='false']" id="RDFProperty.item.{{.ID}}">{{.RDFProperty}}</td>
+    <tr class="even">
+      <th id="RDFProperty.desc.{{.ID}}">{{index $.Label 10}}</td>
+      <td id="RDFProperty.item.{{.ID}}" colspan="4">{{.RDFProperty}}</td>
     </tr>
-    <tr>
-      <td class="ogddatspectableitem[description='true']" id="Definition_EN.desc.{{.ID}}">{{index $.Label 11}}</td>
-      <td class="ogddatspectableitem[description='false']" id="Definition_EN.item.{{.ID}}">{{.Definition_EN}}</td>
+    <tr class="odd">
+      <th id="Definition_EN.desc.{{.ID}}">{{index $.Label 11}}</td>
+      <td id="Definition_EN.item.{{.ID}}" colspan="4">{{.Definition_EN}}</td>
     </tr>
   </tbody>
 </table>{{end}}
