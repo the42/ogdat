@@ -15,7 +15,7 @@ var inputfile = flag.String("if", "", "Eingabe mit OGD-Spezifikation (Standard: 
 var outputfile = flag.String("of", "", "Ausgabe der Spezifikation nach (Standard: stdout)")
 var templateset = flag.String("ts", "", "(Satz von) Template-Dateien, die die Transformation der Spezifikation ins Ausgabeformat beschreibt")
 var html = flag.Bool("html", true, "Anwendung von HTML-Escaping in der Ausgabe")
-var printbuiltin = flag.Bool("printbuiltin", true, "Ausgabe von eingebautem Template (stdout)")
+var printbuiltin = flag.Bool("printbuiltin", false, "Ausgabe von eingebautem Template (stdout)")
 var help = flag.Bool("help", false, "Hilfe zur Verwendung")
 
 type Templater interface {
