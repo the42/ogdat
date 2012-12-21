@@ -4,3 +4,4 @@ Procfile.local
 .env
 *.pdf
 *.html*
+!ogdat_spec-2.1.html
