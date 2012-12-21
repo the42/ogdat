@@ -13,9 +13,7 @@ import (
 	Version20 = "OGD Austria Metadata 2.0" // Version 2.0: 10.10.2012
 	Version21 = "OGD Austria Metadata 2.1" // Version 2.1: 15.10.2012
 */
-type OGDSet []*Beschreibung
-
-var specification = make(map[string]OGDSet)
+var specification = make(map[string]*OGDSet)
 
 type Occurrence int
 
@@ -25,20 +23,12 @@ const (
 	OccOptional
 )
 
-func (desc *Beschreibung) Version() string {
-	return desc.version
-}
-
-func (desc *Beschreibung) Occurrence() Occurrence {
-	return desc.occurrence
-}
-
 type Beschreibung struct {
 	ID            int
 	Bezeichner    string
 	OGD_Kurzname  string
 	CKAN_Feld     string
-	Anzahl        byte
+	Anzahl        string
 	Definition_DE string
 	Erlauterung   string
 	Beispiel      string
@@ -54,11 +44,28 @@ func NewBeschreibung(ID int, occur Occurrence, ver string) *Beschreibung {
 	return &Beschreibung{ID: ID, occurrence: occur, version: ver}
 }
 
-func (set OGDSet) GetSpecForID(id int) *Beschreibung {
+func (desc *Beschreibung) Version() string {
+	return desc.version
+}
+
+func (desc *Beschreibung) Occurrence() Occurrence {
+	return desc.occurrence
+}
+
+func (desc *Beschreibung) IsRequired() bool {
+	return desc.occurrence == OccRequired
+}
+
+type OGDSet struct {
+	Label        []string
+	Beschreibung []*Beschreibung
+}
+
+func (set *OGDSet) GetSpecForID(id int) *Beschreibung {
 	if set != nil {
-		for idx, elm := range set {
+		for idx, elm := range set.Beschreibung {
 			if elm.ID == id {
-				return set[idx]
+				return set.Beschreibung[idx]
 			}
 		}
 	}
@@ -70,20 +77,27 @@ func Register(version, specfile string) {
 	specification[version] = specmap
 }
 
-func Loadogdatspec(version, filename string) (OGDSet, error) {
+func Loadogdatspec(version, filename string) (*OGDSet, error) {
 	reader, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 	defer reader.Close()
-	spec := make(OGDSet, 0)
+
 	csvreader := csv.NewReader(reader)
 	csvreader.Comma = '|'
 	csvreader.LazyQuotes = true
 
-	// skip the first line as it contains the field description
+	// Read the first line and use it as the labels for the items to load
 	record, err := csvreader.Read()
+	if err != nil {
+		return nil, err
+	}
 
+	set := &OGDSet{}
+	set.Label = record
+
+	spec := make([]*Beschreibung, 0)
 	for record, err = csvreader.Read(); err != io.EOF; record, err = csvreader.Read() {
 		id, _ := strconv.Atoi(record[0])
 		var occ Occurrence
@@ -98,7 +112,7 @@ func Loadogdatspec(version, filename string) (OGDSet, error) {
 		descrecord.Bezeichner = record[1]
 		descrecord.OGD_Kurzname = record[2]
 		descrecord.CKAN_Feld = record[3]
-		descrecord.Anzahl = byte(record[4][0])
+		descrecord.Anzahl = record[4]
 		descrecord.Definition_DE = record[5]
 		descrecord.Erlauterung = record[6]
 		descrecord.Beispiel = record[7]
@@ -109,7 +123,8 @@ func Loadogdatspec(version, filename string) (OGDSet, error) {
 
 		spec = append(spec, descrecord)
 	}
+	set.Beschreibung = spec
 	log.Printf("Info: Read %d %s specifiaction records", len(spec), version)
 
-	return spec, nil
+	return set, nil
 }
