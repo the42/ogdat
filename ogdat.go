@@ -77,6 +77,10 @@ func Register(version, specfile string) *OGDSet {
 	specification[version] = specmap
 	return specmap
 }
+
+func GetOGDSetForVersion(version string) *OGDSet {
+	return specification[version]
+}
 }
 
 func Loadogdatspec(version, filename string) (*OGDSet, error) {
