@@ -92,7 +92,7 @@ func GetOGDSetForVersion(version string) *OGDSet {
 func GetIDFromMetaDataStructField(val reflect.StructField) int {
 	ids := val.Tag.Get("ogdat")
 	if idx := strings.Index(ids, "ID"); idx > -1 {
-		ids = ids[idx+1:]
+		ids = ids[idx+len("ID")+1:]
 		if idx = strings.IndexRune(ids, ','); idx > -1 {
 			ids = ids[:idx]
 		}
