@@ -72,9 +72,11 @@ func (set *OGDSet) GetBeschreibungForID(id int) (*Beschreibung, string) {
 	return nil, ""
 }
 
-func Register(version, specfile string) {
+func Register(version, specfile string) *OGDSet {
 	specmap, _ := Loadogdatspec(version, specfile)
 	specification[version] = specmap
+	return specmap
+}
 }
 
 func Loadogdatspec(version, filename string) (*OGDSet, error) {
