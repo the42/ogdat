@@ -75,9 +75,14 @@ func (set *OGDSet) GetBeschreibungForID(id int) (*Beschreibung, string) {
 }
 
 func RegisterFromCSVFile(version, specfile string) *OGDSet {
-	specmap, _ := Loadogdatspec(version, specfile)
-	specification[version] = specmap
-	return specmap
+	set, _ := Loadogdatspec(version, specfile)
+	specification[version] = set
+	return set
+}
+
+func Register(version string, set *OGDSet) *OGDSet {
+	specification[version] = set
+	return set
 }
 
 func GetOGDSetForVersion(version string) *OGDSet {
