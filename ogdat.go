@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -83,10 +84,11 @@ func GetOGDSetForVersion(version string) *OGDSet {
 	return specification[version]
 }
 
-func GetOGDIDFromString(ids string) int {
+func GetIDFromMetaDataStructField(val reflect.StructField) int {
+	ids := val.Tag.Get("ogdat")
 	if idx := strings.Index(ids, "ID"); idx > -1 {
 		ids = ids[idx+1:]
-		if idx = strings.IndexRune(ids, ' '); idx > -1 {
+		if idx = strings.IndexRune(ids, ','); idx > -1 {
 			ids = ids[:idx]
 		}
 		if i, err := strconv.Atoi(ids); err == nil {

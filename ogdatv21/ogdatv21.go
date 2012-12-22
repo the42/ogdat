@@ -316,7 +316,7 @@ type MetaData struct {
 
 func (md *MetaData) GetBeschreibungForFieldName(name string) *ogdat.Beschreibung {
 	if f, ok := reflect.TypeOf(md).Elem().FieldByName(name); ok {
-		if id := ogdat.GetOGDIDFromString(f.Tag.Get("ogdat")); id > -1 {
+		if id := ogdat.GetIDFromMetaDataStructField(f); id > -1 {
 			beschreibung, _ := ogdat.GetOGDSetForVersion(Version21).GetBeschreibungForID(id)
 			return beschreibung
 		}
