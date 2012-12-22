@@ -18,8 +18,6 @@ import (
 	"time"
 )
 
-const DEBUG = true
-
 const dataseturl = "http://www.data.gv.at/katalog/api/2/rest/dataset/"
 const iso639canonicallocation = "http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt"
 const lockfilename = ".lock.pid"
@@ -30,10 +28,9 @@ var resettdb = flag.Bool("resetdb", false, "Delete the tracking database. You wi
 var inittdb = flag.Bool("initdb", false, "Initialize the tracking database. In case there are old entries in the tracking database, use init in conjunction with reset. Process will terminate afterwards.")
 var initisolangs = flag.Bool("initisolangs", false, fmt.Sprintf("Download ISO-639-alpha3 code table from %s (required for checking language codes). Process will terminate afterwards.", iso639canonicallocation))
 var servetdb = flag.Bool("serve", false, "Start in watchdog mode. Process will continue to run until it receives a (clean shutdown) or gets killed")
+var DEBUG = flag.Bool("DEBUG", false, "DEBUG MODE")
 
-func getdataforid(id ogdat.Identfier) (*ogdat.MetaData, error) {
-	data := &ogdat.MetaData{}
-
+func getdataforidentifier(id ogdat.Identfier) (*ogdat.MetaData, error) {
 	resp, err := http.Get(dataseturl + id.String())
 	if err != nil {
 		return nil, err
@@ -45,6 +42,7 @@ func getdataforid(id ogdat.Identfier) (*ogdat.MetaData, error) {
 		return nil, err
 	}
 
+	data := &ogdat.MetaData{}
 	if err := json.Unmarshal(bytedata, data); err != nil {
 		return nil, err
 	}
@@ -198,7 +196,12 @@ func mymain() int {
 			fmt.Println("\nABORTING\n")
 			logger.Println("Info: Database reset canceled")
 		} else {
+			// TODO: Delete apporpriate tables
 		}
+	}
+
+	if *inittdb {
+		// TODO: add functionality for initdb
 	}
 
 	if *resettdb || *initisolangs || *inittdb {
@@ -206,7 +209,7 @@ func mymain() int {
 		return 2
 	}
 
-	if *servetdb && !DEBUG {
+	if *DEBUG {
 		allsets, err := getalldatasetids()
 		if err != nil {
 			panic(err)
@@ -215,7 +218,7 @@ func mymain() int {
 		fmt.Printf("%+v\n\n", allsets)
 
 		if len(allsets) > 0 {
-			data, err := getdataforid(allsets[0])
+			data, err := getdataforidentifier(allsets[0])
 			if err != nil {
 				panic(err)
 			}
@@ -248,6 +251,10 @@ func mymain() int {
 			fmt.Println("Datasets have changed")
 		}
 	}
+
+	if *servetdb {
+	}
+
 	return 0
 }
 
