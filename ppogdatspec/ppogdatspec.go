@@ -83,46 +83,35 @@ const builtintpl = `
 <title></title>
 <meta charset="UTF-8">
 <style>
-
-table.ogdatspectable{
- /*border-collapse:collapse; */
-  width: 800px;
-}
-
-table.ogdatspectable colgroup.idcolumn {
-  width: 200px;
-}
-
-th {
-  text-align: left;
-}
-
-table.ogdatspectable[ogdrequired="true"] {
-  background-color:hsl(30, 100%, 88%);
-  border: 1px solid hsl(30, 100%, 68%);  /* orange */
-}
-
-table.ogdatspectable[ogdrequired="false"] {
-  background-color:hsl(120, 100%, 88%);
-  border: 1px solid hsl(120, 100%, 68%);  /* grenish */
-}
-
-
-table.ogdatspectable[ogdrequired="true"] th {
-  background-color:hsl(30, 100%, 75%);
-}
-
-table.ogdatspectable[ogdrequired="false"] th {
-  background-color: hsl(120, 100%, 75%);
-}
-
-table.ogdatspectable[ogdrequired="true"] .odd td {
-  background-color:hsl(30, 100%, 95%);
-}
-
-table.ogdatspectable[ogdrequired="false"]  .odd td {
-  background-color: hsl(120, 100%, 95%);
-}
+  table.ogdatspectable{
+    width: 800px;
+  }
+  table.ogdatspectable colgroup.idcolumn {
+    width: 200px;
+  }
+  th {
+    text-align: left;
+  }
+  table.ogdatspectable[ogdrequired="true"] {
+    background-color:hsl(30, 100%, 88%);
+    border: 1px solid hsl(30, 100%, 68%);  /* orange */
+  }
+  table.ogdatspectable[ogdrequired="false"] {
+    background-color:hsl(120, 100%, 88%);
+    border: 1px solid hsl(120, 100%, 68%);  /* grenish */
+  }
+  table.ogdatspectable[ogdrequired="true"] th {
+    background-color:hsl(30, 100%, 75%);
+  }
+  table.ogdatspectable[ogdrequired="false"] th {
+    background-color: hsl(120, 100%, 75%);
+  }
+  table.ogdatspectable[ogdrequired="true"] tr:nth-child(odd) td {
+    background-color:hsl(30, 100%, 95%);
+  }
+  table.ogdatspectable[ogdrequired="false"]  tr:nth-child(odd) td {
+    background-color: hsl(120, 100%, 95%);
+  }
 </style>
 </head>
 <body>
@@ -137,43 +126,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.{{.ID}}">{{index $.Label 0}}</th>
       <th id="Bezeichner.desc.{{.ID}}">{{index $.Label 1}}</th>
-      <th id="OGDKurzname.desc.{{.ID}}">{{index $.Label 2}}</th>
-      <th id="CKANFeld.desc.{{.ID}}">{{index $.Label 3}}</th>
+      <th id="OGD_Kurzname.desc.{{.ID}}">{{index $.Label 2}}</th>
+      <th id="CKAN_Feld.desc.{{.ID}}">{{index $.Label 3}}</th>
       <th id="Anzahl.desc.{{.ID}}">{{index $.Label 4}}</th>
     </tr>
     <tr>
       <td id="ID.item.{{.ID}}">{{.ID}}</td>
       <td id="Bezeichner.item.{{.ID}}">{{.Bezeichner}}</td>
-      <td id="OGDKurzname.item.{{.ID}}">{{.OGD_Kurzname}}</td>
-      <td id="CKANFeld.item.{{.ID}}">{{.CKAN_Feld}}</td>
+      <td id="OGD_Kurzname.item.{{.ID}}">{{.OGD_Kurzname}}</td>
+      <td id="CKAN_Feld.item.{{.ID}}">{{.CKAN_Feld}}</td>
       <td id="Anzahl.item.{{.ID}}">{{.Anzahl}}</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.{{.ID}}">{{index $.Label 5}}</th>
       <td id="Definition_DE.item.{{.ID}}" colspan="4">{{.Definition_DE}}</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.{{.ID}}">{{index $.Label 6}}</th>
       <td id="Erlauterung.item.{{.ID}}" colspan="4">{{.Erlauterung}}</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.{{.ID}}">{{index $.Label 7}}</th>
       <td id="Beispiel.item.{{.ID}}" colspan="4">{{.Beispiel}}</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.{{.ID}}">{{index $.Label 8}}</th>
       <td id="ONA2270.item.{{.ID}}" colspan="4">{{.ONA2270}}</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.{{.ID}}">{{index $.Label 9}}</th>
       <td id="ISO19115.item.{{.ID}}" colspan="4">{{.ISO19115}}</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.{{.ID}}">{{index $.Label 10}}</th>
       <td id="RDFProperty.item.{{.ID}}" colspan="4">{{.RDFProperty}}</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.{{.ID}}">{{index $.Label 11}}</th>
       <td id="Definition_EN.item.{{.ID}}" colspan="4">{{.Definition_EN}}</td>
     </tr>
