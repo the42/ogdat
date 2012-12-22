@@ -1,50 +1,38 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
 <title></title>
 <meta charset="UTF-8">
 <style>
-
-table.ogdatspectable{
-  
-  width: 800px;
-}
-
-table.ogdatspectable colgroup.idcolumn {
-  width: 200px;
-}
-
-th {
-  text-align: left;
-}
-
-table.ogdatspectable[ogdrequired="true"] {
-  background-color:hsl(30, 100%, 88%);
-  border: 1px solid hsl(30, 100%, 68%);   
-}
-
-table.ogdatspectable[ogdrequired="false"] {
-  background-color:hsl(120, 100%, 88%);
-  border: 1px solid hsl(120, 100%, 68%);   
-}
-
-
-table.ogdatspectable[ogdrequired="true"] th {
-  background-color:hsl(30, 100%, 75%);
-}
-
-table.ogdatspectable[ogdrequired="false"] th {
-  background-color: hsl(120, 100%, 75%);
-}
-
-table.ogdatspectable[ogdrequired="true"] .odd td {
-  background-color:hsl(30, 100%, 95%);
-}
-
-table.ogdatspectable[ogdrequired="false"]  .odd td {
-  background-color: hsl(120, 100%, 95%);
-}
+  table.ogdatspectable{
+    width: 800px;
+  }
+  table.ogdatspectable colgroup.idcolumn {
+    width: 200px;
+  }
+  th {
+    text-align: left;
+  }
+  table.ogdatspectable[ogdrequired="true"] {
+    background-color:hsl(30, 100%, 88%);
+    border: 1px solid hsl(30, 100%, 68%);   
+  }
+  table.ogdatspectable[ogdrequired="false"] {
+    background-color:hsl(120, 100%, 88%);
+    border: 1px solid hsl(120, 100%, 68%);   
+  }
+  table.ogdatspectable[ogdrequired="true"] th {
+    background-color:hsl(30, 100%, 75%);
+  }
+  table.ogdatspectable[ogdrequired="false"] th {
+    background-color: hsl(120, 100%, 75%);
+  }
+  table.ogdatspectable[ogdrequired="true"] tr:nth-child(odd) td {
+    background-color:hsl(30, 100%, 95%);
+  }
+  table.ogdatspectable[ogdrequired="false"]  tr:nth-child(odd) td {
+    background-color: hsl(120, 100%, 95%);
+  }
 </style>
 </head>
 <body>
@@ -59,43 +47,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.1">ID</th>
       <th id="Bezeichner.desc.1">Bezeichner</th>
-      <th id="OGDKurzname.desc.1">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.1">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.1">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.1">CKAN Feld</th>
       <th id="Anzahl.desc.1">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.1">1</td>
       <td id="Bezeichner.item.1">Eindeutiger Identifikator</td>
-      <td id="OGDKurzname.item.1">metadata_identifier</td>
-      <td id="CKANFeld.item.1">extras:metadata_identifier</td>
+      <td id="OGD_Kurzname.item.1">metadata_identifier</td>
+      <td id="CKAN_Feld.item.1">extras:metadata_identifier</td>
       <td id="Anzahl.item.1">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.1">Definition</th>
       <td id="Definition_DE.item.1" colspan="4">Eindeutiger Identifikator für den Metadatensatz. Der Eintrag beschreibt die eindeutige Identifikation für einen Metadatensatz. Es sollte eine UUID (nach RFC:4122) gewählt werden.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.1">Erläuterung</th>
       <td id="Erlauterung.item.1" colspan="4">Der Identifikator soll automatisch vom System (Software) generiert werden. Falls dieser vorhanden ist (Harvesten bestehender Metadatensätze) muss dieser übernommen werden.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.1">Beispiel</th>
       <td id="Beispiel.item.1" colspan="4">550e8400-e29b-11d4-a716-446655441234</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.1">ON A 2270:2010</th>
       <td id="ONA2270.item.1" colspan="4">1.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.1">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.1" colspan="4">mdFileID (2)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.1">RDF property</th>
       <td id="RDFProperty.item.1" colspan="4">dcterms:identifier</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.1">Definition Englisch</th>
       <td id="Definition_EN.item.1" colspan="4">Unique Identifier of metadata. Should the a UUID conforming to RFC:4122</td>
     </tr>
@@ -110,43 +98,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.5">ID</th>
       <th id="Bezeichner.desc.5">Bezeichner</th>
-      <th id="OGDKurzname.desc.5">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.5">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.5">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.5">CKAN Feld</th>
       <th id="Anzahl.desc.5">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.5">5</td>
       <td id="Bezeichner.item.5">Datum des Metadatensatzes</td>
-      <td id="OGDKurzname.item.5">metadata_modified</td>
-      <td id="CKANFeld.item.5">extras:metadata_modified</td>
+      <td id="OGD_Kurzname.item.5">metadata_modified</td>
+      <td id="CKAN_Feld.item.5">extras:metadata_modified</td>
       <td id="Anzahl.item.5">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.5">Definition</th>
       <td id="Definition_DE.item.5" colspan="4">Datum, an dem der Metadatensatz erzeugt bzw. aktualisiert wurde. Die Datumsangabe erfolgt gemäß ÖNORM ISO 8601 YYYY-MM-DD.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.5">Erläuterung</th>
       <td id="Erlauterung.item.5" colspan="4">Datum, an dem der Metadatensatz erzeugt bzw. aktualisiert wurde. Dieses Metadatenelement sollte automatisch vom System (Software) befüllt werden. Wird für eine inkrementelle Aktualisierung (Harvesten) in einem Metadatenverbund benötigt.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.5">Beispiel</th>
       <td id="Beispiel.item.5" colspan="4">2011-05-22</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.5">ON A 2270:2010</th>
       <td id="ONA2270.item.5" colspan="4">1.6</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.5">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.5" colspan="4">mdDateSt (9)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.5">RDF property</th>
       <td id="RDFProperty.item.5" colspan="4">dcterms:issued</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.5">Definition Englisch</th>
       <td id="Definition_EN.item.5" colspan="4">Metadata creation or update timestamp. Specification according to ÖNORM ISO 8601 as YYYY-MM-DD</td>
     </tr>
@@ -161,43 +149,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.8">ID</th>
       <th id="Bezeichner.desc.8">Bezeichner</th>
-      <th id="OGDKurzname.desc.8">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.8">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.8">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.8">CKAN Feld</th>
       <th id="Anzahl.desc.8">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.8">8</td>
       <td id="Bezeichner.item.8">Titel des Metadatensatzes</td>
-      <td id="OGDKurzname.item.8">title</td>
-      <td id="CKANFeld.item.8">title</td>
+      <td id="OGD_Kurzname.item.8">title</td>
+      <td id="CKAN_Feld.item.8">title</td>
       <td id="Anzahl.item.8">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.8">Definition</th>
       <td id="Definition_DE.item.8" colspan="4">Titel des beschriebenen Metadatensatzes.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.8">Erläuterung</th>
       <td id="Erlauterung.item.8" colspan="4">Titel des beschriebenen Metadatensatzes.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.8">Beispiel</th>
       <td id="Beispiel.item.8" colspan="4">Schulstandorte, Pendlerstatistik Linz 2010</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.8">ON A 2270:2010</th>
       <td id="ONA2270.item.8" colspan="4">2.1.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.8">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.8" colspan="4">resTitle (360)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.8">RDF property</th>
       <td id="RDFProperty.item.8" colspan="4">dcterms:title (mit language tag &#34;de&#34;)</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.8">Definition Englisch</th>
       <td id="Definition_EN.item.8" colspan="4">Resource title</td>
     </tr>
@@ -212,43 +200,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.9">ID</th>
       <th id="Bezeichner.desc.9">Bezeichner</th>
-      <th id="OGDKurzname.desc.9">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.9">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.9">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.9">CKAN Feld</th>
       <th id="Anzahl.desc.9">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.9">9</td>
       <td id="Bezeichner.item.9">Beschreibung</td>
-      <td id="OGDKurzname.item.9">description</td>
-      <td id="CKANFeld.item.9">notes</td>
+      <td id="OGD_Kurzname.item.9">description</td>
+      <td id="CKAN_Feld.item.9">notes</td>
       <td id="Anzahl.item.9">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.9">Definition</th>
       <td id="Definition_DE.item.9" colspan="4">Inhaltliche Beschreibung des Datensatzes bzw. Dienstes.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.9">Erläuterung</th>
       <td id="Erlauterung.item.9" colspan="4">Kurze inhaltliche Beschreibung des Datensatzes bzw. Dienstes für BenutzerInnen.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.9">Beispiel</th>
       <td id="Beispiel.item.9" colspan="4">Hauptwohnsitzbevölkerung der Stadt Linz für das Jahr 2010 gruppiert nach Geschlecht, Alter etc..</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.9">ON A 2270:2010</th>
       <td id="ONA2270.item.9" colspan="4">2.2</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.9">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.9" colspan="4">idAbs (25)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.9">RDF property</th>
       <td id="RDFProperty.item.9" colspan="4">dcterms:abstract</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.9">Definition Englisch</th>
       <td id="Definition_EN.item.9" colspan="4">Description of the resources content.</td>
     </tr>
@@ -263,43 +251,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.10">ID</th>
       <th id="Bezeichner.desc.10">Bezeichner</th>
-      <th id="OGDKurzname.desc.10">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.10">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.10">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.10">CKAN Feld</th>
       <th id="Anzahl.desc.10">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.10">10</td>
       <td id="Bezeichner.item.10">Kategorie</td>
-      <td id="OGDKurzname.item.10">categorization</td>
-      <td id="CKANFeld.item.10">extras:categorization[“…“,“…“]</td>
+      <td id="OGD_Kurzname.item.10">categorization</td>
+      <td id="CKAN_Feld.item.10">extras:categorization[“…“,“…“]</td>
       <td id="Anzahl.item.10">N</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.10">Definition</th>
       <td id="Definition_DE.item.10" colspan="4">Kategorisierung des Datensatzes bzw. Dienstes. Vorgegebenes Kategorienschema für Österreich, siehe Anhang b).</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.10">Erläuterung</th>
       <td id="Erlauterung.item.10" colspan="4">Es muss die Zuordnung des Datensatzes bzw. Dienstes an das vorgegebene Kategorienschema durchgeführt und zur Anwendung gebracht werden. Mehrfachzuordnungen sind möglich.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.10">Beispiel</th>
       <td id="Beispiel.item.10" colspan="4">Gesundheit</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.10">ON A 2270:2010</th>
       <td id="ONA2270.item.10" colspan="4">2.7.1 &amp; 2.7.2</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.10">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.10" colspan="4">keyword (53) &amp; thesaName (55)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.10">RDF property</th>
       <td id="RDFProperty.item.10" colspan="4">dcat:theme</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.10">Definition Englisch</th>
       <td id="Definition_EN.item.10" colspan="4">Categorisation of the resources content.</td>
     </tr>
@@ -314,43 +302,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.11">ID</th>
       <th id="Bezeichner.desc.11">Bezeichner</th>
-      <th id="OGDKurzname.desc.11">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.11">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.11">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.11">CKAN Feld</th>
       <th id="Anzahl.desc.11">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.11">11</td>
       <td id="Bezeichner.item.11">Schlagworte</td>
-      <td id="OGDKurzname.item.11">keywords</td>
-      <td id="CKANFeld.item.11">tags</td>
+      <td id="OGD_Kurzname.item.11">keywords</td>
+      <td id="CKAN_Feld.item.11">tags</td>
       <td id="Anzahl.item.11">N</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.11">Definition</th>
       <td id="Definition_DE.item.11" colspan="4">Beschlagwortung des Datensatzes bzw. Dienstes.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.11">Erläuterung</th>
       <td id="Erlauterung.item.11" colspan="4">Beschlagwortung des Datensatzes bzw. Dienstes.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.11">Beispiel</th>
       <td id="Beispiel.item.11" colspan="4">Habitatmodell, Braunbär, Ursus arctos</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.11">ON A 2270:2010</th>
       <td id="ONA2270.item.11" colspan="4">2.7.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.11">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.11" colspan="4">keyword (53)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.11">RDF property</th>
       <td id="RDFProperty.item.11" colspan="4">dcat:keyword</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.11">Definition Englisch</th>
       <td id="Definition_EN.item.11" colspan="4">Key words describing the resource</td>
     </tr>
@@ -365,43 +353,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.14">ID</th>
       <th id="Bezeichner.desc.14">Bezeichner</th>
-      <th id="OGDKurzname.desc.14">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.14">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.14">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.14">CKAN Feld</th>
       <th id="Anzahl.desc.14">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.14">14</td>
       <td id="Bezeichner.item.14">Datensatz oder Dienst Link</td>
-      <td id="OGDKurzname.item.14">resource_url</td>
-      <td id="CKANFeld.item.14">resources:url</td>
+      <td id="OGD_Kurzname.item.14">resource_url</td>
+      <td id="CKAN_Feld.item.14">resources:url</td>
       <td id="Anzahl.item.14">N</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.14">Definition</th>
       <td id="Definition_DE.item.14" colspan="4">URL für den Zugriff auf den Datensatz oder Dienst</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.14">Erläuterung</th>
       <td id="Erlauterung.item.14" colspan="4">URL für den Zugriff auf den Datensatz oder Dienst. Die Angabe zielt auf unterschiedliche Daten- und Dienstformate ab. Es muss sichergestellt sein, dass ausschließlich vergleichbare Information in einer Datensatz/Dienstegruppe abgebildet werden. Im Zweifelsfall sollen eigenständige Metadatensätze angelegt werden.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.14">Beispiel</th>
       <td id="Beispiel.item.14" colspan="4">http://www.wien.gv.at/statistik/ogd/vie-district-pop-foreignborn.csv</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.14">ON A 2270:2010</th>
       <td id="ONA2270.item.14" colspan="4">6.1.4.1.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.14">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.14" colspan="4">linkage (397)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.14">RDF property</th>
       <td id="RDFProperty.item.14" colspan="4">dcat:accessURL</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.14">Definition Englisch</th>
       <td id="Definition_EN.item.14" colspan="4">URL to the resource</td>
     </tr>
@@ -416,43 +404,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.15">ID</th>
       <th id="Bezeichner.desc.15">Bezeichner</th>
-      <th id="OGDKurzname.desc.15">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.15">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.15">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.15">CKAN Feld</th>
       <th id="Anzahl.desc.15">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.15">15</td>
       <td id="Bezeichner.item.15">Datensatz oder Dienst Format</td>
-      <td id="OGDKurzname.item.15">resource_format</td>
-      <td id="CKANFeld.item.15">resources:format</td>
+      <td id="OGD_Kurzname.item.15">resource_format</td>
+      <td id="CKAN_Feld.item.15">resources:format</td>
       <td id="Anzahl.item.15">N</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.15">Definition</th>
       <td id="Definition_DE.item.15" colspan="4">Angabe zum Format des Datensatzes oder Dienstes. Diese ist als Dateiformat, Download- oder Service- Link anzugeben. Liste von OGD Formaten, siehe Anhang a).</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.15">Erläuterung</th>
       <td id="Erlauterung.item.15" colspan="4">OGD-Formate sollten grundsätzlich offene, maschinenlesbare Formate sein. Das bedeutet, dass publizierte Spezifikationen existieren und die Formate ohne rechtliche Einschränkungen genutzt werden können. Die Angabe soll ohne Punkt und in Kleinbuchstaben erfolgen.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.15">Beispiel</th>
       <td id="Beispiel.item.15" colspan="4">csv</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.15">ON A 2270:2010</th>
       <td id="ONA2270.item.15" colspan="4">6.1.2.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.15">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.15" colspan="4">formatName (285)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.15">RDF property</th>
       <td id="RDFProperty.item.15" colspan="4">dcterms:format</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.15">Definition Englisch</th>
       <td id="Definition_EN.item.15" colspan="4">Specification of the resource. This may be a file type, download or service link. List of defined OGD formats in Appendix a).</td>
     </tr>
@@ -467,43 +455,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.19">ID</th>
       <th id="Bezeichner.desc.19">Bezeichner</th>
-      <th id="OGDKurzname.desc.19">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.19">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.19">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.19">CKAN Feld</th>
       <th id="Anzahl.desc.19">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.19">19</td>
       <td id="Bezeichner.item.19">Datenverantwortliche Stelle</td>
-      <td id="OGDKurzname.item.19">maintainer</td>
-      <td id="CKANFeld.item.19">maintainer</td>
+      <td id="OGD_Kurzname.item.19">maintainer</td>
+      <td id="CKAN_Feld.item.19">maintainer</td>
       <td id="Anzahl.item.19">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.19">Definition</th>
       <td id="Definition_DE.item.19" colspan="4">Bezeichnung bzw. Name der für den Datensatzes oder Dienst zuständigen Organisation bzw. Person</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.19">Erläuterung</th>
       <td id="Erlauterung.item.19" colspan="4">Bezeichnung bzw. Name der für den Datensatzes oder Dienst zuständigen Organisation bzw. Person, kann in kleinen Organisationen gleichzeitig die veröffentlichende Stelle sein.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.19">Beispiel</th>
       <td id="Beispiel.item.19" colspan="4">Magistrat Wien - Magistratsabteilung 33 - Wien Leuchtet</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.19">ON A 2270:2010</th>
       <td id="ONA2270.item.19" colspan="4">2.5.1 / 2.5.2</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.19">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.19" colspan="4">rpIndName (375) / rpOrgName (376)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.19">RDF property</th>
       <td id="RDFProperty.item.19" colspan="4">dcelements:creator</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.19">Definition Englisch</th>
       <td id="Definition_EN.item.19" colspan="4">Name of the person or entity responsible for the resource.</td>
     </tr>
@@ -518,43 +506,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.21">ID</th>
       <th id="Bezeichner.desc.21">Bezeichner</th>
-      <th id="OGDKurzname.desc.21">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.21">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.21">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.21">CKAN Feld</th>
       <th id="Anzahl.desc.21">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.21">21</td>
       <td id="Bezeichner.item.21">Lizenz</td>
-      <td id="OGDKurzname.item.21">license</td>
-      <td id="CKANFeld.item.21">license</td>
+      <td id="OGD_Kurzname.item.21">license</td>
+      <td id="CKAN_Feld.item.21">license</td>
       <td id="Anzahl.item.21">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.21">Definition</th>
       <td id="Definition_DE.item.21" colspan="4">Rechtliche Nutzungsinformationen für die Verwendung des Datensatzes oder Dienstes.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.21">Erläuterung</th>
       <td id="Erlauterung.item.21" colspan="4">Angabe der Lizenzform für den Datensatz oder den bereitgestellten Dienst. Bei OGD Daten bezieht sich dies auf Creative Commons &#34;Namensnennung 3.0 Österreich (CC BY 3.0) &#34;.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.21">Beispiel</th>
       <td id="Beispiel.item.21" colspan="4">Namensnennung 3.0 Österreich (CC BY 3.0)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.21">ON A 2270:2010</th>
       <td id="ONA2270.item.21" colspan="4">2.8.1.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.21">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.21" colspan="4">othConsts (72)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.21">RDF property</th>
       <td id="RDFProperty.item.21" colspan="4">dcterms:license (sollte URI des Lizenzdokuments sein)</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.21">Definition Englisch</th>
       <td id="Definition_EN.item.21" colspan="4">Legal information concerning the usage of the resource</td>
     </tr>
@@ -569,43 +557,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.24">ID</th>
       <th id="Bezeichner.desc.24">Bezeichner</th>
-      <th id="OGDKurzname.desc.24">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.24">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.24">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.24">CKAN Feld</th>
       <th id="Anzahl.desc.24">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.24">24</td>
       <td id="Bezeichner.item.24">Zeitliche Ausdehnung (Anfang)</td>
-      <td id="OGDKurzname.item.24">begin_datetime</td>
-      <td id="CKANFeld.item.24">extras:begin_datetime</td>
+      <td id="OGD_Kurzname.item.24">begin_datetime</td>
+      <td id="CKAN_Feld.item.24">extras:begin_datetime</td>
       <td id="Anzahl.item.24">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.24">Definition</th>
       <td id="Definition_DE.item.24" colspan="4">Element zur Erfassung des Beginns der Gültigkeit eines Datensatzes oder Dienstes.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.24">Erläuterung</th>
       <td id="Erlauterung.item.24" colspan="4">Element zur zeitlichen Erfassung eines Datensatzes oder Dienstes. Die Angabe des Zeitpunktes erfolgt in folgender Form YYYY-MM-DDThh:mm:ss. TM_Primitive (nach ON EN 8601 bzw. ON EN ISO 19108).</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.24">Beispiel</th>
       <td id="Beispiel.item.24" colspan="4">2008-12-23T22:30:12</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.24">ON A 2270:2010</th>
       <td id="ONA2270.item.24" colspan="4">2.9.6.2.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.24">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.24" colspan="4">exTemp (351)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.24">RDF property</th>
       <td id="RDFProperty.item.24" colspan="4">dcterms:temporal</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.24">Definition Englisch</th>
       <td id="Definition_EN.item.24" colspan="4">Date specifying valid from of the resource according to ON EN 8601 or ON EN ISO 19108 respectively.</td>
     </tr>
@@ -620,43 +608,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.16">ID</th>
       <th id="Bezeichner.desc.16">Bezeichner</th>
-      <th id="OGDKurzname.desc.16">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.16">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.16">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.16">CKAN Feld</th>
       <th id="Anzahl.desc.16">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.16">16</td>
       <td id="Bezeichner.item.16">Datensatz oder Dienst Bezeichner</td>
-      <td id="OGDKurzname.item.16">resource_name</td>
-      <td id="CKANFeld.item.16">resources:name</td>
+      <td id="OGD_Kurzname.item.16">resource_name</td>
+      <td id="CKAN_Feld.item.16">resources:name</td>
       <td id="Anzahl.item.16">N</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.16">Definition</th>
       <td id="Definition_DE.item.16" colspan="4">Bezeichner für den einzelnen Datensatz bzw. Dienst. Das Attribut korrespondiert mit dem Metadaten – Datensatz oder Dienst Link (ID 14).</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.16">Erläuterung</th>
       <td id="Erlauterung.item.16" colspan="4">CKAN verwendet dieses optionale Element als Bezeichner für die URL, die auf den Datensatz oder Dienst zeigt.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.16">Beispiel</th>
       <td id="Beispiel.item.16" colspan="4">Hauptwohnsitzbevölkerung</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.16">ON A 2270:2010</th>
       <td id="ONA2270.item.16" colspan="4">2.1.1 &#43; 6.1.2.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.16">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.16" colspan="4">-</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.16">RDF property</th>
       <td id="RDFProperty.item.16" colspan="4">rdfs:literal</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.16">Definition Englisch</th>
       <td id="Definition_EN.item.16" colspan="4">Specifier for the single resource link within a metadata sheet. Will be used as an end user friendly text instead of the resource link.</td>
     </tr>
@@ -671,43 +659,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.2">ID</th>
       <th id="Bezeichner.desc.2">Bezeichner</th>
-      <th id="OGDKurzname.desc.2">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.2">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.2">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.2">CKAN Feld</th>
       <th id="Anzahl.desc.2">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.2">2</td>
       <td id="Bezeichner.item.2">Bezeichnung der Metadatenstruktur</td>
-      <td id="OGDKurzname.item.2">schema_name</td>
-      <td id="CKANFeld.item.2">extras:schema_name</td>
+      <td id="OGD_Kurzname.item.2">schema_name</td>
+      <td id="CKAN_Feld.item.2">extras:schema_name</td>
       <td id="Anzahl.item.2">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.2">Definition</th>
       <td id="Definition_DE.item.2" colspan="4">Name der Metadatenstruktur</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.2">Erläuterung</th>
       <td id="Erlauterung.item.2" colspan="4">Die Angabe für OGD Metadaten ist optional, sollte aber wenn möglich erfolgen. Bei einer Adaptierung der OGD Metadatenstruktur wird eine konsistente Metadatenführung erleichtert. Dieses Metadatenelement sollte automatisch vom System (Software) befüllt werden</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.2">Beispiel</th>
       <td id="Beispiel.item.2" colspan="4">OGD Austria Metadata 2.0</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.2">ON A 2270:2010</th>
       <td id="ONA2270.item.2" colspan="4">1.4</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.2">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.2" colspan="4">mdStanName (10)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.2">RDF property</th>
       <td id="RDFProperty.item.2" colspan="4">dcterms:alternative</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.2">Definition Englisch</th>
       <td id="Definition_EN.item.2" colspan="4">OGD Austria Metadata 2.0.</td>
     </tr>
@@ -722,43 +710,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.3">ID</th>
       <th id="Bezeichner.desc.3">Bezeichner</th>
-      <th id="OGDKurzname.desc.3">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.3">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.3">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.3">CKAN Feld</th>
       <th id="Anzahl.desc.3">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.3">3</td>
       <td id="Bezeichner.item.3">Sprache des Metadatensatzes</td>
-      <td id="OGDKurzname.item.3">schema_language</td>
-      <td id="CKANFeld.item.3">extras:schema_language</td>
+      <td id="OGD_Kurzname.item.3">schema_language</td>
+      <td id="CKAN_Feld.item.3">extras:schema_language</td>
       <td id="Anzahl.item.3">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.3">Definition</th>
       <td id="Definition_DE.item.3" colspan="4">ISO 639-2 dreistelliger ISO Sprachcode für den Metadatensatz</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.3">Erläuterung</th>
       <td id="Erlauterung.item.3" colspan="4">Sprache in welcher der Metadatensatz erstellt wurde. Dieses Metadatenelement sollte automatisch vom System (Software) befüllt werden</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.3">Beispiel</th>
       <td id="Beispiel.item.3" colspan="4">ger</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.3">ON A 2270:2010</th>
       <td id="ONA2270.item.3" colspan="4">1.2</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.3">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.3" colspan="4">mdLang (3)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.3">RDF property</th>
       <td id="RDFProperty.item.3" colspan="4">dcterms:language</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.3">Definition Englisch</th>
       <td id="Definition_EN.item.3" colspan="4">Metadata language, always ger (German)</td>
     </tr>
@@ -773,43 +761,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.4">ID</th>
       <th id="Bezeichner.desc.4">Bezeichner</th>
-      <th id="OGDKurzname.desc.4">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.4">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.4">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.4">CKAN Feld</th>
       <th id="Anzahl.desc.4">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.4">4</td>
       <td id="Bezeichner.item.4">Character Set Code des Metadatensatzes</td>
-      <td id="OGDKurzname.item.4">schema_characterset</td>
-      <td id="CKANFeld.item.4">extras:schema_characterset</td>
+      <td id="OGD_Kurzname.item.4">schema_characterset</td>
+      <td id="CKAN_Feld.item.4">extras:schema_characterset</td>
       <td id="Anzahl.item.4">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.4">Definition</th>
       <td id="Definition_DE.item.4" colspan="4">Characterset Code zur Beschreibung des Metadatensatzes nach ISO\IEC 10646-1</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.4">Erläuterung</th>
       <td id="Erlauterung.item.4" colspan="4">Für eine europäische Integration wird dieses Metadatenelement zwingend gebraucht, da eine Zusammenführung sonst nicht möglich ist. Dieses Metadatenelement sollte automatisch vom System (Software) befüllt werden.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.4">Beispiel</th>
       <td id="Beispiel.item.4" colspan="4">utf8</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.4">ON A 2270:2010</th>
       <td id="ONA2270.item.4" colspan="4">1.3</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.4">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.4" colspan="4">mdC (4)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.4">RDF property</th>
       <td id="RDFProperty.item.4" colspan="4">cnt:characterEncoding</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.4">Definition Englisch</th>
       <td id="Definition_EN.item.4" colspan="4">Metadata payload character encoding, always utf8</td>
     </tr>
@@ -824,43 +812,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.6">ID</th>
       <th id="Bezeichner.desc.6">Bezeichner</th>
-      <th id="OGDKurzname.desc.6">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.6">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.6">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.6">CKAN Feld</th>
       <th id="Anzahl.desc.6">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.6">6</td>
       <td id="Bezeichner.item.6">Weiterführende Metadaten</td>
-      <td id="OGDKurzname.item.6">metadata_linkage</td>
-      <td id="CKANFeld.item.6">extras:metadata_linkage</td>
+      <td id="OGD_Kurzname.item.6">metadata_linkage</td>
+      <td id="CKAN_Feld.item.6">extras:metadata_linkage</td>
       <td id="Anzahl.item.6">N</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.6">Definition</th>
       <td id="Definition_DE.item.6" colspan="4">URL zu erweiterten Metadaten des Datensatzes bzw. Dienstes</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.6">Erläuterung</th>
       <td id="Erlauterung.item.6" colspan="4">URL zur weiteren ausführlicheren Beschreibung der Metadaten. Optional. Der originäre Metadaten Link ist anzugeben. Links auf zusätzliche Informationen in anderen Metadatenkatalogen können angeführt werden.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.6">Beispiel</th>
       <td id="Beispiel.item.6" colspan="4">http://data.wien.gv.at/katalog/bevoelkerung-geburtsbundesland-wien.html</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.6">ON A 2270:2010</th>
       <td id="ONA2270.item.6" colspan="4">1.7.11</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.6">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.6" colspan="4">linkage (397)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.6">RDF property</th>
       <td id="RDFProperty.item.6" colspan="4">dcat:dataDictionary</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.6">Definition Englisch</th>
       <td id="Definition_EN.item.6" colspan="4">URL providing further descriptive metadata</td>
     </tr>
@@ -875,43 +863,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.12">ID</th>
       <th id="Bezeichner.desc.12">Bezeichner</th>
-      <th id="OGDKurzname.desc.12">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.12">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.12">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.12">CKAN Feld</th>
       <th id="Anzahl.desc.12">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.12">12</td>
       <td id="Bezeichner.item.12">Attributbeschreibung</td>
-      <td id="OGDKurzname.item.12">attribute_description</td>
-      <td id="CKANFeld.item.12">extras:attribute_description</td>
+      <td id="OGD_Kurzname.item.12">attribute_description</td>
+      <td id="CKAN_Feld.item.12">extras:attribute_description</td>
       <td id="Anzahl.item.12">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.12">Definition</th>
       <td id="Definition_DE.item.12" colspan="4">Beschreibung der Attributinformation des Datensatzes bzw. Dienstes</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.12">Erläuterung</th>
       <td id="Erlauterung.item.12" colspan="4">Menschenlesbare Beschreibung der Bedeutung der Datenfelder in einem Datensatz bzw. Dienst</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.12">Beispiel</th>
       <td id="Beispiel.item.12" colspan="4">ADRESSE: Adresse (Straßenname, Orientierungsnummer); OEFFNUNGSZEITEN1-6: Öffnungszeiten; TELEFON: Telefonnummer, DISTRICT_CODE: Gemeindebezirkskennzahl, ACCOUNTS_TRANSFER: Laufende Transferzahlungen</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.12">ON A 2270:2010</th>
       <td id="ONA2270.item.12" colspan="4">2.11.3 &amp; 2.11.4</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.12">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.12" colspan="4">memberName (4.1) &amp; definition (4.2)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.12">RDF property</th>
       <td id="RDFProperty.item.12" colspan="4">dcterms:description</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.12">Definition Englisch</th>
       <td id="Definition_EN.item.12" colspan="4">Human-readable description of dataset fields</td>
     </tr>
@@ -926,43 +914,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.13">ID</th>
       <th id="Bezeichner.desc.13">Bezeichner</th>
-      <th id="OGDKurzname.desc.13">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.13">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.13">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.13">CKAN Feld</th>
       <th id="Anzahl.desc.13">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.13">13</td>
       <td id="Bezeichner.item.13">Kontaktseite der datenverantwortlichen Stelle</td>
-      <td id="OGDKurzname.item.13">maintainer_link</td>
-      <td id="CKANFeld.item.13">extras:maintainer_link</td>
+      <td id="OGD_Kurzname.item.13">maintainer_link</td>
+      <td id="CKAN_Feld.item.13">extras:maintainer_link</td>
       <td id="Anzahl.item.13">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.13">Definition</th>
       <td id="Definition_DE.item.13" colspan="4">Kontaktseite der datenverantwortlichen Stelle</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.13">Erläuterung</th>
       <td id="Erlauterung.item.13" colspan="4">URL zur daten- bzw. dienstverantwortlichen Stelle</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.13">Beispiel</th>
       <td id="Beispiel.item.13" colspan="4">http://www.wien.gv.at/freizeit/bildungjugend/</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.13">ON A 2270:2010</th>
       <td id="ONA2270.item.13" colspan="4">6.1.1.1.6</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.13">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.13" colspan="4">Linkage (397)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.13">RDF property</th>
       <td id="RDFProperty.item.13" colspan="4">dcterms:creator</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.13">Definition Englisch</th>
       <td id="Definition_EN.item.13" colspan="4">URL to the dataset maintainig entity</td>
     </tr>
@@ -977,43 +965,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.17">ID</th>
       <th id="Bezeichner.desc.17">Bezeichner</th>
-      <th id="OGDKurzname.desc.17">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.17">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.17">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.17">CKAN Feld</th>
       <th id="Anzahl.desc.17">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.17">17</td>
       <td id="Bezeichner.item.17">Datensatz oder Dienst Veröffentlichungsdatum</td>
-      <td id="OGDKurzname.item.17">resource_created</td>
-      <td id="CKANFeld.item.17">resources:created</td>
+      <td id="OGD_Kurzname.item.17">resource_created</td>
+      <td id="CKAN_Feld.item.17">resources:created</td>
       <td id="Anzahl.item.17">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.17">Definition</th>
       <td id="Definition_DE.item.17" colspan="4">Datum der Veröffentlichung des Datensatzes oder Dienstes.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.17">Erläuterung</th>
       <td id="Erlauterung.item.17" colspan="4">Beschreibt den Zeitpunkt der Veröffentlichung der Daten (z.B. das Datum, an dem der Datensatz oder Dienst auf der Website der Behörde verfügbar gemacht wurde).</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.17">Beispiel</th>
       <td id="Beispiel.item.17" colspan="4">2011-03-21 ( YYYY-MM-DD)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.17">ON A 2270:2010</th>
       <td id="ONA2270.item.17" colspan="4">2.1.3.1 &amp; 2.1.3.2</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.17">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.17" colspan="4">refDate (394) &amp; refDateType (395)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.17">RDF property</th>
       <td id="RDFProperty.item.17" colspan="4">dcterms:issued</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.17">Definition Englisch</th>
       <td id="Definition_EN.item.17" colspan="4">Resource publication timestamp</td>
     </tr>
@@ -1028,43 +1016,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.18">ID</th>
       <th id="Bezeichner.desc.18">Bezeichner</th>
-      <th id="OGDKurzname.desc.18">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.18">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.18">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.18">CKAN Feld</th>
       <th id="Anzahl.desc.18">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.18">18</td>
       <td id="Bezeichner.item.18">Datensatz oder Dienst Änderungsdatum</td>
-      <td id="OGDKurzname.item.18">resource_lastmodified</td>
-      <td id="CKANFeld.item.18">resources:last_modified</td>
+      <td id="OGD_Kurzname.item.18">resource_lastmodified</td>
+      <td id="CKAN_Feld.item.18">resources:last_modified</td>
       <td id="Anzahl.item.18">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.18">Definition</th>
       <td id="Definition_DE.item.18" colspan="4">Datum der letzten Aktualisierung des Datensatzes oder Dienstes.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.18">Erläuterung</th>
       <td id="Erlauterung.item.18" colspan="4">Letztes Aktualisierungsdatum des Datensatzes oder Dienstes.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.18">Beispiel</th>
       <td id="Beispiel.item.18" colspan="4">2012-01-15 ( YYYY-MM-DD )</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.18">ON A 2270:2010</th>
       <td id="ONA2270.item.18" colspan="4">2.1.3.1 &amp; 2.1.3.2</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.18">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.18" colspan="4">refDate (394) &amp; refDateType (395)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.18">RDF property</th>
       <td id="RDFProperty.item.18" colspan="4">dcterms:modified</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.18">Definition Englisch</th>
       <td id="Definition_EN.item.18" colspan="4">Resource last update timestamp</td>
     </tr>
@@ -1079,43 +1067,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.20">ID</th>
       <th id="Bezeichner.desc.20">Bezeichner</th>
-      <th id="OGDKurzname.desc.20">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.20">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.20">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.20">CKAN Feld</th>
       <th id="Anzahl.desc.20">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.20">20</td>
       <td id="Bezeichner.item.20">Veröffentlichende Stelle</td>
-      <td id="OGDKurzname.item.20">publisher</td>
-      <td id="CKANFeld.item.20">extras:publisher</td>
+      <td id="OGD_Kurzname.item.20">publisher</td>
+      <td id="CKAN_Feld.item.20">extras:publisher</td>
       <td id="Anzahl.item.20">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.20">Definition</th>
       <td id="Definition_DE.item.20" colspan="4">Bezeichnung bzw. Name der für den Metadatensatz zuständigen Organisation bzw. Person</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.20">Erläuterung</th>
       <td id="Erlauterung.item.20" colspan="4">Bezeichnung bzw. Name der für den Metadatensatz zuständigen Organisation bzw. Person</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.20">Beispiel</th>
       <td id="Beispiel.item.20" colspan="4">Magistrat Wien - Abteilung 53 - Presse- und Informationsdienst</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.20">ON A 2270:2010</th>
       <td id="ONA2270.item.20" colspan="4">2.5.1 / 2.5.2</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.20">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.20" colspan="4">rpIndName (375) / rpOrgName (376)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.20">RDF property</th>
       <td id="RDFProperty.item.20" colspan="4">dcelements:publisher</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.20">Definition Englisch</th>
       <td id="Definition_EN.item.20" colspan="4">Name of the publishing entity or person</td>
     </tr>
@@ -1130,43 +1118,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.22">ID</th>
       <th id="Bezeichner.desc.22">Bezeichner</th>
-      <th id="OGDKurzname.desc.22">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.22">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.22">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.22">CKAN Feld</th>
       <th id="Anzahl.desc.22">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.22">22</td>
       <td id="Bezeichner.item.22">Geographische Abdeckung/Lage</td>
-      <td id="OGDKurzname.item.22">geographic_toponym</td>
-      <td id="CKANFeld.item.22">extras:geographic_toponym</td>
+      <td id="OGD_Kurzname.item.22">geographic_toponym</td>
+      <td id="CKAN_Feld.item.22">extras:geographic_toponym</td>
       <td id="Anzahl.item.22">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.22">Definition</th>
       <td id="Definition_DE.item.22" colspan="4">Geographische Ortsidentifikation eines Datensatzes oder Dienstes</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.22">Erläuterung</th>
       <td id="Erlauterung.item.22" colspan="4">Menschenlesbare Beschreibung der räumlichen Lage eines Datensatzes oder Dienstes</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.22">Beispiel</th>
       <td id="Beispiel.item.22" colspan="4">Linz</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.22">ON A 2270:2010</th>
       <td id="ONA2270.item.22" colspan="4">2.9.6.1.3.1.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.22">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.22" colspan="4">identCode (207)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.22">RDF property</th>
       <td id="RDFProperty.item.22" colspan="4">dcterms:description</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.22">Definition Englisch</th>
       <td id="Definition_EN.item.22" colspan="4">Human-readable description of the resources spatial context</td>
     </tr>
@@ -1181,43 +1169,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.23">ID</th>
       <th id="Bezeichner.desc.23">Bezeichner</th>
-      <th id="OGDKurzname.desc.23">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.23">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.23">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.23">CKAN Feld</th>
       <th id="Anzahl.desc.23">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.23">23</td>
       <td id="Bezeichner.item.23">Geographische Ausdehnung</td>
-      <td id="OGDKurzname.item.23">geographic_bbox</td>
-      <td id="CKANFeld.item.23">extras:geographic_bbox</td>
+      <td id="OGD_Kurzname.item.23">geographic_bbox</td>
+      <td id="CKAN_Feld.item.23">extras:geographic_bbox</td>
       <td id="Anzahl.item.23">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.23">Definition</th>
       <td id="Definition_DE.item.23" colspan="4">Dokumentation der geographischen Ausdehnung eines Datensatzes mit der Definition eines umrahmenden Rechtecks.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.23">Erläuterung</th>
       <td id="Erlauterung.item.23" colspan="4">Beschreibung der räumlichen Ausdehnung eines Datensatzes mit einem umschreibenden Rechteck. Die Angabe erfolgt im Koordinatensystem EPSG:4326 (WGS84) mit einer Mindestgenauigkeit von zwei Dezimalstellen in einer &#34;Well Known Text String&#34; Repräsentation. POLYGON (Rechtswert_min Hochwert_min, Rechtswert_max Hochwert_max)</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.23">Beispiel</th>
       <td id="Beispiel.item.23" colspan="4">POLYGON (-180.00 -90.00, 180.00 90.00)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.23">ON A 2270:2010</th>
       <td id="ONA2270.item.23" colspan="4">2.9.6.1.1.1 &amp; 2.9.6.1.1.2 &amp; 2.9.6.1.1.3 &amp; 2.9.6.1.1.4</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.23">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.23" colspan="4">westBL (344) &amp; eastBL (345) &amp; southBL (346) &amp; northBL (347)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.23">RDF property</th>
       <td id="RDFProperty.item.23" colspan="4">dcterms:spatial</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.23">Definition Englisch</th>
       <td id="Definition_EN.item.23" colspan="4">Bounding box specifying the resources spatial coverage</td>
     </tr>
@@ -1232,43 +1220,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.25">ID</th>
       <th id="Bezeichner.desc.25">Bezeichner</th>
-      <th id="OGDKurzname.desc.25">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.25">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.25">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.25">CKAN Feld</th>
       <th id="Anzahl.desc.25">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.25">25</td>
       <td id="Bezeichner.item.25">Zeitliche Ausdehnung (Ende)</td>
-      <td id="OGDKurzname.item.25">end_datetime</td>
-      <td id="CKANFeld.item.25">extras:end_datetime</td>
+      <td id="OGD_Kurzname.item.25">end_datetime</td>
+      <td id="CKAN_Feld.item.25">extras:end_datetime</td>
       <td id="Anzahl.item.25">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.25">Definition</th>
       <td id="Definition_DE.item.25" colspan="4">Ende der Gültigkeit eines Datensatzes oder Dienstes.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.25">Erläuterung</th>
       <td id="Erlauterung.item.25" colspan="4">Element zur zeitlichen Erfassung eines Datensatzes oder Dienstes. Die Angabe des Zeitpunktes erfolgt in folgender Form YYYY-MM-DDThh:mm:ss. TM_Primitive (nach ON EN 8601 bzw. ON EN ISO 19108)</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.25">Beispiel</th>
       <td id="Beispiel.item.25" colspan="4">2009-11-23T20:36:00</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.25">ON A 2270:2010</th>
       <td id="ONA2270.item.25" colspan="4">2.9.6.2.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.25">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.25" colspan="4">exTemp (351)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.25">RDF property</th>
       <td id="RDFProperty.item.25" colspan="4">dcterms:temporal</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.25">Definition Englisch</th>
       <td id="Definition_EN.item.25" colspan="4">Date specifying valid to of the resource according to ON EN 8601 or ON EN ISO 19108 respectively.</td>
     </tr>
@@ -1283,43 +1271,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.26">ID</th>
       <th id="Bezeichner.desc.26">Bezeichner</th>
-      <th id="OGDKurzname.desc.26">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.26">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.26">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.26">CKAN Feld</th>
       <th id="Anzahl.desc.26">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.26">26</td>
       <td id="Bezeichner.item.26">Aktualisierungszyklus</td>
-      <td id="OGDKurzname.item.26">update_frequency</td>
-      <td id="CKANFeld.item.26">extras:update_frequency</td>
+      <td id="OGD_Kurzname.item.26">update_frequency</td>
+      <td id="CKAN_Feld.item.26">extras:update_frequency</td>
       <td id="Anzahl.item.26">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.26">Definition</th>
       <td id="Definition_DE.item.26" colspan="4">Menschenlesbare Frequenz der Aktualisierung des Datensatzes bzw. Dienstes. Codeliste im Anhang c)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.26">Erläuterung</th>
       <td id="Erlauterung.item.26" colspan="4">Zeitliche Nachführungssequenz für einen Datensatz oder Dienst</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.26">Beispiel</th>
       <td id="Beispiel.item.26" colspan="4">monatlich, jährlich</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.26">ON A 2270:2010</th>
       <td id="ONA2270.item.26" colspan="4">2.9.7.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.26">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.26" colspan="4">maintFreq (143)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.26">RDF property</th>
       <td id="RDFProperty.item.26" colspan="4">dcterms:accrualPeriodicity</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.26">Definition Englisch</th>
       <td id="Definition_EN.item.26" colspan="4">Human readable resource update frequency</td>
     </tr>
@@ -1334,43 +1322,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.27">ID</th>
       <th id="Bezeichner.desc.27">Bezeichner</th>
-      <th id="OGDKurzname.desc.27">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.27">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.27">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.27">CKAN Feld</th>
       <th id="Anzahl.desc.27">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.27">27</td>
       <td id="Bezeichner.item.27">Datenqualität/Herkunft</td>
-      <td id="OGDKurzname.item.27">lineage_quality</td>
-      <td id="CKANFeld.item.27">extras:lineage_quality</td>
+      <td id="OGD_Kurzname.item.27">lineage_quality</td>
+      <td id="CKAN_Feld.item.27">extras:lineage_quality</td>
       <td id="Anzahl.item.27">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.27">Definition</th>
       <td id="Definition_DE.item.27" colspan="4">Menschenlesbare Beschreibung der Qualitäts- und /oder Entstehungsgenese des Datensatzes oder Dienstes z.B. die Methode der Erhebung.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.27">Erläuterung</th>
       <td id="Erlauterung.item.27" colspan="4">Allgemeine Angaben zur Qualität und/oder Entstehungsgenese des Datensatzes oder Dienstes</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.27">Beispiel</th>
       <td id="Beispiel.item.27" colspan="4">Der Datensatz wurde basierend auf der ÖK50, Stand 2011 digitalisiert. Es wurden alle Waldbestände für die Gemeinde Kopfing erfasst.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.27">ON A 2270:2010</th>
       <td id="ONA2270.item.27" colspan="4">3.2.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.27">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.27" colspan="4">statement (83)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.27">RDF property</th>
       <td id="RDFProperty.item.27" colspan="4">dcat:dataQuality</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.27">Definition Englisch</th>
       <td id="Definition_EN.item.27" colspan="4">Human readable indication of resource quality and / or data origin, possibly the methodology describing the data collection or acquisition.</td>
     </tr>
@@ -1385,43 +1373,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.28">ID</th>
       <th id="Bezeichner.desc.28">Bezeichner</th>
-      <th id="OGDKurzname.desc.28">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.28">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.28">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.28">CKAN Feld</th>
       <th id="Anzahl.desc.28">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.28">28</td>
       <td id="Bezeichner.item.28">Titel und Beschreibung Englisch</td>
-      <td id="OGDKurzname.item.28">en_title_and_desc</td>
-      <td id="CKANFeld.item.28">extras:en_title_and_desc</td>
+      <td id="OGD_Kurzname.item.28">en_title_and_desc</td>
+      <td id="CKAN_Feld.item.28">extras:en_title_and_desc</td>
       <td id="Anzahl.item.28">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.28">Definition</th>
       <td id="Definition_DE.item.28" colspan="4">Englische Angabe von Titel und Beschreibung des Datensatzes oder Dienstes.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.28">Erläuterung</th>
       <td id="Erlauterung.item.28" colspan="4">Titel des Datensatzes oder Dienstes und kurze inhaltliche Beschreibung des Datensatzes bzw. Dienstes für BenutzerInnen in Englisch.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.28">Beispiel</th>
       <td id="Beispiel.item.28" colspan="4">Population of Vienna 2010. Contains the population of permanent residents of Vienna and it’s districts as a moving average in the census period 1st January 2010 to 31st December 2012</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.28">ON A 2270:2010</th>
       <td id="ONA2270.item.28" colspan="4">2.1.1 &amp; 7.1</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.28">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.28" colspan="4">resTitle (360) &amp; language</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.28">RDF property</th>
       <td id="RDFProperty.item.28" colspan="4">dcterms:abstract (mit language tag &#34;en&#34;)</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.28">Definition Englisch</th>
       <td id="Definition_EN.item.28" colspan="4">Resource title and description in English</td>
     </tr>
@@ -1436,43 +1424,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.29">ID</th>
       <th id="Bezeichner.desc.29">Bezeichner</th>
-      <th id="OGDKurzname.desc.29">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.29">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.29">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.29">CKAN Feld</th>
       <th id="Anzahl.desc.29">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.29">29</td>
       <td id="Bezeichner.item.29">Größe des Datensatzes oder Dienstes</td>
-      <td id="OGDKurzname.item.29">resource_size</td>
-      <td id="CKANFeld.item.29">resources:size</td>
+      <td id="OGD_Kurzname.item.29">resource_size</td>
+      <td id="CKAN_Feld.item.29">resources:size</td>
       <td id="Anzahl.item.29">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.29">Definition</th>
       <td id="Definition_DE.item.29" colspan="4">Dateigröße.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.29">Erläuterung</th>
       <td id="Erlauterung.item.29" colspan="4">Die Größe des Datensatzes in Bytes. Die Angabe der Größe ist für Services / Dienste nicht sinnvoll.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.29">Beispiel</th>
       <td id="Beispiel.item.29" colspan="4">899652</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.29">ON A 2270:2010</th>
       <td id="ONA2270.item.29" colspan="4">-</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.29">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.29" colspan="4">-</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.29">RDF property</th>
       <td id="RDFProperty.item.29" colspan="4">dcat:bytes</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.29">Definition Englisch</th>
       <td id="Definition_EN.item.29" colspan="4">Resource size</td>
     </tr>
@@ -1487,43 +1475,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.30">ID</th>
       <th id="Bezeichner.desc.30">Bezeichner</th>
-      <th id="OGDKurzname.desc.30">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.30">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.30">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.30">CKAN Feld</th>
       <th id="Anzahl.desc.30">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.30">30</td>
       <td id="Bezeichner.item.30">Lizenz Zitat</td>
-      <td id="OGDKurzname.item.30">license_citation</td>
-      <td id="CKANFeld.item.30">extras:license_citation</td>
+      <td id="OGD_Kurzname.item.30">license_citation</td>
+      <td id="CKAN_Feld.item.30">extras:license_citation</td>
       <td id="Anzahl.item.30">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.30">Definition</th>
       <td id="Definition_DE.item.30" colspan="4">Die richtige Namensnennung (CC-BY) der Datenquelle laut den Nutzungsbedingungen des jeweiligen Datenportals. Entspricht dem Feld „Datenquelle“ von OGD-Metadaten – 1.1.</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.30">Erläuterung</th>
       <td id="Erlauterung.item.30" colspan="4">Dient dazu, um bei der automatisierten Wiederverwendung von Daten aus einer oder mehreren Datenquellen die richtige Zitierung zu erleichtern.</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.30">Beispiel</th>
       <td id="Beispiel.item.30" colspan="4">Datenquelle: CC-BY-3.0: Stadt Linz - data.linz.gv.at</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.30">ON A 2270:2010</th>
       <td id="ONA2270.item.30" colspan="4">2.8.1.2</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.30">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.30" colspan="4">accessConsts (70)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.30">RDF property</th>
       <td id="RDFProperty.item.30" colspan="4">cc:attributionName</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.30">Definition Englisch</th>
       <td id="Definition_EN.item.30" colspan="4">Attribution as required by CC-BY license</td>
     </tr>
@@ -1538,43 +1526,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.31">ID</th>
       <th id="Bezeichner.desc.31">Bezeichner</th>
-      <th id="OGDKurzname.desc.31">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.31">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.31">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.31">CKAN Feld</th>
       <th id="Anzahl.desc.31">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.31">31</td>
       <td id="Bezeichner.item.31">Sprache des Datensatzes oder Dienstes</td>
-      <td id="OGDKurzname.item.31">resource_language</td>
-      <td id="CKANFeld.item.31">resources:language</td>
+      <td id="OGD_Kurzname.item.31">resource_language</td>
+      <td id="CKAN_Feld.item.31">resources:language</td>
       <td id="Anzahl.item.31">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.31">Definition</th>
       <td id="Definition_DE.item.31" colspan="4">ISO 639-2 dreistelliger ISO Sprachcode für den Datensatz oder Dienst</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.31">Erläuterung</th>
       <td id="Erlauterung.item.31" colspan="4">Sprache, welche der Datensatz oder Dienst verwendet</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.31">Beispiel</th>
       <td id="Beispiel.item.31" colspan="4">ger</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.31">ON A 2270:2010</th>
       <td id="ONA2270.item.31" colspan="4">2.9.3</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.31">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.31" colspan="4">dataLang (39)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.31">RDF property</th>
       <td id="RDFProperty.item.31" colspan="4">dcterms:language</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.31">Definition Englisch</th>
       <td id="Definition_EN.item.31" colspan="4">Resource language</td>
     </tr>
@@ -1589,43 +1577,43 @@ table.ogdatspectable[ogdrequired="false"]  .odd td {
     <tr>
       <th id="ID.desc.32">ID</th>
       <th id="Bezeichner.desc.32">Bezeichner</th>
-      <th id="OGDKurzname.desc.32">OGD-Kurzname</th>
-      <th id="CKANFeld.desc.32">CKAN Feld</th>
+      <th id="OGD_Kurzname.desc.32">OGD-Kurzname</th>
+      <th id="CKAN_Feld.desc.32">CKAN Feld</th>
       <th id="Anzahl.desc.32">Anzahl</th>
     </tr>
     <tr>
       <td id="ID.item.32">32</td>
       <td id="Bezeichner.item.32">Character Set Code des Datensatzes oder Dienstes</td>
-      <td id="OGDKurzname.item.32">resource_encoding</td>
-      <td id="CKANFeld.item.32">resources:characterset</td>
+      <td id="OGD_Kurzname.item.32">resource_encoding</td>
+      <td id="CKAN_Feld.item.32">resources:characterset</td>
       <td id="Anzahl.item.32">1</td>
   </tbody>
   <tbody>
-    <tr class="odd">
+    <tr>
       <th id="Definition_DE.desc.32">Definition</th>
       <td id="Definition_DE.item.32" colspan="4">Characterset Code des Datensatzes oder Dienstes nach ISO\IEC 10646-1</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="Erlauterung.desc.32">Erläuterung</th>
       <td id="Erlauterung.item.32" colspan="4">Zeichensatz, der im Datensatz oder Dienst verwendet wird</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Beispiel.desc.32">Beispiel</th>
       <td id="Beispiel.item.32" colspan="4">utf8</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="ONA2270.desc.32">ON A 2270:2010</th>
       <td id="ONA2270.item.32" colspan="4">2.9.4</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="ISO19115.desc.32">ON/EN/ISO 19115:2003</th>
       <td id="ISO19115.item.32" colspan="4">dataChar (40)</td>
     </tr>
-    <tr class="even">
+    <tr>
       <th id="RDFProperty.desc.32">RDF property</th>
       <td id="RDFProperty.item.32" colspan="4">cnt:characterEncoding</td>
     </tr>
-    <tr class="odd">
+    <tr>
       <th id="Definition_EN.desc.32">Definition Englisch</th>
       <td id="Definition_EN.item.32" colspan="4">Resource character encoding</td>
     </tr>
