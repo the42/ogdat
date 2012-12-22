@@ -61,15 +61,15 @@ type OGDSet struct {
 	Beschreibung []*Beschreibung
 }
 
-func (set *OGDSet) GetSpecForID(id int) *Beschreibung {
+func (set *OGDSet) GetBeschreibungForID(id int) (*Beschreibung, string) {
 	if set != nil {
 		for idx, elm := range set.Beschreibung {
 			if elm.ID == id {
-				return set.Beschreibung[idx]
+				return set.Beschreibung[idx], set.Label[idx]
 			}
 		}
 	}
-	return nil
+	return nil, ""
 }
 
 func Register(version, specfile string) {
