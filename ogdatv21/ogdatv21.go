@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const Version21 = "OGD Austria Metadata 2.1" // Version 2.1: 15.10.2012
+const Version = "OGD Austria Metadata 2.1" // Version 2.1: 15.10.2012
 const specfile = "ogdat_spec-2.1.csv"
 const TimeSpecifier = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
 
@@ -317,7 +317,7 @@ type MetaData struct {
 func (md *MetaData) GetBeschreibungForFieldName(name string) *ogdat.Beschreibung {
 	if f, ok := reflect.TypeOf(md).Elem().FieldByName(name); ok {
 		if id := ogdat.GetIDFromMetaDataStructField(f); id > -1 {
-			beschreibung, _ := ogdat.GetOGDSetForVersion(Version21).GetBeschreibungForID(id)
+			beschreibung, _ := ogdat.GetOGDSetForVersion(Version).GetBeschreibungForID(id)
 			return beschreibung
 		}
 	}
@@ -328,5 +328,5 @@ func init() {
 	for idx, val := range categories {
 		categorymap[val.ID] = categories[idx]
 	}
-	ogdat.Register(Version21, specfile)
+	ogdat.Register(Version, specfile)
 }
