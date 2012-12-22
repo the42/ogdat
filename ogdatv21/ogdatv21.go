@@ -328,5 +328,5 @@ func init() {
 	for idx, val := range categories {
 		categorymap[val.ID] = categories[idx]
 	}
-	ogdat.Register(Version, specfile)
+	ogdat.RegisterFromCSVFile(Version, specfile)
 }
