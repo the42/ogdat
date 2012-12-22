@@ -41,6 +41,10 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 	return
 }
 
+func (md *MetaData) Check() bool {
+	return true
+}
+
 func init() {
 	isolangfilemap = loadisolanguagefile(iso639file)
 }
