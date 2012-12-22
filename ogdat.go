@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 /*	Version10 = "OGD Austria Metadata 1.0" // Version 1.0: 24.10.2011
@@ -81,6 +82,18 @@ func Register(version, specfile string) *OGDSet {
 func GetOGDSetForVersion(version string) *OGDSet {
 	return specification[version]
 }
+
+func GetOGDIDFromString(ids string) int {
+	if idx := strings.Index(ids, "ID"); idx > -1 {
+		ids = ids[idx+1:]
+		if idx = strings.IndexRune(ids, ' '); idx > -1 {
+			ids = ids[:idx]
+		}
+		if i, err := strconv.Atoi(ids); err == nil {
+			return i
+		}
+	}
+	return -1
 }
 
 func Loadogdatspec(version, filename string) (*OGDSet, error) {
