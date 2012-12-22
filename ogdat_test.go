@@ -1,18 +1,47 @@
 package ogdat
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 const ogdatv21specfile = "ogdat_spec-2.1.csv"
 
 func TestLoadOGDATSpecFile(t *testing.T) {
-	if spec := loadogdatspec("v21", ogdatv21specfile); spec != nil {
-		if nspec := len(spec); nspec != 31 {
-			t.Errorf("Should contain 31 records but found %d", nspec)
+	if spec, _ := Loadogdatspec("v21", ogdatv21specfile); spec != nil {
+		if nspec := len(spec.Beschreibung); nspec != 31 {
+			t.Errorf("LoadOGDATSpecFile: Should contain 31 records but found %d", nspec)
 		} else {
 			// t.Error("SUCCESS")
 		}
 	} else {
-		t.Logf("Specification file %s not loaded", ogdatv21specfile)
+		t.Logf("LoadOGDATSpecFile: Specification file %s not loaded", ogdatv21specfile)
 		t.Fail()
 	}
+}
+
+type My struct {
+	A struct{} `json:"Hallo Welt" ogdat:"ID:1, yow dawg"`
+	B struct{} `ogdat:"ID:2, yow dawg"`
+	C struct{} `ogdat:"ID:3"`
+}
+
+func TestGetIDFromMetaDataStructField(t *testing.T) {
+	x := &My{}
+	if f, ok := reflect.TypeOf(x).Elem().FieldByName("A"); ok {
+		if id := GetIDFromMetaDataStructField(f); id != 1 {
+			t.Errorf("GetIDFromMetaDataStructField: Expected 1, got %d", id)
+		}
+	}
+	if f, ok := reflect.TypeOf(x).Elem().FieldByName("B"); ok {
+		if id := GetIDFromMetaDataStructField(f); id != 2 {
+			t.Errorf("GetIDFromMetaDataStructField: Expected 2, got %d", id)
+		}
+	}
+	if f, ok := reflect.TypeOf(x).Elem().FieldByName("C"); ok {
+		if id := GetIDFromMetaDataStructField(f); id != 3 {
+			t.Errorf("GetIDFromMetaDataStructField: Expected 3, got %d", id)
+		}
+	}
+
 }
