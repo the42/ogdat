@@ -274,8 +274,8 @@ type Extras struct {
 
 type Resource struct {
 	// Core
-	URL    *Url              `json:"url" ogdat:"ID:14"`
-	Format ResourceSpecifier `json:"format" ogdat:"ID:15"`
+	URL    *Url               `json:"url" ogdat:"ID:14"`
+	Format *ResourceSpecifier `json:"format" ogdat:"ID:15"`
 
 	// Optional
 	Name         *string `json:"name" ogdat:"ID:16"`
@@ -303,11 +303,11 @@ type Resource struct {
 
 type MetaData struct {
 	// Core
-	Title       string `json:"title" ogdat:"ID:8"`
-	Description string `json:"notes" ogdat:"ID:9"`
-	Schlagworte []Tags `json:"tags" ogdat:"ID:11"`
-	Maintainer  string `json:"maintainer" ogdat:"ID:19"`
-	License     string `json:"license" ogdat:"ID:21"` // Sollte URI des Lizenzdokuments sein
+	Title       *string `json:"title" ogdat:"ID:8"`
+	Description *string `json:"notes" ogdat:"ID:9"`
+	Schlagworte []Tags  `json:"tags" ogdat:"ID:11"`
+	Maintainer  *string `json:"maintainer" ogdat:"ID:19"`
+	License     *string `json:"license" ogdat:"ID:21"` // Sollte URI des Lizenzdokuments sein
 
 	// nested structs
 	Extras   `json:"extras"`
