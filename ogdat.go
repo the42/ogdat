@@ -42,6 +42,17 @@ type Beschreibung struct {
 	version       string
 }
 
+type CheckMessage struct {
+	Type    int // 1 = Info, 2 = Warning, 3 = Error
+	Text    string
+	OGDID   int
+	Context string
+}
+
+type Checker interface {
+	Check() []CheckMessage
+}
+
 func NewBeschreibung(ID int, occur Occurrence, ver string) *Beschreibung {
 	return &Beschreibung{ID: ID, occurrence: occur, version: ver}
 }

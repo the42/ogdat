@@ -2,9 +2,12 @@ package ogdatv21
 
 import (
 	"encoding/csv"
+	"fmt"
+	"github.com/the42/ogdat"
 	"io"
 	"log"
 	"os"
+	"reflect"
 )
 
 type ISO6392Lang struct {
@@ -41,8 +44,21 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 	return
 }
 
-func (md *MetaData) Check() bool {
-	return true
+func (md *MetaData) Check() (message []ogdat.CheckMessage) {
+	const nopflichtfeld = "Pflichtfeld nicht gesetzt"
+
+	if md.Extras.Metadata_Identifier != nil {
+		if md.Extras.Metadata_Identifier.UUID == nil {
+			f, _ := reflect.TypeOf(md).Elem().FieldByName("Metadata_Identifier")
+			message = append(message, ogdat.CheckMessage{Type: 3,
+				OGDID: ogdat.GetIDFromMetaDataStructField(f),
+				Text:  fmt.Sprintf("Feldwert vom Typ UUID erwartet, der Wert ist aber keine UUID: '%s'", md.Extras.Metadata_Identifier.Raw)})
+		}
+	} else {
+		f, _ := reflect.TypeOf(md).Elem().FieldByName("Metadata_Identifier")
+		message = append(message, ogdat.CheckMessage{Type: 3, OGDID: ogdat.GetIDFromMetaDataStructField(f), Text: nopflichtfeld})
+	}
+	return
 }
 
 func init() {
