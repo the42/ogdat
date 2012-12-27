@@ -114,12 +114,12 @@ type Url struct {
 	Raw string
 }
 
-type Identfier struct {
+type Identifier struct {
 	*uuid.UUID
 	Raw string
 }
 
-func (id *Identfier) String() string {
+func (id *Identifier) String() string {
 	return id.Raw
 }
 
@@ -210,7 +210,7 @@ func (u *Url) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (id *Identfier) UnmarshalJSON(data []byte) error {
+func (id *Identifier) UnmarshalJSON(data []byte) error {
 	var raw string
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -244,7 +244,7 @@ func (kat *Kategorie) UnmarshalJSON(data []byte) error {
 
 type Extras struct {
 	// Core
-	Metadata_Identifier Identfier   `json:"metadata_identifier" ogdat:"ID:1"` // CKAN uses since API Version 2 a UUID V4, cf. https://github.com/okfn/ckan/blob/master/ckan/model/types.py
+	Metadata_Identifier *Identifier `json:"metadata_identifier" ogdat:"ID:1"` // CKAN uses since API Version 2 a UUID V4, cf. https://github.com/okfn/ckan/blob/master/ckan/model/types.py
 	Metadata_Modified   *Time       `json:"metadata_modified ogdat:"ID:5"`
 	Categorization      []Kategorie `json:"categorization ogdat:"ID:10"`
 	Begin_DateTime      *Time       `json:"begin_datetime" ogdat:"ID:24"`

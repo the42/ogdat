@@ -30,7 +30,7 @@ var initisolangs = flag.Bool("initisolangs", false, fmt.Sprintf("Download ISO-63
 var servetdb = flag.Bool("serve", false, "Start in watchdog mode. Process will continue to run until it receives a (clean shutdown) or gets killed")
 var DEBUG = flag.Bool("DEBUG", false, "DEBUG MODE")
 
-func getdataforidentifier(id ogdat.Identfier) (*ogdat.MetaData, error) {
+func getdataforidentifier(id ogdat.Identifier) (*ogdat.MetaData, error) {
 	resp, err := http.Get(dataseturl + id.String())
 	if err != nil {
 		return nil, err
@@ -49,9 +49,9 @@ func getdataforidentifier(id ogdat.Identfier) (*ogdat.MetaData, error) {
 	return data, nil
 }
 
-func getalldatasetids() ([]ogdat.Identfier, error) {
+func getalldatasetids() ([]ogdat.Identifier, error) {
 
-	var allsets []ogdat.Identfier
+	var allsets []ogdat.Identifier
 	resp, err := http.Get(dataseturl)
 	if err != nil {
 		return nil, err
