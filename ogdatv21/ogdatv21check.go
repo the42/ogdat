@@ -44,19 +44,36 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 	return
 }
 
-func (md *MetaData) Check() (message []ogdat.CheckMessage) {
+func (md *MetaData) Check() (message []ogdat.CheckMessage, err error) {
 	const nopflichtfeld = "Pflichtfeld nicht gesetzt"
 
-	if md.Extras.Metadata_Identifier != nil {
-		if md.Extras.Metadata_Identifier.UUID == nil {
-			f, _ := reflect.TypeOf(md).Elem().FieldByName("Metadata_Identifier")
-			message = append(message, ogdat.CheckMessage{Type: 3,
-				OGDID: ogdat.GetIDFromMetaDataStructField(f),
-				Text:  fmt.Sprintf("Feldwert vom Typ UUID erwartet, der Wert ist aber keine UUID: '%s'", md.Extras.Metadata_Identifier.Raw)})
+	ogdset := ogdat.GetOGDSetForVersion(Version)
+	if ogdset == nil {
+		return nil, fmt.Errorf("Beschreibung für OGD Version %s ist nicht vorhanden, check kann nicht durchgeführt werden", Version)
+	}
+
+nextbeschreibung:
+	for _, elm := range ogdset.Beschreibung {
+		if elm.IsRequired() {
+			ielements := reflect.TypeOf(md).Elem().NumField()
+			for i := 0; i < ielements; i++ {
+				f := reflect.TypeOf(md).Elem().Field(i)
+				if ogdat.GetIDFromMetaDataStructField(f) == elm.ID && ogdat.MetaDataStructFieldIsNil(f) {
+					message = append(message, ogdat.CheckMessage{Type: 3, OGDID: ogdat.GetIDFromMetaDataStructField(f), Text: nopflichtfeld})
+					break nextbeschreibung // required field is not present - nothing more to check
+				}
+			}
 		}
-	} else {
-		f, _ := reflect.TypeOf(md).Elem().FieldByName("Metadata_Identifier")
-		message = append(message, ogdat.CheckMessage{Type: 3, OGDID: ogdat.GetIDFromMetaDataStructField(f), Text: nopflichtfeld})
+
+		switch elm.OGD_Kurzname {
+		case "metadata_identifier":
+			if md.Extras.Metadata_Identifier.UUID == nil {
+				message = append(message, ogdat.CheckMessage{
+					Type:  3,
+					OGDID: elm.ID,
+					Text:  fmt.Sprintf("Feldwert vom Typ UUID erwartet, Wert ist aber keine UUID: '%s'", md.Extras.Metadata_Identifier.Raw)})
+			}
+		}
 	}
 	return
 }
