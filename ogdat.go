@@ -114,6 +114,15 @@ func GetIDFromMetaDataStructField(val reflect.StructField) int {
 	return -1
 }
 
+// Return if a value is nil. Will panic if the value is not a pointer
+func MetaDataStructFieldIsNil(val interface{}) bool {
+	v := reflect.ValueOf(val)
+	if v.Kind() != reflect.Ptr {
+		panic("Struct field is not a pointer")
+	}
+	return v.IsNil()
+}
+
 func Loadogdatspec(version, filename string) (*OGDSet, error) {
 	reader, err := os.Open(filename)
 	if err != nil {
@@ -131,8 +140,7 @@ func Loadogdatspec(version, filename string) (*OGDSet, error) {
 		return nil, err
 	}
 
-	set := &OGDSet{}
-	set.Label = record
+	set := &OGDSet{Label: record}
 
 	spec := make([]*Beschreibung, 0)
 	for record, err = csvreader.Read(); err != io.EOF; record, err = csvreader.Read() {
