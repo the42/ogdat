@@ -12,15 +12,16 @@ import (
 
 const Version = "OGD Austria Metadata 2.1" // Version 2.1: 15.10.2012
 const specfile = "ogdat_spec-2.1.csv"
-const TimeSpecifier = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
+const CustomTimeSpecifier1 = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
+const CustomTimeSpecifier2 = "2006-12-02"          // RFC 3339 = ISO 8601 ohne Zeitzone
 
 /// BEGIN:check wheater this code may be factored out
-const (
-	Time2 = time.RFC3339Nano
-	Time3 = time.RFC3339
-	Time1 = TimeSpecifier
-	TimeFormatUnknow
-)
+var TimeFormat = []string{
+	time.RFC3339Nano,
+	time.RFC3339,
+	CustomTimeSpecifier1,
+	CustomTimeSpecifier2,
+}
 
 type Kategorie struct {
 	NumID       int `json:"-"`
@@ -182,20 +183,14 @@ func (ogdtime *Time) UnmarshalJSON(data []byte) error {
 	}
 	ogdtime.Raw = raw
 
-	ogdtime.Format = Time1
-	t, err := time.Parse(ogdtime.Format, raw)
-	if err != nil {
-		ogdtime.Format = Time2
-		t, err = time.Parse(ogdtime.Format, raw)
-		if err != nil {
-			ogdtime.Format = Time3
-			t, err = time.Parse(ogdtime.Format, raw)
-			if err != nil {
-				ogdtime.Format = TimeFormatUnknow
-			}
+	for idx, val := range TimeFormat {
+		t, err := time.Parse(val, raw)
+		if err == nil {
+			ogdtime.Format = TimeFormat[idx]
+			ogdtime.Time = t
+			break
 		}
 	}
-	ogdtime.Time = t
 	return nil
 }
 
