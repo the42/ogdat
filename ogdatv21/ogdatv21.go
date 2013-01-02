@@ -245,8 +245,8 @@ func (kat *Kategorie) UnmarshalJSON(data []byte) error {
 type Extras struct {
 	// Core
 	Metadata_Identifier *Identifier `json:"metadata_identifier" ogdat:"ID:1"` // CKAN uses since API Version 2 a UUID V4, cf. https://github.com/okfn/ckan/blob/master/ckan/model/types.py
-	Metadata_Modified   *Time       `json:"metadata_modified ogdat:"ID:5"`
-	Categorization      []Kategorie `json:"categorization ogdat:"ID:10"`
+	Metadata_Modified   *Time       `json:"metadata_modified" ogdat:"ID:5"`
+	Categorization      []Kategorie `json:"categorization" ogdat:"ID:10"`
 	Begin_DateTime      *Time       `json:"begin_datetime" ogdat:"ID:24"`
 
 	// Optional
