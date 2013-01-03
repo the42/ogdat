@@ -255,10 +255,10 @@ type Extras struct {
 	Geographich_Toponym   *string `json:"geographic_toponym" ogdat:"ID:22"`
 
 	/*  ON/EN/ISO 19115:2003: westBL (344) & eastBL (345) & southBL (346) & northBL (347)
-	 * TODO: Specifiaction says a WKT of POLYGON should be used, which would make a
+	 * Specifiaction says a WKT of POLYGON should be used, which would make a
 	 * POLYGON ((-180.00 -90.00, 180.00 90.00)) but Example states
 	 * POLYGON (-180.00 -90.00, 180.00 90.00)
-	 * UNDER CLARIFICATION
+	 * The situation is currently erroneous but unambigous, so we support both formats
 	 */
 	Geographic_BBox  *string `json:"geographic_bbox" ogdat:"ID:23"`
 	End_DateTime     *Time   `json:"end_datetime" ogdat:"ID:25"`
