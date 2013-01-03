@@ -193,7 +193,7 @@ func mymain() int {
 		logger.Println("Warning: Requesting database reset")
 		fmt.Print("\n\nALL RECORDED DATA IN DATABASE  WILL BE DELETED.\nDO YOU REALLY WANT TO PROCEED? [N,y]\n")
 		if !gotyesonprompt() {
-			fmt.Println("\nABORTING\n")
+			fmt.Print("\nABORTING\n\n")
 			logger.Println("Info: Database reset canceled")
 		} else {
 			// TODO: Delete apporpriate tables

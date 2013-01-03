@@ -67,16 +67,16 @@ func CheckOGDTextStringForSaneCharacters(str string) (status, position int, mess
 		return 3, -1, "Zeichenfolge ist nicht als UTF8 kodiert"
 	}
 	if idx := regexphtmlcodecheck.FindIndex([]byte(str)); idx != nil {
-		return 2, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", idx[0], str[idx[0]:min(20, idx[1]-idx[0])])
+		return 2, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])
 	}
 	if idx := regexphtmlescape.FindIndex([]byte(str)); idx != nil {
-		return 2, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", idx[0], str[idx[0]:min(15, idx[1]-idx[0])])
+		return 2, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", str[idx[0]:min(15, idx[1]-idx[0])])
 	}
 	if idx := regexpurlencode.FindIndex([]byte(str)); idx != nil {
-		return 2, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", idx[0], str[idx[0]:min(8, idx[1]-idx[0])])
+		return 2, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", str[idx[0]:min(8, idx[1]-idx[0])])
 	}
 	if idx := regexpposixescape.FindIndex([]byte(str)); idx != nil {
-		return 2, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", idx[0], str[idx[0]:min(5, idx[1]-idx[0])])
+		return 2, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", str[idx[0]:min(5, idx[1]-idx[0])])
 	}
 	return
 }
