@@ -1,0 +1,1 @@
+/home/john/dev/gocode/src/github.com/the42/ogdat/ogdatv21/ISO-639-2_utf-8.txt
