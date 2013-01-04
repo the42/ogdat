@@ -53,41 +53,54 @@ func min(a, b int) int {
 	return b
 }
 
+type CheckError struct {
+	Status, Position int
+	message          string
+}
+
+func (ce *CheckError) Error() string {
+	return ce.message
+}
+
 var regexphtmlcodecheck = regexp.MustCompile(`<\w+.*('|"|)>`)
 var regexphtmlescape = regexp.MustCompile(`&\w{1,10};|&#\d{1,6};`)
 var regexpurlencode = regexp.MustCompile(`%[0-9a-fA-F][0-9a-fA-F]`)
 var regexpposixescape = regexp.MustCompile(`\\n|\\b|\\v|\\t`)
-var regexpbboxWKT = regexp.MustCompile(`POLYGON\s{0,1}\({1,2}\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+,\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+\s{0,2}\){1,2}`)
 
 // return values are:
-// status: <> 0 indicates sthg. was wrong, // 1 = Info, 2 = Warning, 3 = Error
-// position > -1: position of offending input in string, only set if status <> 0
-// message: clear text of reason why the input string failes to be a correct OGD string
-func CheckOGDTextStringForSaneCharacters(str string) (status, position int, message string) {
+// ok = false indicates sthg. was wrong in which case error will not be nil
+//
+// error: if is of type CheckError:
+// Status: 1 = Info, 2 = Warning, 3 = Error
+// Position: beginning position of offending input
+// message: An error message describing the problem
+func CheckOGDTextStringForSaneCharacters(str string) (ok bool, _ error) {
 	if !utf8.ValidString(str) {
-		return 3, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"
+		return false, &CheckError{3, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
 	if idx := regexphtmlcodecheck.FindIndex([]byte(str)); idx != nil {
-		return 2, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])
+		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])}
 	}
 	if idx := regexphtmlescape.FindIndex([]byte(str)); idx != nil {
-		return 2, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", str[idx[0]:min(15, idx[1]-idx[0])])
+		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", str[idx[0]:min(15, idx[1]-idx[0])])}
 	}
 	if idx := regexpurlencode.FindIndex([]byte(str)); idx != nil {
-		return 2, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", str[idx[0]:min(8, idx[1]-idx[0])])
+		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", str[idx[0]:min(8, idx[1]-idx[0])])}
 	}
 	if idx := regexpposixescape.FindIndex([]byte(str)); idx != nil {
-		return 2, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", str[idx[0]:min(5, idx[1]-idx[0])])
+		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", str[idx[0]:min(5, idx[1]-idx[0])])}
 	}
-	return
+	return true, nil
 }
+
+var regexpbboxWKT = regexp.MustCompile(`^POLYGON\s{0,1}\({1,2}\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+,\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+\s{0,2}\){1,2}$`)
 
 func CheckOGDBBox(str string) (bool, error) {
 	if !utf8.ValidString(str) {
-		return false, fmt.Errorf("Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert")
+		return false, &CheckError{3, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
 	if idx := regexpbboxWKT.FindIndex([]byte(str)); idx == nil {
-		return false, fmt.Errorf("Keine gültige WKT-Angabe einer BoundingBox")
+		return false, &CheckError{3, -1, "Keine gültige WKT-Angabe einer BoundingBox"}
 	}
 	return true, nil
 }
@@ -134,18 +147,22 @@ nextbeschreibung:
 					Text:  fmt.Sprintf("Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'", md.Extras.Metadata_Modified.Raw)})
 			}
 		case "title":
-			if err, idx, msg := CheckOGDTextStringForSaneCharacters(*md.Title); err > 0 {
-				message = append(message, ogdat.CheckMessage{
-					Type:  err,
-					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", idx, msg)})
+			if ok, err := CheckOGDTextStringForSaneCharacters(*md.Title); !ok {
+				if cerr, ok := err.(*CheckError); ok {
+					message = append(message, ogdat.CheckMessage{
+						Type:  cerr.Status,
+						OGDID: elm.ID,
+						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+				}
 			}
 		case "description":
-			if err, idx, msg := CheckOGDTextStringForSaneCharacters(*md.Description); err > 0 {
-				message = append(message, ogdat.CheckMessage{
-					Type:  err,
-					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", idx, msg)})
+			if ok, err := CheckOGDTextStringForSaneCharacters(*md.Description); !ok {
+				if cerr, ok := err.(*CheckError); ok {
+					message = append(message, ogdat.CheckMessage{
+						Type:  cerr.Status,
+						OGDID: elm.ID,
+						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+				}
 			}
 		case "categorization":
 			if cat := md.Extras.Categorization; cat == nil {
@@ -173,18 +190,22 @@ nextbeschreibung:
 
 			}
 		case "maintainer":
-			if err, idx, msg := CheckOGDTextStringForSaneCharacters(*md.Maintainer); err > 0 {
-				message = append(message, ogdat.CheckMessage{
-					Type:  err,
-					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", idx, msg)})
+			if ok, err := CheckOGDTextStringForSaneCharacters(*md.Maintainer); !ok {
+				if cerr, ok := err.(*CheckError); ok {
+					message = append(message, ogdat.CheckMessage{
+						Type:  cerr.Status,
+						OGDID: elm.ID,
+						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+				}
 			}
 		case "license":
-			if err, idx, msg := CheckOGDTextStringForSaneCharacters(*md.License); err > 0 {
-				message = append(message, ogdat.CheckMessage{
-					Type:  err,
-					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", idx, msg)})
+			if ok, err := CheckOGDTextStringForSaneCharacters(*md.License); !ok {
+				if cerr, ok := err.(*CheckError); ok {
+					message = append(message, ogdat.CheckMessage{
+						Type:  cerr.Status,
+						OGDID: elm.ID,
+						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+				}
 			}
 		case "begin_datetime":
 			if md.Extras.Begin_DateTime.Format != CustomTimeSpecifier1 {
@@ -196,18 +217,20 @@ nextbeschreibung:
 			// ###################### OPTIONALE FELDER ######################
 		case "schema_name":
 			if schemaname := md.Extras.Schema_Name; schemaname != nil {
-				if err, idx, msg := CheckOGDTextStringForSaneCharacters(*schemaname); err > 0 {
-					message = append(message, ogdat.CheckMessage{
-						Type:  err,
-						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", idx, msg)})
-				}
-				const ogdschemaspec = "OGD Austria Metadata 2.0"
-				if *schemaname != ogdschemaspec {
-					message = append(message, ogdat.CheckMessage{
-						Type:  1,
-						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Schemabezeichnung als '%s' erwartet, der Wert ist aber '%s'", ogdschemaspec, *schemaname)})
+				if ok, err := CheckOGDTextStringForSaneCharacters(*schemaname); !ok {
+					if cerr, ok := err.(*CheckError); ok {
+						message = append(message, ogdat.CheckMessage{
+							Type:  cerr.Status,
+							OGDID: elm.ID,
+							Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+					}
+					const ogdschemaspec = "OGD Austria Metadata 2.0"
+					if *schemaname != ogdschemaspec {
+						message = append(message, ogdat.CheckMessage{
+							Type:  1,
+							OGDID: elm.ID,
+							Text:  fmt.Sprintf("Schemabezeichnung als '%s' erwartet, der Wert ist aber '%s'", ogdschemaspec, *schemaname)})
+					}
 				}
 			}
 		case "schema_language":
@@ -249,11 +272,13 @@ nextbeschreibung:
 						Text:  fmt.Sprintf("Beschreibung enthält weniger als %d Zeichen", i)})
 
 				}
-				if err, idx, msg := CheckOGDTextStringForSaneCharacters(*desc); err > 0 {
-					message = append(message, ogdat.CheckMessage{
-						Type:  err,
-						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", idx, msg)})
+				if ok, err := CheckOGDTextStringForSaneCharacters(*desc); !ok {
+					if cerr, ok := err.(*CheckError); ok {
+						message = append(message, ogdat.CheckMessage{
+							Type:  cerr.Status,
+							OGDID: elm.ID,
+							Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+					}
 				}
 			}
 		case "maintainer_link":
@@ -267,20 +292,24 @@ nextbeschreibung:
 			}
 		case "publisher":
 			if publisher := md.Extras.Publisher; publisher != nil {
-				if err, idx, msg := CheckOGDTextStringForSaneCharacters(*publisher); err > 0 {
-					message = append(message, ogdat.CheckMessage{
-						Type:  err,
-						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", idx, msg)})
+				if ok, err := CheckOGDTextStringForSaneCharacters(*publisher); !ok {
+					if cerr, ok := err.(*CheckError); ok {
+						message = append(message, ogdat.CheckMessage{
+							Type:  cerr.Status,
+							OGDID: elm.ID,
+							Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+					}
 				}
 			}
 		case "geographic_toponym":
 			if toponym := md.Extras.Geographich_Toponym; toponym != nil {
-				if err, idx, msg := CheckOGDTextStringForSaneCharacters(*toponym); err > 0 {
-					message = append(message, ogdat.CheckMessage{
-						Type:  err,
-						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", idx, msg)})
+				if ok, err := CheckOGDTextStringForSaneCharacters(*toponym); !ok {
+					if cerr, ok := err.(*CheckError); ok {
+						message = append(message, ogdat.CheckMessage{
+							Type:  cerr.Status,
+							OGDID: elm.ID,
+							Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+					}
 				}
 			}
 		case "geographic_bbox":
@@ -291,6 +320,19 @@ nextbeschreibung:
 						OGDID: elm.ID,
 						Text:  fmt.Sprintf("Zeichenfolge enthält keinen gültigen WKT für die örtliche Begrenzung (Boundingbox): '%s'", err)})
 				}
+			}
+		case "end_datetime":
+			if endtime := md.Extras.End_DateTime; endtime != nil {
+				if endtime.Format != CustomTimeSpecifier1 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  3,
+						OGDID: elm.ID,
+						Text:  fmt.Sprintf("Feldwert vom Typ ÖNORM ISO 8601 TM_Primitive 'YYYY-MM-DDThh:mm:ss' erwartet, Wert entspricht aber nicht diesem Typ: '%s'", endtime.Raw)})
+				}
+			}
+		case "update_frequency":
+			if frequency := md.Extras.Update_Frequency; frequency != nil {
+
 			}
 		}
 	}
