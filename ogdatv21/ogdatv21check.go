@@ -44,7 +44,7 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 	return
 }
 
-func (md *MetaData) Check() (message []ogdat.CheckMessage, err error) {
+func (md *MetaData) Check(checklinks bool) (message []ogdat.CheckMessage, err error) {
 	const pflichtfeldfehlt = "Pflichtfeld nicht gesetzt"
 
 	ogdset := ogdat.GetOGDSetForVersion(Version)

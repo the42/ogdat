@@ -128,7 +128,7 @@ func CheckLink(url string, followhttplink bool) (bool, error) {
 }
 
 type Checker interface {
-	Check() []CheckMessage
+	Check(bool) []CheckMessage
 }
 
 func NewBeschreibung(ID int, occur Occurrence, ver string) *Beschreibung {
