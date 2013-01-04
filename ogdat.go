@@ -2,12 +2,15 @@ package ogdat
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 /*	Version10 = "OGD Austria Metadata 1.0" // Version 1.0: 24.10.2011
@@ -47,6 +50,65 @@ type CheckMessage struct {
 	Text    string
 	OGDID   int
 	Context string
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+type CheckError struct {
+	Status, Position int
+	message          string
+}
+
+func (ce *CheckError) Error() string {
+	return ce.message
+}
+
+var regexphtmlcodecheck = regexp.MustCompile(`<\w+.*('|"|)>`)
+var regexphtmlescape = regexp.MustCompile(`&\w{1,10};|&#\d{1,6};`)
+var regexpurlencode = regexp.MustCompile(`%[0-9a-fA-F][0-9a-fA-F]`)
+var regexpposixescape = regexp.MustCompile(`\\n|\\b|\\v|\\t`)
+
+// return values are:
+// ok = false indicates sthg. was wrong in which case error will not be nil
+//
+// error: if is of type CheckError:
+// Status: 1 = Info, 2 = Warning, 3 = Error
+// Position: beginning position of offending input
+// message: An error message describing the problem
+func CheckOGDTextStringForSaneCharacters(str string) (ok bool, _ error) {
+	if !utf8.ValidString(str) {
+		return false, &CheckError{3, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
+	}
+	if idx := regexphtmlcodecheck.FindIndex([]byte(str)); idx != nil {
+		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])}
+	}
+	if idx := regexphtmlescape.FindIndex([]byte(str)); idx != nil {
+		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", str[idx[0]:min(15, idx[1]-idx[0])])}
+	}
+	if idx := regexpurlencode.FindIndex([]byte(str)); idx != nil {
+		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", str[idx[0]:min(8, idx[1]-idx[0])])}
+	}
+	if idx := regexpposixescape.FindIndex([]byte(str)); idx != nil {
+		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", str[idx[0]:min(5, idx[1]-idx[0])])}
+	}
+	return true, nil
+}
+
+var regexpbboxWKT = regexp.MustCompile(`^POLYGON\s{0,1}\({1,2}\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+,\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+\s{0,2}\){1,2}$`)
+
+func CheckOGDBBox(str string) (bool, error) {
+	if !utf8.ValidString(str) {
+		return false, &CheckError{3, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
+	}
+	if idx := regexpbboxWKT.FindIndex([]byte(str)); idx == nil {
+		return false, &CheckError{3, -1, "Keine gültige WKT-Angabe einer BoundingBox"}
+	}
+	return true, nil
 }
 
 type Checker interface {

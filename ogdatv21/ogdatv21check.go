@@ -8,8 +8,6 @@ import (
 	"log"
 	"os"
 	"reflect"
-	"regexp"
-	"unicode/utf8"
 )
 
 type ISO6392Lang struct {
@@ -44,65 +42,6 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 		log.Printf("Warning: Can not read ISO language records")
 	}
 	return
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-type CheckError struct {
-	Status, Position int
-	message          string
-}
-
-func (ce *CheckError) Error() string {
-	return ce.message
-}
-
-var regexphtmlcodecheck = regexp.MustCompile(`<\w+.*('|"|)>`)
-var regexphtmlescape = regexp.MustCompile(`&\w{1,10};|&#\d{1,6};`)
-var regexpurlencode = regexp.MustCompile(`%[0-9a-fA-F][0-9a-fA-F]`)
-var regexpposixescape = regexp.MustCompile(`\\n|\\b|\\v|\\t`)
-
-// return values are:
-// ok = false indicates sthg. was wrong in which case error will not be nil
-//
-// error: if is of type CheckError:
-// Status: 1 = Info, 2 = Warning, 3 = Error
-// Position: beginning position of offending input
-// message: An error message describing the problem
-func CheckOGDTextStringForSaneCharacters(str string) (ok bool, _ error) {
-	if !utf8.ValidString(str) {
-		return false, &CheckError{3, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
-	}
-	if idx := regexphtmlcodecheck.FindIndex([]byte(str)); idx != nil {
-		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])}
-	}
-	if idx := regexphtmlescape.FindIndex([]byte(str)); idx != nil {
-		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", str[idx[0]:min(15, idx[1]-idx[0])])}
-	}
-	if idx := regexpurlencode.FindIndex([]byte(str)); idx != nil {
-		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", str[idx[0]:min(8, idx[1]-idx[0])])}
-	}
-	if idx := regexpposixescape.FindIndex([]byte(str)); idx != nil {
-		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", str[idx[0]:min(5, idx[1]-idx[0])])}
-	}
-	return true, nil
-}
-
-var regexpbboxWKT = regexp.MustCompile(`^POLYGON\s{0,1}\({1,2}\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+,\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+\s{0,2}\){1,2}$`)
-
-func CheckOGDBBox(str string) (bool, error) {
-	if !utf8.ValidString(str) {
-		return false, &CheckError{3, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
-	}
-	if idx := regexpbboxWKT.FindIndex([]byte(str)); idx == nil {
-		return false, &CheckError{3, -1, "Keine gültige WKT-Angabe einer BoundingBox"}
-	}
-	return true, nil
 }
 
 func (md *MetaData) Check() (message []ogdat.CheckMessage, err error) {
@@ -147,8 +86,8 @@ nextbeschreibung:
 					Text:  fmt.Sprintf("Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'", md.Extras.Metadata_Modified.Raw)})
 			}
 		case "title":
-			if ok, err := CheckOGDTextStringForSaneCharacters(*md.Title); !ok {
-				if cerr, ok := err.(*CheckError); ok {
+			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Title); !ok {
+				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -156,8 +95,8 @@ nextbeschreibung:
 				}
 			}
 		case "description":
-			if ok, err := CheckOGDTextStringForSaneCharacters(*md.Description); !ok {
-				if cerr, ok := err.(*CheckError); ok {
+			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Description); !ok {
+				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -190,8 +129,8 @@ nextbeschreibung:
 
 			}
 		case "maintainer":
-			if ok, err := CheckOGDTextStringForSaneCharacters(*md.Maintainer); !ok {
-				if cerr, ok := err.(*CheckError); ok {
+			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Maintainer); !ok {
+				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -199,8 +138,8 @@ nextbeschreibung:
 				}
 			}
 		case "license":
-			if ok, err := CheckOGDTextStringForSaneCharacters(*md.License); !ok {
-				if cerr, ok := err.(*CheckError); ok {
+			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.License); !ok {
+				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -217,8 +156,8 @@ nextbeschreibung:
 			// ###################### OPTIONALE FELDER ######################
 		case "schema_name":
 			if schemaname := md.Extras.Schema_Name; schemaname != nil {
-				if ok, err := CheckOGDTextStringForSaneCharacters(*schemaname); !ok {
-					if cerr, ok := err.(*CheckError); ok {
+				if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*schemaname); !ok {
+					if cerr, ok := err.(*ogdat.CheckError); ok {
 						message = append(message, ogdat.CheckMessage{
 							Type:  cerr.Status,
 							OGDID: elm.ID,
@@ -272,8 +211,8 @@ nextbeschreibung:
 						Text:  fmt.Sprintf("Beschreibung enthält weniger als %d Zeichen", i)})
 
 				}
-				if ok, err := CheckOGDTextStringForSaneCharacters(*desc); !ok {
-					if cerr, ok := err.(*CheckError); ok {
+				if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*desc); !ok {
+					if cerr, ok := err.(*ogdat.CheckError); ok {
 						message = append(message, ogdat.CheckMessage{
 							Type:  cerr.Status,
 							OGDID: elm.ID,
@@ -292,8 +231,8 @@ nextbeschreibung:
 			}
 		case "publisher":
 			if publisher := md.Extras.Publisher; publisher != nil {
-				if ok, err := CheckOGDTextStringForSaneCharacters(*publisher); !ok {
-					if cerr, ok := err.(*CheckError); ok {
+				if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*publisher); !ok {
+					if cerr, ok := err.(*ogdat.CheckError); ok {
 						message = append(message, ogdat.CheckMessage{
 							Type:  cerr.Status,
 							OGDID: elm.ID,
@@ -303,8 +242,8 @@ nextbeschreibung:
 			}
 		case "geographic_toponym":
 			if toponym := md.Extras.Geographich_Toponym; toponym != nil {
-				if ok, err := CheckOGDTextStringForSaneCharacters(*toponym); !ok {
-					if cerr, ok := err.(*CheckError); ok {
+				if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*toponym); !ok {
+					if cerr, ok := err.(*ogdat.CheckError); ok {
 						message = append(message, ogdat.CheckMessage{
 							Type:  cerr.Status,
 							OGDID: elm.ID,
@@ -314,7 +253,7 @@ nextbeschreibung:
 			}
 		case "geographic_bbox":
 			if bbox := md.Extras.Geographic_BBox; bbox != nil {
-				if ok, err := CheckOGDBBox(*bbox); !ok {
+				if ok, err := ogdat.CheckOGDBBox(*bbox); !ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  3,
 						OGDID: elm.ID,
