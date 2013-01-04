@@ -111,6 +111,22 @@ func CheckOGDBBox(str string) (bool, error) {
 	return true, nil
 }
 
+var regexpEMail = regexp.MustCompile(`^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`)
+
+func CheckLink(url string, followhttplink bool) (bool, error) {
+	// it's a contact point if it's a http-link (starts with "http(s)" )
+	if len(url) >= 4 && url[:4] == "http" || len(url) >= 5 && url[:5] == "https" {
+		if followhttplink {
+		}
+		return true, nil
+	}
+	// it's a contact point if it's an email address
+	if idx := regexpEMail.FindIndex([]byte(url)); idx != nil {
+		return true, nil
+	}
+	return false, &CheckError{2, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])}
+}
+
 type Checker interface {
 	Check() []CheckMessage
 }
