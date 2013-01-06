@@ -1,6 +1,7 @@
 package ogdatv21
 
 import (
+	// "daviddengcn/go-algs/ed" // levenshtein distance for similarity
 	"encoding/csv"
 	"fmt"
 	"github.com/the42/ogdat"
@@ -86,6 +87,8 @@ nextbeschreibung:
 					Text:  fmt.Sprintf("Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'", md.Extras.Metadata_Modified.Raw)})
 			}
 		case "title":
+			// TODO: should this tool also check for spelling mistakes?
+			// Don't think so, it does only check for adherence to the specification
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Title); !ok {
 				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
@@ -127,6 +130,11 @@ nextbeschreibung:
 					OGDID: elm.ID,
 					Text:  "Schlagworte dürfen zwar mit Kardinalität 'N' optional auftreten, die Angabe von Schlagworten wäre aber wünschenswert"})
 
+			}
+		case "resource_format":
+			for _, element := range md.Resource {
+				//TODO: check for Resource Elements
+				_ = element
 			}
 		case "maintainer":
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Maintainer); !ok {
@@ -292,18 +300,54 @@ nextbeschreibung:
 			if frequency == nil {
 				continue
 			}
+			if frequency.NumID == -1 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  2,
+					OGDID: elm.ID,
+					Text:  fmt.Sprintf("Feldwert in Anlehnung an ON/EN/ISO 19115:2003 erwartet (gültige Werte sind in der OGD Spezifikation definiert), Wert entspricht aber nicht diesem Typ: '%s'", frequency.Raw)})
+			}
+		case "lineage_quality":
+			quality := md.Extras.Lineage_Quality
+			if quality == nil {
+				continue
+			}
+			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*quality); !ok {
+				if cerr, ok := err.(*ogdat.CheckError); ok {
+					message = append(message, ogdat.CheckMessage{
+						Type:  cerr.Status,
+						OGDID: elm.ID,
+						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+				}
+			}
+		case "en_title_and_desc":
+			en_desc := md.Extras.EnTitleDesc
+			if en_desc == nil {
+				continue
+			}
+			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*en_desc); !ok {
+				if cerr, ok := err.(*ogdat.CheckError); ok {
+					message = append(message, ogdat.CheckMessage{
+						Type:  cerr.Status,
+						OGDID: elm.ID,
+						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+				}
+			}
+		case "license_citation":
+			en_desc := md.Extras.EnTitleDesc
+			if en_desc == nil {
+				continue
+			}
+			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*en_desc); !ok {
+				if cerr, ok := err.(*ogdat.CheckError); ok {
+					message = append(message, ogdat.CheckMessage{
+						Type:  cerr.Status,
+						OGDID: elm.ID,
+						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+				}
+			}
 		}
 	}
 	return
-
-	/*
-		 		case "resource_url":
-			  if keywords := md.Resources.Url; keywords == nil {
-			  message = append(message, ogdat.CheckMessage{
-						Type:  2,
-						OGDID: elm.ID,
-						Text:  "Schlagworte dürfen zwar mit Karidnalität 'N' optional auftreten, die Angabe von Schlagworten wäre aber wünschenswert"})
-	*/
 }
 
 func init() {
