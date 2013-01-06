@@ -78,21 +78,22 @@ type Cycle struct {
 	DomainCode                  string
 	MD_MaintenanceFrequencyCode string
 	Name_DE                     string
+	Raw                         string
 }
 
 var (
-	CycCont     = Cycle{1, "001", "continual", "kontinuierlich"}
-	CycDaily    = Cycle{2, "002", "daily", "täglich"}
-	CycWeekly   = Cycle{3, "003", "weekly", "wöchentlich"}
-	CycFortNly  = Cycle{4, "004", "fortnightly", "14-tägig"}
-	CycMonthly  = Cycle{5, "005", "monthly", "monatlich"}
-	CycQuart    = Cycle{6, "006", "quarterly", "quartalsweise"}
-	CycBiAnn    = Cycle{7, "007", "biannually", "halbjährlich"}
-	CycAnnually = Cycle{8, "008", "annually", "jährlich"}
-	CycNeeded   = Cycle{9, "009", "asNeeded", "nach Bedarf"}
-	CycIrreg    = Cycle{10, "010", "irregular", "unregelmäßig"}
-	CycNP       = Cycle{11, "011", "notPlanned", "nicht geplant"}
-	CycUnknown  = Cycle{12, "012", "unknown", "unbekannt"}
+	CycCont     = Cycle{NumID: 1, DomainCode: "001", MD_MaintenanceFrequencyCode: "continual", Name_DE: "kontinuierlich"}
+	CycDaily    = Cycle{NumID: 2, DomainCode: "002", MD_MaintenanceFrequencyCode: "daily", Name_DE: "täglich"}
+	CycWeekly   = Cycle{NumID: 3, DomainCode: "003", MD_MaintenanceFrequencyCode: "weekly", Name_DE: "wöchentlich"}
+	CycFortNly  = Cycle{NumID: 4, DomainCode: "004", MD_MaintenanceFrequencyCode: "fortnightly", Name_DE: "14-tägig"}
+	CycMonthly  = Cycle{NumID: 5, DomainCode: "005", MD_MaintenanceFrequencyCode: "monthly", Name_DE: "monatlich"}
+	CycQuart    = Cycle{NumID: 6, DomainCode: "006", MD_MaintenanceFrequencyCode: "quarterly", Name_DE: "quartalsweise"}
+	CycBiAnn    = Cycle{NumID: 7, DomainCode: "007", MD_MaintenanceFrequencyCode: "biannually", Name_DE: "halbjährlich"}
+	CycAnnually = Cycle{NumID: 8, DomainCode: "008", MD_MaintenanceFrequencyCode: "annually", Name_DE: "jährlich"}
+	CycNeeded   = Cycle{NumID: 9, DomainCode: "009", MD_MaintenanceFrequencyCode: "asNeeded", Name_DE: "nach Bedarf"}
+	CycIrreg    = Cycle{NumID: 10, DomainCode: "010", MD_MaintenanceFrequencyCode: "irregular", Name_DE: "unregelmäßig"}
+	CycNP       = Cycle{NumID: 11, DomainCode: "011", MD_MaintenanceFrequencyCode: "notPlanned", Name_DE: "nicht geplant"}
+	CycUnknown  = Cycle{NumID: 12, DomainCode: "012", MD_MaintenanceFrequencyCode: "unknown", Name_DE: "unbekannt"}
 )
 
 var cycles = []Cycle{
@@ -170,6 +171,7 @@ func (cyc *Cycle) UnmarshalJSON(data []byte) error {
 		*cyc = cycles[idx]
 	} else {
 		cyc.NumID = -1
+		cyc.Raw = raw
 		cyc.Name_DE = "**** NON cycle spec **** - " + raw
 		cyc.MD_MaintenanceFrequencyCode = cyc.Name_DE
 	}
