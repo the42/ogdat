@@ -265,6 +265,7 @@ type Extras struct {
 	Update_Frequency *Cycle  `json:"update_frequency" ogdat:"ID:26"`
 	Lineage_Quality  *string `json:"lineage_quality" ogdat:"ID:27"`
 	EnTitleDesc      *string `json:"en_title_and_desc" ogdat:"ID:28"`
+	License_Citation *string `json:"license_citation" ogdat:"ID:30"`
 }
 
 type Resource struct {
@@ -285,9 +286,8 @@ type Resource struct {
 	 * rdfs:domain dcat:Distribution;
 	 * rdfs:range xsd:integer .
 	 */
-	Size             *string `json:"size" ogdat:"ID:29"`
-	License_Citation *string `json:"license_citation" ogdat:"ID:30"`
-	Language         *string `json:"language" ogdat:"ID:31"`
+	Size     *string `json:"size" ogdat:"ID:29"`
+	Language *string `json:"language" ogdat:"ID:31"`
 	/* Here we have a problem in spec 2.1. which says "nach ISO\IEC 10646-1", which means utf-8, utf-16 and utf-32.
 	 * We would certainly support more encodings, as eg.
 	 * ISO 19115 / B.5.10 MD_CharacterSetCode<> or
