@@ -53,6 +53,38 @@ func (md *MetaData) Check(checklinks bool) (message []ogdat.CheckMessage, err er
 		return nil, fmt.Errorf("Beschreibung für OGD Version %s ist nicht vorhanden, check kann nicht durchgeführt werden", Version)
 	}
 
+	if md.Resource == nil || len(md.Resource) == 0 {
+		message = append(message, ogdat.CheckMessage{Type: 4,
+			Text: "Die Metadatenbeschreibung enthält keine Ressourcen"})
+		// Iterate over all resource fields
+	}
+
+	// (1) iterate over all resource elements
+	// save to iterate here, even without range elements, bu with an else, the nesting gets unwieldly ...
+	for _, element := range md.Resource {
+		ielements := reflect.TypeOf(element).Elem().NumField()
+		// (2) take every field in the resource element ...
+		for i := 0; i < ielements; i++ {
+			f := reflect.TypeOf(element).Elem().Field(i)
+			// (3) ... and get the 'Beschreibung' for this field
+			desc, _ := ogdset.GetBeschreibungForID(ogdat.GetIDFromMetaDataStructField(f))
+			if desc == nil {
+				return nil, fmt.Errorf("Keine Beschreibung")
+			}
+			// (4a) if the field is required but not present
+			if desc.IsRequired() && ogdat.MetaDataStructFieldIsNil(f) {
+				// report as erroneous
+				message = append(message, ogdat.CheckMessage{Type: 3, OGDID: desc.ID, Text: pflichtfeldfehlt})
+				break // required field is not present - nothing more to check, continue with next field
+			}
+			// (4b) otherwise perform fieldwise checks within resources
+			switch desc.OGD_Kurzname {
+			case "resource_url":
+				// TODO: continue here
+			}
+		}
+	}
+
 nextbeschreibung:
 	for _, elm := range ogdset.Beschreibung {
 
@@ -65,7 +97,7 @@ nextbeschreibung:
 			for i := 0; i < ielements; i++ {
 				f := reflect.TypeOf(md).Elem().Field(i)
 				if ogdat.GetIDFromMetaDataStructField(f) == elm.ID && ogdat.MetaDataStructFieldIsNil(f) {
-					message = append(message, ogdat.CheckMessage{Type: 3, OGDID: ogdat.GetIDFromMetaDataStructField(f), Text: pflichtfeldfehlt})
+					message = append(message, ogdat.CheckMessage{Type: 3, OGDID: elm.ID, Text: pflichtfeldfehlt})
 					break nextbeschreibung // required field is not present - nothing more to check
 				}
 			}
@@ -130,11 +162,6 @@ nextbeschreibung:
 					OGDID: elm.ID,
 					Text:  "Schlagworte dürfen zwar mit Kardinalität 'N' optional auftreten, die Angabe von Schlagworten wäre aber wünschenswert"})
 
-			}
-		case "resource_format":
-			for _, element := range md.Resource {
-				//TODO: check for Resource Elements
-				_ = element
 			}
 		case "maintainer":
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Maintainer); !ok {
