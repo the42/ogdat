@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"reflect"
 	"regexp"
@@ -113,10 +114,17 @@ func CheckOGDBBox(str string) (bool, error) {
 
 var regexpEMail = regexp.MustCompile(`^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`)
 
-func CheckLink(url string, followhttplink bool) (bool, error) {
+func CheckUrlContact(url string, followhttplink bool) (bool, error) {
 	// it's a contact point if it's a http-link (starts with "http(s)" )
 	if len(url) >= 4 && url[:4] == "http" || len(url) >= 5 && url[:5] == "https" {
 		if followhttplink {
+			resp, err := http.Head(url)
+			if err != nil {
+				return false, &CheckError{3, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)}
+			}
+			if sc := resp.StatusCode; sc != 200 {
+				return false, &CheckError{3, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)}
+			}
 		}
 		return true, nil
 	}
