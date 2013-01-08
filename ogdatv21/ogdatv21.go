@@ -272,7 +272,7 @@ type Extras struct {
 
 type Resource struct {
 	// Core
-	URL    *Url               `json:"url" ogdat:"ID:14"`
+	Url    *Url               `json:"url" ogdat:"ID:14"`
 	Format *ResourceSpecifier `json:"format" ogdat:"ID:15"`
 
 	// Optional

@@ -45,7 +45,7 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 	return
 }
 
-func (md *MetaData) Check(checklinks bool) (message []ogdat.CheckMessage, err error) {
+func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, err error) {
 	const pflichtfeldfehlt = "Pflichtfeld nicht gesetzt"
 
 	ogdset := ogdat.GetOGDSetForVersion(Version)
@@ -56,7 +56,6 @@ func (md *MetaData) Check(checklinks bool) (message []ogdat.CheckMessage, err er
 	if md.Resource == nil || len(md.Resource) == 0 {
 		message = append(message, ogdat.CheckMessage{Type: 4,
 			Text: "Die Metadatenbeschreibung enthält keine Ressourcen"})
-		// Iterate over all resource fields
 	}
 
 	// (1) iterate over all resource elements
@@ -67,20 +66,35 @@ func (md *MetaData) Check(checklinks bool) (message []ogdat.CheckMessage, err er
 		for i := 0; i < ielements; i++ {
 			f := reflect.TypeOf(element).Elem().Field(i)
 			// (3) ... and get the 'Beschreibung' for this field
-			desc, _ := ogdset.GetBeschreibungForID(ogdat.GetIDFromMetaDataStructField(f))
+			id := ogdat.GetIDFromMetaDataStructField(f)
+			desc, _ := ogdset.GetBeschreibungForID(id)
 			if desc == nil {
-				return nil, fmt.Errorf("Keine Beschreibung")
+				return nil, fmt.Errorf("Keine Beschreibung zu Feld mit ID%d", id)
 			}
 			// (4a) if the field is required but not present
 			if desc.IsRequired() && ogdat.MetaDataStructFieldIsNil(f) {
 				// report as erroneous
 				message = append(message, ogdat.CheckMessage{Type: 3, OGDID: desc.ID, Text: pflichtfeldfehlt})
-				break // required field is not present - nothing more to check, continue with next field
+				continue // required field is not present - nothing more to check, continue with next field
 			}
 			// (4b) otherwise perform fieldwise checks within resources
 			switch desc.OGD_Kurzname {
+			// Pflichtfelder
 			case "resource_url":
-				// TODO: continue here
+				if element.Url.URL == nil {
+					message = append(message, ogdat.CheckMessage{
+						Type:  3,
+						OGDID: desc.ID,
+						Text:  fmt.Sprintf("Gültigen Verweis (Link) erwartet, der Wert '%s' stellt keinen gültigen Link dar", element.Url.Raw)})
+					continue
+				}
+				if ok, err := ogdat.CheckUrlContact(element.Url.Raw, followhttplinks); !ok {
+					message = append(message, ogdat.CheckMessage{
+						Type:  3,
+						OGDID: desc.ID,
+						Text:  err.Error()})
+				}
+			case "resource_format":
 			}
 		}
 	}
@@ -119,7 +133,7 @@ nextbeschreibung:
 					Text:  fmt.Sprintf("Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'", md.Extras.Metadata_Modified.Raw)})
 			}
 		case "title":
-			// TODO: should this tool also check for spelling mistakes?
+			// should this tool also check for spelling mistakes?
 			// Don't think so, it does only check for adherence to the specification
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Title); !ok {
 				if cerr, ok := err.(*ogdat.CheckError); ok {
