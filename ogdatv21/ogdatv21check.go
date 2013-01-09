@@ -11,6 +11,9 @@ import (
 
 func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, err error) {
 	const pflichtfeldfehlt = "Pflichtfeld nicht gesetzt"
+	const invalidchars = "Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'"
+	const wrongtimevalueCT1 = "Feldwert vom Typ ÖNORM ISO 8601 TM_Primitive 'YYYY-MM-DDThh:mm:ss' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
+	const wrongtimevalueCT2 = "Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
 
 	ogdset := ogdat.GetOGDSetForVersion(Version)
 	if ogdset == nil {
@@ -33,7 +36,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 			id := ogdat.GetIDFromMetaDataStructField(f)
 			desc, _ := ogdset.GetBeschreibungForID(id)
 			if desc == nil {
-				return nil, fmt.Errorf("Keine Beschreibung zu Feld mit ID%d", id)
+				return message, fmt.Errorf("Keine Beschreibung zu Feld mit ID%d", id)
 			}
 			// (4a) if the field is required but not present
 			if desc.IsRequired() && ogdat.MetaDataStructFieldIsNil(f) {
@@ -59,6 +62,86 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 						Text:  err.Error()})
 				}
 			case "resource_format":
+				const checkchars = `.:/\`
+				format := string(*element.Format)
+				if idx := strings.IndexAny(format, checkchars); idx > -1 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  2,
+						OGDID: desc.ID,
+						Text:  fmt.Sprintf("Ungültiges Zeichen '%c' (Index %d)", format[idx], idx)})
+				}
+				lower := strings.ToLower(format)
+				if format != lower {
+					message = append(message, ogdat.CheckMessage{
+						Type:  2,
+						OGDID: desc.ID,
+						Text:  "Format darf nur in Kleinbuchstaben angegeben werden"})
+				}
+			// ###################### OPTIONALE FELDER ######################
+			case "resource_name":
+				resname := element.Name
+				if resname == nil {
+					continue
+				}
+				if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*resname); !ok {
+					if cerr, ok := err.(*ogdat.CheckError); ok {
+						message = append(message, ogdat.CheckMessage{
+							Type:  cerr.Status,
+							OGDID: desc.ID,
+							Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
+					}
+				}
+			case "resource_created":
+				created := element.Created
+				if created == nil {
+					continue
+				}
+				if created.Format != CustomTimeSpecifier2 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  3,
+						OGDID: desc.ID,
+						Text:  fmt.Sprintf(wrongtimevalueCT2, created.Raw)})
+
+				}
+			case "resource_lastmodified":
+				modified := element.LastModified
+				if modified == nil {
+					continue
+				}
+				if modified.Format != CustomTimeSpecifier2 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  3,
+						OGDID: desc.ID,
+						Text:  fmt.Sprintf(wrongtimevalueCT2, modified.Raw)})
+				}
+			case "resource_size":
+				size := element.Size
+				if size == nil {
+					continue
+				}
+				if _, err := strconv.Atoi(*size); err != nil {
+					message = append(message, ogdat.CheckMessage{
+						Type:  3,
+						OGDID: desc.ID,
+						Text:  fmt.Sprintf("Nur Zahlenangaben erlaubt, Zeichenkette enthält aber nicht-Zahlenzeichen: '%s'", size)})
+				}
+			case "resource_language":
+				lang := element.Language
+				if lang == nil {
+					continue
+				}
+				if !ogdat.CheckISOLanguage(*lang) {
+					message = append(message, ogdat.CheckMessage{
+						Type:  3,
+						OGDID: desc.ID,
+						Text:  fmt.Sprintf("'%s' ist keine gültiger dreistelliger Sprachcode nach  ISO 639-2", *lang)})
+				}
+			case "resource_encoding":
+				resencoding := element.Encoding
+				if resencoding == nil {
+					continue
+				}
+				// TODO: continue: check for utf-8, utf-16 and utf-32 and http://www.iana.org/assignments/character-sets/character-sets.xml encodings
 			}
 		}
 	}
@@ -94,7 +177,7 @@ nextbeschreibung:
 				message = append(message, ogdat.CheckMessage{
 					Type:  3,
 					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'", md.Extras.Metadata_Modified.Raw)})
+					Text:  fmt.Sprintf(wrongtimevalueCT2, md.Extras.Metadata_Modified.Raw)})
 			}
 		case "title":
 			// should this tool also check for spelling mistakes?
@@ -104,7 +187,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		case "description":
@@ -113,7 +196,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		case "categorization":
@@ -147,7 +230,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		case "license":
@@ -156,7 +239,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		case "begin_datetime":
@@ -164,7 +247,7 @@ nextbeschreibung:
 				message = append(message, ogdat.CheckMessage{
 					Type:  3,
 					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Feldwert vom Typ ÖNORM ISO 8601 TM_Primitive 'YYYY-MM-DDThh:mm:ss' erwartet, Wert entspricht aber nicht diesem Typ: '%s'", md.Extras.Begin_DateTime.Raw)})
+					Text:  fmt.Sprintf(wrongtimevalueCT1, md.Extras.Begin_DateTime.Raw)})
 			}
 			// ###################### OPTIONALE FELDER ######################
 		case "schema_name":
@@ -177,7 +260,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 				const ogdschemaspec = "OGD Austria Metadata 2.0"
 				if *schemaname != ogdschemaspec {
@@ -238,7 +321,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		case "maintainer_link":
@@ -262,7 +345,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		case "geographic_toponym":
@@ -275,7 +358,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		case "geographic_bbox":
@@ -298,7 +381,7 @@ nextbeschreibung:
 				message = append(message, ogdat.CheckMessage{
 					Type:  3,
 					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Feldwert vom Typ ÖNORM ISO 8601 TM_Primitive 'YYYY-MM-DDThh:mm:ss' erwartet, Wert entspricht aber nicht diesem Typ: '%s'", endtime.Raw)})
+					Text:  fmt.Sprintf(wrongtimevalueCT1, endtime.Raw)})
 			}
 		case "update_frequency":
 			frequency := md.Extras.Update_Frequency
@@ -321,7 +404,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		case "en_title_and_desc":
@@ -334,7 +417,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		case "license_citation":
@@ -347,7 +430,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'", cerr.Position, cerr)})
+						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
 		}
