@@ -19,6 +19,50 @@ import (
 	Version20 = "OGD Austria Metadata 2.0" // Version 2.0: 10.10.2012
 	Version21 = "OGD Austria Metadata 2.1" // Version 2.1: 15.10.2012
 */
+
+const iso639file = "ISO-639-2_utf-8.txt"
+
+var isolangfilemap map[string]*ISO6392Lang = nil
+
+type ISO6392Lang struct {
+	Code, Identifier string
+}
+
+func CheckISOLanguage(lang string) bool {
+	if isolangfilemap == nil {
+		var err error
+		if isolangfilemap, err = loadisolanguagefile(iso639file); err != nil {
+			panic(fmt.Sprintf("Can not load ISO language file '%s'", iso639file))
+		}
+	}
+	_, ok := isolangfilemap[lang]
+	return ok
+}
+
+func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lang, _ error) {
+	reader, err := os.Open(iso639file)
+	if err != nil {
+		return nil, err
+	}
+
+	defer reader.Close()
+	isolangfilemap = make(map[string]*ISO6392Lang)
+	csvreader := csv.NewReader(reader)
+	csvreader.Comma = '|'
+
+	for record, err := csvreader.Read(); err != io.EOF; record, err = csvreader.Read() {
+		isorecord := &ISO6392Lang{Code: record[0], Identifier: record[3]}
+		isolangfilemap[isorecord.Code] = isorecord
+		if len(record[1]) > 0 {
+			isorecord = &ISO6392Lang{Code: record[1], Identifier: record[3]}
+			isolangfilemap[record[1]] = isorecord
+		}
+	}
+	log.Printf("Info: Read %d ISO language records", len(isolangfilemap))
+
+	return
+}
+
 var specification = make(map[string]*OGDSet)
 
 type Occurrence int
