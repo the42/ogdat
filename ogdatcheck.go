@@ -32,7 +32,8 @@ func CheckISOLanguage(lang string) bool {
 }
 
 func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lang, _ error) {
-	reader, err := os.Open(iso639file)
+
+	reader, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
