@@ -1,6 +1,7 @@
 package ogdat
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -12,8 +13,6 @@ import (
 	"unicode/utf8"
 )
 
-const iso639file = "ISO-639-2_utf-8.txt"
-
 var isolangfilemap map[string]*ISO6392Lang = nil
 
 type ISO6392Lang struct {
@@ -21,6 +20,7 @@ type ISO6392Lang struct {
 }
 
 func CheckISOLanguage(lang string) bool {
+	const iso639file = "ISO-639-2_utf-8.txt"
 	if isolangfilemap == nil {
 		var err error
 		if isolangfilemap, err = loadisolanguagefile(iso639file); err != nil {
@@ -52,6 +52,39 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 		}
 	}
 	log.Printf("Info: Read %d ISO language records", len(isolangfilemap))
+
+	return
+}
+
+var ianaencmap map[string]struct{} = nil
+
+func CheckIANAEncoding(enc string) bool {
+	const ianaencfile = "character-sets.csv"
+	if ianaencmap == nil {
+		var err error
+		if ianaencmap, err = loadianaencodingfile(ianaencfile); err != nil {
+			panic(fmt.Sprintf("Can not load IANA encoding definition file '%s'", ianaencfile))
+		}
+	}
+	_, ok := ianaencmap[enc]
+	return ok
+}
+
+func loadianaencodingfile(filename string) (ianamap map[string]struct{}, _ error) {
+	reader, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+
+	ianamap = make(map[string]struct{})
+	bufreader := bufio.NewReader(reader)
+	delim := byte('\n')
+
+	for line, err := bufreader.ReadString(delim); err != io.EOF; line, err = bufreader.ReadString(delim) {
+		ianamap[line] = struct{}{}
+	}
+	log.Printf("Info: Read %d IANA encoding names", len(ianamap))
 
 	return
 }
