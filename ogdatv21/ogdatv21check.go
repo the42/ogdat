@@ -14,6 +14,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 	const invalidchars = "Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'"
 	const wrongtimevalueCT1 = "Feldwert vom Typ ÖNORM ISO 8601 TM_Primitive 'YYYY-MM-DDThh:mm:ss' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
 	const wrongtimevalueCT2 = "Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
+	const expectedlink = "Gültigen Verweis (Link) erwartet, der Wert '%s' stellt keinen gültigen Link dar"
 
 	ogdset := ogdat.GetOGDSetForVersion(Version)
 	if ogdset == nil {
@@ -52,7 +53,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  3,
 						OGDID: desc.ID,
-						Text:  fmt.Sprintf("Gültigen Verweis (Link) erwartet, der Wert '%s' stellt keinen gültigen Link dar", element.Url.Raw)})
+						Text:  fmt.Sprintf(expectedlink, element.Url.Raw)})
 					continue
 				}
 				if ok, err := ogdat.CheckUrlContact(element.Url.Raw, followhttplinks); !ok {
@@ -300,7 +301,7 @@ nextbeschreibung:
 					message = append(message, ogdat.CheckMessage{
 						Type:  3,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Gültigen Verweis (Link) erwartet, der Wert '%s' stellt keinen gültigen Link dar", element.Raw)})
+						Text:  fmt.Sprintf(expectedlink, element.Raw)})
 				}
 			}
 		case "attribute_description":
@@ -333,7 +334,7 @@ nextbeschreibung:
 				message = append(message, ogdat.CheckMessage{
 					Type:  3,
 					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Gültigen Verweis (Link) erwartet, der Wert '%s' stellt keinen gültigen Link dar", link.Raw)})
+					Text:  fmt.Sprintf(expectedlink, link.Raw)})
 			}
 		case "publisher":
 			publisher := md.Extras.Publisher
