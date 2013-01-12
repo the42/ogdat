@@ -55,13 +55,6 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 	return
 }
 
-type CheckMessage struct {
-	Type    int // 1 = Info, 2 = Warning, 3 = Error
-	Text    string
-	OGDID   int
-	Context string
-}
-
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -142,6 +135,13 @@ func CheckUrlContact(url string, followhttplink bool) (bool, error) {
 		return true, nil
 	}
 	return false, &CheckError{2, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])}
+}
+
+type CheckMessage struct {
+	Type    int // 1 = Info, 2 = Warning, 3 = Error
+	Text    string
+	OGDID   int
+	Context string
 }
 
 type Checker interface {
