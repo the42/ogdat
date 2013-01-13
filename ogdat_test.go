@@ -20,6 +20,25 @@ func TestLoadOGDATSpecFile(t *testing.T) {
 	}
 }
 
+type checkIANAEncodingTest struct {
+	in  string
+	out bool
+}
+
+var checkIANAEncodingTests = []checkIANAEncodingTest{
+	{"ISO-8859-1", true},
+	{"latin1", true},
+	{"abacab", false},
+}
+
+func TestIANACheck(t *testing.T) {
+	for idx, test := range checkIANAEncodingTests {
+		if result := CheckIANAEncoding(test.in); result != test.out {
+			t.Errorf("CheckIANAEncoding-[%d]: Encoding '%s': expected '%v' but got '%v'", idx, test.in, test.out, result)
+		}
+	}
+}
+
 type My struct {
 	A struct{} `json:"Hallo Welt" ogdat:"ID:1, yow dawg"`
 	B struct{} `ogdat:"ID:2, yow dawg"`

@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -59,14 +60,17 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 var ianaencmap map[string]struct{} = nil
 
 func CheckIANAEncoding(enc string) bool {
-	const ianaencfile = "character-sets.csv"
+	const ianaencfile = "character-sets.txt"
 	if ianaencmap == nil {
 		var err error
 		if ianaencmap, err = loadianaencodingfile(ianaencfile); err != nil {
 			panic(fmt.Sprintf("Can not load IANA encoding definition file '%s'", ianaencfile))
 		}
 	}
-	_, ok := ianaencmap[enc]
+	for key, _ := range ianaencmap {
+		fmt.Println(key)
+	}
+	_, ok := ianaencmap[strings.ToLower(enc)]
 	return ok
 }
 
@@ -82,10 +86,14 @@ func loadianaencodingfile(filename string) (ianamap map[string]struct{}, _ error
 	delim := byte('\n')
 
 	for line, err := bufreader.ReadString(delim); err != io.EOF; line, err = bufreader.ReadString(delim) {
+		// ReadString includes the delimeter, get rid of it
+		line = line[:len(line)-1]
+		// normalize by lower casing
+		line = strings.ToLower(line)
+
 		ianamap[line] = struct{}{}
 	}
 	log.Printf("Info: Read %d IANA encoding names", len(ianamap))
-
 	return
 }
 
