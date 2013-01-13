@@ -67,10 +67,12 @@ func CheckIANAEncoding(enc string) bool {
 			panic(fmt.Sprintf("Can not load IANA encoding definition file '%s'", ianaencfile))
 		}
 	}
-	for key, _ := range ianaencmap {
-		fmt.Println(key)
+	enc = strings.ToLower(enc)
+	_, ok := ianaencmap[enc]
+	if !ok {
+		enc = strings.Replace(enc, "-", "", -1)
+		_, ok = ianaencmap[enc]
 	}
-	_, ok := ianaencmap[strings.ToLower(enc)]
 	return ok
 }
 
