@@ -35,8 +35,9 @@ rm `basename  $IANACHARSET` || true
 wget $IANACHARSET
 
 XML=`basename  $IANACHARSET`
-TXT=`basename  $IANACHARSET .xml`.txt
-echo "Extrahieren der Information als CSV ..."
-xsltproc character-sets.xsl $XML > $TXT
+IANATEXT=`basename  $IANACHARSET .xml`.txt
+echo "Extrahieren der Information als TXT ..."
+xsltproc character-sets.xsl $XML > $IANATEXT
+sort $IANATEXT -u -o $IANATEXT
 
 echo "Erfolgreich"
