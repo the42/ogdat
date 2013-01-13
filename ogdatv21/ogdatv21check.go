@@ -142,7 +142,27 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				if resencoding == nil {
 					continue
 				}
-				// TODO: continue: check for utf-8, utf-16 and utf-32 and http://www.iana.org/assignments/character-sets/character-sets.xml encodings
+				// the specification mentions only these encodings as valid
+				var specencodings = []string{"utf-8", "utf-16", "utf-32"}
+				enc := strings.ToLower(*resencoding)
+				for _, val := range specencodings {
+					if enc == val || strings.Replace(enc, "-", "", -1) == val {
+						continue
+					}
+				}
+				// ... but this is unfortunate, as certainly more encodings may be valid for OGD AT
+				if ogdat.CheckIANAEncoding(*resencoding) {
+					message = append(message, ogdat.CheckMessage{
+						Type:  2,
+						OGDID: desc.ID,
+						Text:  fmt.Sprintf("'%s' ist kein gültiges Encoding nach Spezifiaktion, aber registiert bei IANA", *resencoding)})
+					continue
+				}
+				// unknown encoding, report it
+				message = append(message, ogdat.CheckMessage{
+					Type:  3,
+					OGDID: desc.ID,
+					Text:  fmt.Sprintf("'%s' ist kein bekanntes Encoding für Daten", *resencoding)})
 			}
 		}
 	}
