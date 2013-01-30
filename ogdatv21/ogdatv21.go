@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+const Version20 = "OGD Austria Metadata 2.0"
 const Version = "OGD Austria Metadata 2.1" // Version 2.1: 15.10.2012
 const specfile = "ogdat_spec-2.1.csv"
 const CustomTimeSpecifier1 = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
