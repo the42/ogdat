@@ -283,13 +283,16 @@ nextbeschreibung:
 						OGDID: elm.ID,
 						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
-				const ogdschemaspec = "OGD Austria Metadata 2.0"
-				if *schemaname != ogdschemaspec {
-					message = append(message, ogdat.CheckMessage{
-						Type:  1,
-						OGDID: elm.ID,
-						Text:  fmt.Sprintf("Schemabezeichnung als '%s' erwartet, der Wert ist aber '%s'", ogdschemaspec, *schemaname)})
+				var ogdschemaspec = []string{Version, Version20, "2.0", "2.1"}
+				for _, val := range ogdschemaspec {
+					if strings.Contains(*schemaname, val) {
+						break
+					}
 				}
+				message = append(message, ogdat.CheckMessage{
+					Type:  1,
+					OGDID: elm.ID,
+					Text:  fmt.Sprintf("Schemabezeichnung vorhanden, enthält keine Referenz auf Version 2.0 oder Version 2.1 '%s'", ogdschemaspec, *schemaname)})
 			}
 		case "schema_language":
 			lang := md.Extras.Schema_Language
