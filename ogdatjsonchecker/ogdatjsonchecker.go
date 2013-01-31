@@ -23,27 +23,19 @@ func main() {
 
 	// 1. if no source is given or source is empty, use stdin
 	if *mdsource == "" {
-		print("Using stdin")
 		reader = os.Stdin
 	} else {
-		var protocols = []string{"http", "https"}
-		print("Probing html")
-		for _, val := range protocols {
-			// 2. if the data is available as http or https
-			if strings.Index(strings.TrimSpace(*mdsource), val) == 0 {
-				resp, err := http.Get(*mdsource)
-				if err != nil {
-					log.Printf("Can't fetch from '%s': %s\n", *mdsource, err)
-					os.Exit(1)
-				}
-				defer resp.Body.Close()
-				reader = resp.Body
-				break
+		// 2. if the data is available as http or https
+		if strings.Index(strings.TrimSpace(*mdsource), "http") == 0 {
+			resp, err := http.Get(*mdsource)
+			if err != nil {
+				log.Printf("Can't fetch from '%s': %s\n", *mdsource, err)
+				os.Exit(1)
 			}
-		}
-		if reader == nil {
+			defer resp.Body.Close()
+			reader = resp.Body
+		} else {
 			// 3. else try to open it as a file
-			print("Probing file")
 			file, err := os.Open(*mdsource)
 			if err != nil {
 				log.Printf("Can't open '%s': %s\n", *mdsource, err)
