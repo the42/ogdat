@@ -319,6 +319,12 @@ nextbeschreibung:
 					Text:  fmt.Sprintf("Characterset des Schemas als '%s' erwartet, der Wert ist aber '%s'", ogdschemacharacterset, *charset)})
 			}
 		case "metadata_linkage":
+			if element := md.Extras.Metadata_Linkage_single; element != nil {
+				message = append(message, ogdat.CheckMessage{
+					Type:  3,
+					OGDID: elm.ID,
+					Text:  fmt.Sprintf("JSON vom Typ 'Array of String' erwartet, es wurde jedoch ein einzelner Wert geliefert")})
+			}
 			for _, element := range md.Extras.Metadata_Linkage {
 				if element.URL == nil {
 					message = append(message, ogdat.CheckMessage{
