@@ -29,10 +29,10 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 	// (1) iterate over all resource elements
 	// save to iterate here, even without range elements, bu with an else, the nesting gets unwieldly ...
 	for _, element := range md.Resource {
-		ielements := reflect.TypeOf(element).Elem().NumField()
+		ielements := reflect.TypeOf(element).NumField()
 		// (2) take every field in the resource element ...
 		for i := 0; i < ielements; i++ {
-			f := reflect.TypeOf(element).Elem().Field(i)
+			f := reflect.TypeOf(element).Field(i)
 			// (3) ... and get the 'Beschreibung' for this field
 			id := ogdat.GetIDFromMetaDataStructField(f)
 			desc, _ := ogdset.GetBeschreibungForID(id)
@@ -40,7 +40,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				return message, fmt.Errorf("Keine Beschreibung zu Feld mit ID%d", id)
 			}
 			// (4a) if the field is required but not present
-			if desc.IsRequired() && ogdat.MetaDataStructFieldIsNil(f) {
+			if desc.IsRequired() && ogdat.IsNil(f) {
 				// report as erroneous
 				message = append(message, ogdat.CheckMessage{Type: 3, OGDID: desc.ID, Text: pflichtfeldfehlt})
 				continue // required field is not present - nothing more to check, continue with next field
@@ -178,7 +178,7 @@ nextbeschreibung:
 			ielements := reflect.TypeOf(md).Elem().NumField()
 			for i := 0; i < ielements; i++ {
 				f := reflect.TypeOf(md).Elem().Field(i)
-				if ogdat.GetIDFromMetaDataStructField(f) == elm.ID && ogdat.MetaDataStructFieldIsNil(f) {
+				if ogdat.GetIDFromMetaDataStructField(f) == elm.ID && ogdat.IsNil(f) {
 					message = append(message, ogdat.CheckMessage{Type: 3, OGDID: elm.ID, Text: pflichtfeldfehlt})
 					break nextbeschreibung // required field is not present - nothing more to check
 				}
