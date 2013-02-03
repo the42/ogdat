@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/the42/ogdat/ogdatv21"
-	//	"github.com/the42/ogdat"
+	"github.com/the42/ogdat"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -53,7 +53,9 @@ func main() {
 	}
 
 	// TODO: according to which Version will the data be checked?
+	set := ogdat.GetOGDSetForVersion(ogdatv21.Version)
 	md := &ogdatv21.MetaData{}
+	
 	if err := json.Unmarshal(ogdjsonmd, md); err != nil {
 		log.Printf("Can't unmarshall byte stream: %s\n", err)
 		os.Exit(1)
@@ -64,6 +66,7 @@ func main() {
 		log.Printf("Unexpected error from Check: %s", err)
 	}
 	for idx, val := range msgs {
-		fmt.Printf("%d: %s\n", idx, val.Text)
+		_, fieldname := set.GetBeschreibungForID(val.OGDID)
+		fmt.Printf("%d: %s [%d]: %s\n", idx, fieldname, val.OGDID, val.Text)
 	}
 }
