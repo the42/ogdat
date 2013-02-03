@@ -64,7 +64,7 @@ func (set *OGDSet) GetBeschreibungForID(id int) (*Beschreibung, string) {
 	if set != nil {
 		for idx, elm := range set.Beschreibung {
 			if elm.ID == id {
-				return set.Beschreibung[idx], set.Label[idx]
+				return set.Beschreibung[idx], set.Beschreibung[idx].OGD_Kurzname
 			}
 		}
 	}
@@ -100,11 +100,11 @@ func GetIDFromMetaDataStructField(val reflect.StructField) int {
 	return -1
 }
 
-// Return if a value is nil. Will panic if the value is not a pointer
-func MetaDataStructFieldIsNil(val interface{}) bool {
+// Return if a value is nil. If value is nor a pointer, return will be false
+func IsNil(val interface{}) bool {
 	v := reflect.ValueOf(val)
 	if v.Kind() != reflect.Ptr {
-		panic("Struct field is not a pointer")
+		return false
 	}
 	return v.IsNil()
 }
