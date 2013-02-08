@@ -15,11 +15,24 @@ import (
 )
 
 var mdsource = flag.String("if", "", "Einzelne, CKAN-compatible, JSON-Beschreibung eines Metadatensatzes. Kann eine lokale Datei sein, oder über http/https bezogen werden. Standard: stdin")
-var version = flag.String("version", ogdatv21.Version, "Version, nach der das OGD Metadatendokument überprüft werden soll")
+var of = flag.String("of", "", "Dateiname, unter dem die Metadaten gespeichert werden sollen. Standard: stdout")
+var followlinks = flag.Bool("follow", false, "Sollen http(s)-Links in den Metadaten auf Verfügbarkeit überprüft werden? Werte: {true|false}, Standard: false")
+var version = flag.String("version", "", "Version, nach der das OGD Metadatendokument überprüft werden soll. Werte: {V20|V21}")
 
 func main() {
 	flag.Parse()
 	var reader io.Reader
+	var set *ogdat.OGDSet
+	var md ogdat.Checker
+
+	switch *version {
+	case "V20", "V21":
+		set = ogdat.GetOGDSetForVersion(ogdatv21.Version)
+		md = &ogdatv21.MetaData{}
+	default:
+		log.Printf("Unsupported OGD Version: '%s'\n", *version)
+		os.Exit(2)
+	}
 
 	// 1. if no source is given or source is empty, use stdin
 	if *mdsource == "" {
@@ -52,16 +65,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO: according to which Version will the data be checked?
-	set := ogdat.GetOGDSetForVersion(ogdatv21.Version)
-	md := &ogdatv21.MetaData{}
+	if *of == "" {
+		*of = os.Stdout.Name()
+	}
+	ioutil.WriteFile(*of, ogdjsonmd, 0666)
 
 	if err := json.Unmarshal(ogdjsonmd, md); err != nil {
 		log.Printf("Can't unmarshall byte stream: %s\n", err)
 		os.Exit(1)
 	}
-	// TODO: follow links should be a command line switch
-	msgs, err := md.Check(false)
+
+	msgs, err := md.Check(*followlinks)
 	if err != nil {
 		log.Printf("Unexpected error from Check: %s", err)
 	}
