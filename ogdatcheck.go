@@ -196,7 +196,7 @@ type CheckMessage struct {
 }
 
 type Checker interface {
-	Check(bool) []CheckMessage
+	Check(bool) ([]CheckMessage, error)
 }
 
 func Loadogdatspec(version, filename string) (*OGDSet, error) {
