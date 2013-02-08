@@ -162,7 +162,7 @@ var regexpEMail = regexp.MustCompile(`^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`)
 
 func CheckUrlContact(url string, followhttplink bool) (bool, error) {
 	// it's a contact point if it's a http-link (starts with "http(s)" )
-	if len(url) >= 4 && url[:4] == "http" || len(url) >= 5 && url[:5] == "https" {
+	if len(url) >= 4 && url[:4] == "http" {
 		if followhttplink {
 			resp, err := http.Head(url)
 			if err != nil {
