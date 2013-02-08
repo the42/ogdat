@@ -14,6 +14,13 @@ import (
 	"unicode/utf8"
 )
 
+const (
+	Info            = 1
+	Warning         = 2
+	Error           = 3
+	StructuralError = 4
+)
+
 var isolangfilemap map[string]*ISO6392Lang = nil
 
 type ISO6392Lang struct {
@@ -129,19 +136,19 @@ var regexpposixescape = regexp.MustCompile(`\\n|\\b|\\v|\\t`)
 // message: An error message describing the problem
 func CheckOGDTextStringForSaneCharacters(str string) (ok bool, _ error) {
 	if !utf8.ValidString(str) {
-		return false, &CheckError{3, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
+		return false, &CheckError{Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
 	if idx := regexphtmlcodecheck.FindIndex([]byte(str)); idx != nil {
-		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])}
+		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])}
 	}
 	if idx := regexphtmlescape.FindIndex([]byte(str)); idx != nil {
-		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", str[idx[0]:min(15, idx[1]-idx[0])])}
+		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", str[idx[0]:min(15, idx[1]-idx[0])])}
 	}
 	if idx := regexpurlencode.FindIndex([]byte(str)); idx != nil {
-		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", str[idx[0]:min(8, idx[1]-idx[0])])}
+		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", str[idx[0]:min(8, idx[1]-idx[0])])}
 	}
 	if idx := regexpposixescape.FindIndex([]byte(str)); idx != nil {
-		return false, &CheckError{2, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", str[idx[0]:min(5, idx[1]-idx[0])])}
+		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", str[idx[0]:min(5, idx[1]-idx[0])])}
 	}
 	return true, nil
 }
@@ -150,10 +157,10 @@ var regexpbboxWKT = regexp.MustCompile(`^POLYGON\s{0,1}\({1,2}\s{0,2}[-+]?[0-9]*
 
 func CheckOGDBBox(str string) (bool, error) {
 	if !utf8.ValidString(str) {
-		return false, &CheckError{3, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
+		return false, &CheckError{Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
 	if idx := regexpbboxWKT.FindIndex([]byte(str)); idx == nil {
-		return false, &CheckError{3, -1, "Keine gültige WKT-Angabe einer BoundingBox"}
+		return false, &CheckError{Error, -1, "Keine gültige WKT-Angabe einer BoundingBox"}
 	}
 	return true, nil
 }
@@ -166,10 +173,10 @@ func CheckUrlContact(url string, followhttplink bool) (bool, error) {
 		if followhttplink {
 			resp, err := http.Head(url)
 			if err != nil {
-				return false, &CheckError{3, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)}
+				return false, &CheckError{Error, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)}
 			}
 			if sc := resp.StatusCode; sc != 200 {
-				return false, &CheckError{3, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)}
+				return false, &CheckError{Error, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)}
 			}
 		}
 		return true, nil
@@ -178,11 +185,11 @@ func CheckUrlContact(url string, followhttplink bool) (bool, error) {
 	if idx := regexpEMail.FindIndex([]byte(url)); idx != nil {
 		return true, nil
 	}
-	return false, &CheckError{2, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])}
+	return false, &CheckError{Warning, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])}
 }
 
 type CheckMessage struct {
-	Type    int // 1 = Info, 2 = Warning, 3 = Error
+	Type    int // 1 = Info, 2 = Warning, 3 = Error, 4 = StructuralError
 	Text    string
 	OGDID   int
 	Context string
