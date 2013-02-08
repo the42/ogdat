@@ -1,11 +1,11 @@
 package main
 
 import (
-	"flag"
-	"github.com/the42/ogdat/ogdatv21"
-	"github.com/the42/ogdat"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"github.com/the42/ogdat"
+	"github.com/the42/ogdat/ogdatv21"
 	"io"
 	"io/ioutil"
 	"log"
@@ -55,7 +55,7 @@ func main() {
 	// TODO: according to which Version will the data be checked?
 	set := ogdat.GetOGDSetForVersion(ogdatv21.Version)
 	md := &ogdatv21.MetaData{}
-	
+
 	if err := json.Unmarshal(ogdjsonmd, md); err != nil {
 		log.Printf("Can't unmarshall byte stream: %s\n", err)
 		os.Exit(1)
