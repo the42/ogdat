@@ -138,6 +138,12 @@ func CheckOGDTextStringForSaneCharacters(str string) (ok bool, _ error) {
 	if !utf8.ValidString(str) {
 		return false, &CheckError{Error, 0, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
+	for idx, val := range str {
+		if val == unicode.ReplacementChar {
+			return false, &CheckError{Error, idx, fmt.Sprintf("Ungültige Unicode-Sequenz: '0x%x' (Bereich '%s')", val, strrange(-20, 20, idx, str))}
+		}
+	}
+
 	if idx := regexphtmlcodecheck.FindIndex([]byte(str)); idx != nil {
 		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])}
 	}
