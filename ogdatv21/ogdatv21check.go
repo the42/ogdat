@@ -11,7 +11,7 @@ import (
 
 func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, err error) {
 	const pflichtfeldfehlt = "Pflichtfeld nicht gesetzt"
-	const invalidchars = "Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'"
+	const invalidchars = "Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: %s"
 	const wrongtimevalueCT1 = "Feldwert vom Typ ÖNORM ISO 8601 TM_Primitive 'YYYY-MM-DDThh:mm:ss' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
 	const wrongtimevalueCT2 = "Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
 	const expectedlink = "Gültigen Verweis (Link) erwartet, der Wert '%s' stellt keinen gültigen Link dar"
@@ -400,7 +400,7 @@ nextbeschreibung:
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Zeichenfolge enthält keinen gültigen WKT für die örtliche Begrenzung (Boundingbox): '%s'", err)})
+					Text:  fmt.Sprintf("Zeichenfolge enthält keinen gültigen WKT für die örtliche Begrenzung (Boundingbox): %s", err)})
 			}
 		case "end_datetime":
 			endtime := md.Extras.End_DateTime

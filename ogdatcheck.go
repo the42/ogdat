@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -122,6 +123,33 @@ func (ce *CheckError) Error() string {
 	return ce.message
 }
 
+func strrange(minrange, maxrange, idx int, s string) string {
+	if minrange > maxrange {
+		panic("minrange > maxrange")
+	}
+
+	if idx > len(s) {
+		idx = len(s)
+	}
+
+	var prepend string
+	start := idx + minrange
+	if start < 0 {
+		start = 0
+	} else {
+		prepend = "..."
+	}
+	
+	var postpone string
+	end := idx + maxrange
+	if end > len(s) {
+		end = len(s)
+	} else {
+		postpone = "..."
+	}
+	return prepend + s[start:end] + postpone
+}
+
 var regexphtmlcodecheck = regexp.MustCompile(`<\w+.*('|"|)>`)
 var regexphtmlescape = regexp.MustCompile(`&\w{1,10};|&#\d{1,6};`)
 var regexpurlencode = regexp.MustCompile(`%[0-9a-fA-F][0-9a-fA-F]`)
@@ -166,7 +194,7 @@ func CheckOGDBBox(str string) (bool, error) {
 		return false, &CheckError{Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
 	if idx := regexpbboxWKT.FindIndex([]byte(str)); idx == nil {
-		return false, &CheckError{Error, -1, "Keine gültige WKT-Angabe einer BoundingBox"}
+		return false, &CheckError{Error, -1, fmt.Sprintf("Keine gültige WKT-Angabe einer BoundingBox: '%s'", str)}
 	}
 	return true, nil
 }
