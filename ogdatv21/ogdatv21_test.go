@@ -5,6 +5,7 @@ import (
 	"github.com/the42/ogdat"
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 )
 
@@ -34,7 +35,7 @@ func TestCheck(t *testing.T) {
 	md := &MetaData{}
 
 	for _, val := range checkTests {
-		file, err := os.Open(val.in.filename)
+		file, err := os.Open(path.Join("./testfiles", val.in.filename))
 		if err != nil {
 			t.Fatal(err)
 		}
