@@ -1,11 +1,11 @@
 package main
 
 import (
-	"flag"
-	"github.com/the42/ogdat/ogdatv21"
-	//	"github.com/the42/ogdat"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"github.com/the42/ogdat"
+	"github.com/the42/ogdat/ogdatv21"
 	"io"
 	"io/ioutil"
 	"log"
@@ -15,11 +15,25 @@ import (
 )
 
 var mdsource = flag.String("if", "", "Einzelne, CKAN-compatible, JSON-Beschreibung eines Metadatensatzes. Kann eine lokale Datei sein, oder über http/https bezogen werden. Standard: stdin")
-var version = flag.String("version", ogdatv21.Version, "Version, nach der das OGD Metadatendokument überprüft werden soll")
+var of = flag.String("of", "", "Dateiname, unter dem die bezogenen Metadaten 1:1 gespeichert werden sollen.")
+var ofs = flag.String("ofs", "", "Dateiname, unter dem nur die relevanten OGD-Metadaten des JSON-streams gespeichert werden sollen.")
+var followlinks = flag.Bool("follow", false, "Sollen http(s)-Links in den Metadaten auf Verfügbarkeit überprüft werden? Werte: {true|false}, Standard: false")
+var version = flag.String("version", "", "Version, nach der das OGD Metadatendokument überprüft werden soll. Werte: {V20|V21}")
 
-func main() {
+func mymain() int {
 	flag.Parse()
 	var reader io.Reader
+	var set *ogdat.OGDSet
+	var md ogdat.Checker
+
+	switch *version {
+	case "V20", "V21":
+		set = ogdat.GetOGDSetForVersion(ogdatv21.Version)
+		md = &ogdatv21.MetaData{}
+	default:
+		log.Printf("Unsupported OGD Version: '%s'\n", *version)
+		return 2
+	}
 
 	// 1. if no source is given or source is empty, use stdin
 	if *mdsource == "" {
@@ -30,7 +44,7 @@ func main() {
 			resp, err := http.Get(*mdsource)
 			if err != nil {
 				log.Printf("Can't fetch from '%s': %s\n", *mdsource, err)
-				os.Exit(1)
+				return 1
 			}
 			defer resp.Body.Close()
 			reader = resp.Body
@@ -39,7 +53,7 @@ func main() {
 			file, err := os.Open(*mdsource)
 			if err != nil {
 				log.Printf("Can't open '%s': %s\n", *mdsource, err)
-				os.Exit(1)
+				return 1
 			}
 			defer file.Close()
 			reader = file
@@ -49,21 +63,37 @@ func main() {
 	ogdjsonmd, err := ioutil.ReadAll(reader)
 	if err != nil {
 		log.Printf("Can't read from stream: %s\n", err)
-		os.Exit(1)
+		return 1
 	}
 
-	// TODO: according to which Version will the data be checked?
-	md := &ogdatv21.MetaData{}
+	if *of != "" {
+		ioutil.WriteFile(*of, ogdjsonmd, 0666)
+	}
+
 	if err := json.Unmarshal(ogdjsonmd, md); err != nil {
 		log.Printf("Can't unmarshall byte stream: %s\n", err)
-		os.Exit(1)
+		return 1
 	}
-	// TODO: follow links should be a command line switch
-	msgs, err := md.Check(false)
+
+	if *ofs != "" {
+		bytestream, err := json.Marshal(md)
+		if err != nil {
+			log.Printf("Can't serialize to JSON stream: %s\n", err)
+		}
+		ioutil.WriteFile(*ofs, bytestream, 0666)
+	}
+
+	msgs, err := md.Check(*followlinks)
 	if err != nil {
 		log.Printf("Unexpected error from Check: %s", err)
 	}
 	for idx, val := range msgs {
-		fmt.Printf("%d: %s\n", idx, val.Text)
+		_, fieldname := set.GetBeschreibungForID(val.OGDID)
+		fmt.Printf("%d: %s [%d]: %s\n", idx, fieldname, val.OGDID, val.Text)
 	}
+	return 0
+}
+
+func main() {
+	os.Exit(mymain())
 }

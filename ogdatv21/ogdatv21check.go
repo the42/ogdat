@@ -11,7 +11,7 @@ import (
 
 func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, err error) {
 	const pflichtfeldfehlt = "Pflichtfeld nicht gesetzt"
-	const invalidchars = "Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: '%s'"
+	const invalidchars = "Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: %s"
 	const wrongtimevalueCT1 = "Feldwert vom Typ ÖNORM ISO 8601 TM_Primitive 'YYYY-MM-DDThh:mm:ss' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
 	const wrongtimevalueCT2 = "Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
 	const expectedlink = "Gültigen Verweis (Link) erwartet, der Wert '%s' stellt keinen gültigen Link dar"
@@ -22,17 +22,17 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 	}
 
 	if md.Resource == nil || len(md.Resource) == 0 {
-		message = append(message, ogdat.CheckMessage{Type: 4,
+		message = append(message, ogdat.CheckMessage{Type: ogdat.StructuralError,
 			Text: "Die Metadatenbeschreibung enthält keine Ressourcen"})
 	}
 
 	// (1) iterate over all resource elements
 	// save to iterate here, even without range elements, bu with an else, the nesting gets unwieldly ...
 	for _, element := range md.Resource {
-		ielements := reflect.TypeOf(element).Elem().NumField()
+		ielements := reflect.TypeOf(element).NumField()
 		// (2) take every field in the resource element ...
 		for i := 0; i < ielements; i++ {
-			f := reflect.TypeOf(element).Elem().Field(i)
+			f := reflect.TypeOf(element).Field(i)
 			// (3) ... and get the 'Beschreibung' for this field
 			id := ogdat.GetIDFromMetaDataStructField(f)
 			desc, _ := ogdset.GetBeschreibungForID(id)
@@ -40,9 +40,9 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				return message, fmt.Errorf("Keine Beschreibung zu Feld mit ID%d", id)
 			}
 			// (4a) if the field is required but not present
-			if desc.IsRequired() && ogdat.MetaDataStructFieldIsNil(f) {
+			if desc.IsRequired() && ogdat.IsNil(f) {
 				// report as erroneous
-				message = append(message, ogdat.CheckMessage{Type: 3, OGDID: desc.ID, Text: pflichtfeldfehlt})
+				message = append(message, ogdat.CheckMessage{Type: ogdat.Error, OGDID: desc.ID, Text: pflichtfeldfehlt})
 				continue // required field is not present - nothing more to check, continue with next field
 			}
 			// (4b) otherwise perform fieldwise checks within resources
@@ -51,14 +51,14 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 			case "resource_url":
 				if element.Url.URL == nil {
 					message = append(message, ogdat.CheckMessage{
-						Type:  3,
+						Type:  ogdat.Error,
 						OGDID: desc.ID,
 						Text:  fmt.Sprintf(expectedlink, element.Url.Raw)})
 					continue
 				}
 				if ok, err := ogdat.CheckUrlContact(element.Url.Raw, followhttplinks); !ok {
 					message = append(message, ogdat.CheckMessage{
-						Type:  3,
+						Type:  ogdat.Error,
 						OGDID: desc.ID,
 						Text:  err.Error()})
 				}
@@ -67,14 +67,14 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				format := string(*element.Format)
 				if idx := strings.IndexAny(format, checkchars); idx > -1 {
 					message = append(message, ogdat.CheckMessage{
-						Type:  2,
+						Type:  ogdat.Warning,
 						OGDID: desc.ID,
 						Text:  fmt.Sprintf("Ungültiges Zeichen '%c' (Index %d)", format[idx], idx)})
 				}
 				lower := strings.ToLower(format)
 				if format != lower {
 					message = append(message, ogdat.CheckMessage{
-						Type:  2,
+						Type:  ogdat.Warning,
 						OGDID: desc.ID,
 						Text:  "Format darf nur in Kleinbuchstaben angegeben werden"})
 				}
@@ -99,7 +99,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				}
 				if created.Format != CustomTimeSpecifier2 {
 					message = append(message, ogdat.CheckMessage{
-						Type:  3,
+						Type:  ogdat.Error,
 						OGDID: desc.ID,
 						Text:  fmt.Sprintf(wrongtimevalueCT2, created.Raw)})
 
@@ -111,7 +111,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				}
 				if modified.Format != CustomTimeSpecifier2 {
 					message = append(message, ogdat.CheckMessage{
-						Type:  3,
+						Type:  ogdat.Error,
 						OGDID: desc.ID,
 						Text:  fmt.Sprintf(wrongtimevalueCT2, modified.Raw)})
 				}
@@ -122,7 +122,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				}
 				if _, err := strconv.Atoi(*size); err != nil {
 					message = append(message, ogdat.CheckMessage{
-						Type:  3,
+						Type:  ogdat.Error,
 						OGDID: desc.ID,
 						Text:  fmt.Sprintf("Nur Zahlenangaben erlaubt, Zeichenkette enthält aber nicht-Zahlenzeichen: '%s'", size)})
 				}
@@ -133,7 +133,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				}
 				if !ogdat.CheckISOLanguage(*lang) {
 					message = append(message, ogdat.CheckMessage{
-						Type:  3,
+						Type:  ogdat.Error,
 						OGDID: desc.ID,
 						Text:  fmt.Sprintf("'%s' ist keine gültiger dreistelliger Sprachcode nach  ISO 639-2", *lang)})
 				}
@@ -153,14 +153,14 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				// ... but this is unfortunate, as certainly more encodings may be valid for OGD AT
 				if ogdat.CheckIANAEncoding(*resencoding) {
 					message = append(message, ogdat.CheckMessage{
-						Type:  2,
+						Type:  ogdat.Warning,
 						OGDID: desc.ID,
 						Text:  fmt.Sprintf("'%s' ist kein gültiges Encoding nach Spezifiaktion, aber registiert bei IANA", *resencoding)})
 					continue
 				}
 				// unknown encoding, report it
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: desc.ID,
 					Text:  fmt.Sprintf("'%s' ist kein bekanntes Encoding für Daten", *resencoding)})
 			}
@@ -178,8 +178,8 @@ nextbeschreibung:
 			ielements := reflect.TypeOf(md).Elem().NumField()
 			for i := 0; i < ielements; i++ {
 				f := reflect.TypeOf(md).Elem().Field(i)
-				if ogdat.GetIDFromMetaDataStructField(f) == elm.ID && ogdat.MetaDataStructFieldIsNil(f) {
-					message = append(message, ogdat.CheckMessage{Type: 3, OGDID: elm.ID, Text: pflichtfeldfehlt})
+				if ogdat.GetIDFromMetaDataStructField(f) == elm.ID && ogdat.IsNil(f) {
+					message = append(message, ogdat.CheckMessage{Type: ogdat.Error, OGDID: elm.ID, Text: pflichtfeldfehlt})
 					break nextbeschreibung // required field is not present - nothing more to check
 				}
 			}
@@ -189,14 +189,14 @@ nextbeschreibung:
 		case "metadata_identifier":
 			if md.Extras.Metadata_Identifier.UUID == nil {
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf("Feldwert vom Typ UUID erwartet, Wert ist aber keine UUID: '%s'", md.Extras.Metadata_Identifier.Raw)})
 			}
 		case "metadata_modified":
 			if md.Extras.Metadata_Modified.Format != CustomTimeSpecifier2 {
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf(wrongtimevalueCT2, md.Extras.Metadata_Modified.Raw)})
 			}
@@ -223,7 +223,7 @@ nextbeschreibung:
 		case "categorization":
 			if cat := md.Extras.Categorization; cat == nil {
 				message = append(message, ogdat.CheckMessage{
-					Type:  2,
+					Type:  ogdat.Warning,
 					OGDID: elm.ID,
 					Text:  "Die Kategorisierung darf zwar mit Kardinalität 'N' optional auftreten, jedoch sollte zumindest eine Zuordnung getroffen werden"})
 
@@ -231,7 +231,7 @@ nextbeschreibung:
 				for _, element := range cat {
 					if element.NumID == -1 {
 						message = append(message, ogdat.CheckMessage{
-							Type:  3,
+							Type:  ogdat.Error,
 							OGDID: elm.ID,
 							Text:  fmt.Sprintf("Die Kategorie '%s' ist keine normierte OGD-Kategorie", element.ID)})
 					}
@@ -240,7 +240,7 @@ nextbeschreibung:
 		case "keywords":
 			if keywords := md.Schlagworte; keywords == nil {
 				message = append(message, ogdat.CheckMessage{
-					Type:  2,
+					Type:  ogdat.Warning,
 					OGDID: elm.ID,
 					Text:  "Schlagworte dürfen zwar mit Kardinalität 'N' optional auftreten, die Angabe von Schlagworten wäre aber wünschenswert"})
 
@@ -266,7 +266,7 @@ nextbeschreibung:
 		case "begin_datetime":
 			if md.Extras.Begin_DateTime.Format != CustomTimeSpecifier1 {
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf(wrongtimevalueCT1, md.Extras.Begin_DateTime.Raw)})
 			}
@@ -290,7 +290,7 @@ nextbeschreibung:
 					}
 				}
 				message = append(message, ogdat.CheckMessage{
-					Type:  1,
+					Type:  ogdat.Info,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf("Schemabezeichnung vorhanden, enthält keine Referenz auf Version 2.0 oder Version 2.1 '%s'",  *schemaname)})
 			}
@@ -302,7 +302,7 @@ nextbeschreibung:
 			const ogdschemalanguage = "ger"
 			if *lang != ogdschemalanguage {
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf("Schemasprache als '%s' erwartet, der Wert ist aber '%s'", ogdschemalanguage, *lang)})
 			}
@@ -314,21 +314,21 @@ nextbeschreibung:
 			const ogdschemacharacterset = "utf8"
 			if *charset != ogdschemacharacterset {
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf("Characterset des Schemas als '%s' erwartet, der Wert ist aber '%s'", ogdschemacharacterset, *charset)})
 			}
 		case "metadata_linkage":
 			if element := md.Extras.Metadata_Linkage_single; element != nil {
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf("JSON vom Typ 'Array of String' erwartet, es wurde jedoch ein einzelner Wert geliefert")})
 			}
 			for _, element := range md.Extras.Metadata_Linkage {
 				if element.URL == nil {
 					message = append(message, ogdat.CheckMessage{
-						Type:  3,
+						Type:  ogdat.Error,
 						OGDID: elm.ID,
 						Text:  fmt.Sprintf(expectedlink, element.Raw)})
 				}
@@ -341,7 +341,7 @@ nextbeschreibung:
 			const ogddesclen = 20
 			if i := len(*desc); i < ogddesclen {
 				message = append(message, ogdat.CheckMessage{
-					Type:  2,
+					Type:  ogdat.Warning,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf("Beschreibung enthält weniger als %d Zeichen", i)})
 
@@ -361,7 +361,7 @@ nextbeschreibung:
 			}
 			if link.URL == nil {
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf(expectedlink, link.Raw)})
 			}
@@ -398,9 +398,9 @@ nextbeschreibung:
 			}
 			if ok, err := ogdat.CheckOGDBBox(*bbox); !ok {
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Zeichenfolge enthält keinen gültigen WKT für die örtliche Begrenzung (Boundingbox): '%s'", err)})
+					Text:  fmt.Sprintf("Zeichenfolge enthält keinen gültigen WKT für die örtliche Begrenzung (Boundingbox): %s", err)})
 			}
 		case "end_datetime":
 			endtime := md.Extras.End_DateTime
@@ -409,7 +409,7 @@ nextbeschreibung:
 			}
 			if endtime.Format != CustomTimeSpecifier1 {
 				message = append(message, ogdat.CheckMessage{
-					Type:  3,
+					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf(wrongtimevalueCT1, endtime.Raw)})
 			}
@@ -420,7 +420,7 @@ nextbeschreibung:
 			}
 			if frequency.NumID == -1 {
 				message = append(message, ogdat.CheckMessage{
-					Type:  2,
+					Type:  ogdat.Warning,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf("Feldwert in Anlehnung an ON/EN/ISO 19115:2003 erwartet (gültige Werte sind in der OGD Spezifikation definiert), Wert entspricht aber nicht diesem Typ: '%s'", frequency.Raw)})
 			}
@@ -451,11 +451,11 @@ nextbeschreibung:
 				}
 			}
 		case "license_citation":
-			en_desc := md.Extras.EnTitleDesc
-			if en_desc == nil {
+			licensecit := md.Extras.License_Citation
+			if licensecit == nil {
 				continue
 			}
-			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*en_desc); !ok {
+			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*licensecit); !ok {
 				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
