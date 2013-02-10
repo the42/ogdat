@@ -15,11 +15,12 @@ import (
 )
 
 var mdsource = flag.String("if", "", "Einzelne, CKAN-compatible, JSON-Beschreibung eines Metadatensatzes. Kann eine lokale Datei sein, oder über http/https bezogen werden. Standard: stdin")
-var of = flag.String("of", "", "Dateiname, unter dem die Metadaten gespeichert werden sollen. Standard: stdout")
+var of = flag.String("of", "", "Dateiname, unter dem die bezogenen Metadaten 1:1 gespeichert werden sollen.")
+var ofs = flag.String("ofs", "", "Dateiname, unter dem nur die relevanten OGD-Metadaten des JSON-streams gespeichert werden sollen.")
 var followlinks = flag.Bool("follow", false, "Sollen http(s)-Links in den Metadaten auf Verfügbarkeit überprüft werden? Werte: {true|false}, Standard: false")
 var version = flag.String("version", "", "Version, nach der das OGD Metadatendokument überprüft werden soll. Werte: {V20|V21}")
 
-func main() {
+func mymain() int {
 	flag.Parse()
 	var reader io.Reader
 	var set *ogdat.OGDSet
@@ -31,7 +32,7 @@ func main() {
 		md = &ogdatv21.MetaData{}
 	default:
 		log.Printf("Unsupported OGD Version: '%s'\n", *version)
-		os.Exit(2)
+		return 2
 	}
 
 	// 1. if no source is given or source is empty, use stdin
@@ -43,7 +44,7 @@ func main() {
 			resp, err := http.Get(*mdsource)
 			if err != nil {
 				log.Printf("Can't fetch from '%s': %s\n", *mdsource, err)
-				os.Exit(1)
+				return 1
 			}
 			defer resp.Body.Close()
 			reader = resp.Body
@@ -52,7 +53,7 @@ func main() {
 			file, err := os.Open(*mdsource)
 			if err != nil {
 				log.Printf("Can't open '%s': %s\n", *mdsource, err)
-				os.Exit(1)
+				return 1
 			}
 			defer file.Close()
 			reader = file
@@ -62,17 +63,24 @@ func main() {
 	ogdjsonmd, err := ioutil.ReadAll(reader)
 	if err != nil {
 		log.Printf("Can't read from stream: %s\n", err)
-		os.Exit(1)
+		return 1
 	}
 
-	if *of == "" {
-		*of = os.Stdout.Name()
+	if *of != "" {
+		ioutil.WriteFile(*of, ogdjsonmd, 0666)
 	}
-	ioutil.WriteFile(*of, ogdjsonmd, 0666)
 
 	if err := json.Unmarshal(ogdjsonmd, md); err != nil {
 		log.Printf("Can't unmarshall byte stream: %s\n", err)
-		os.Exit(1)
+		return 1
+	}
+
+	if *ofs != "" {
+		bytestream, err := json.Marshal(md)
+		if err != nil {
+			log.Printf("Can't serialize to JSON stream: %s\n", err)
+		}
+		ioutil.WriteFile(*ofs, bytestream, 0666)
 	}
 
 	msgs, err := md.Check(*followlinks)
@@ -83,4 +91,9 @@ func main() {
 		_, fieldname := set.GetBeschreibungForID(val.OGDID)
 		fmt.Printf("%d: %s [%d]: %s\n", idx, fieldname, val.OGDID, val.Text)
 	}
+	return 0
+}
+
+func main() {
+	os.Exit(mymain())
 }
