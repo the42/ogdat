@@ -451,11 +451,11 @@ nextbeschreibung:
 				}
 			}
 		case "license_citation":
-			en_desc := md.Extras.EnTitleDesc
-			if en_desc == nil {
+			licensecit := md.Extras.License_Citation
+			if licensecit == nil {
 				continue
 			}
-			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*en_desc); !ok {
+			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*licensecit); !ok {
 				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
