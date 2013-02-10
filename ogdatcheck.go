@@ -136,7 +136,7 @@ var regexpposixescape = regexp.MustCompile(`\\n|\\b|\\v|\\t`)
 // message: An error message describing the problem
 func CheckOGDTextStringForSaneCharacters(str string) (ok bool, _ error) {
 	if !utf8.ValidString(str) {
-		return false, &CheckError{Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
+		return false, &CheckError{Error, 0, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
 	if idx := regexphtmlcodecheck.FindIndex([]byte(str)); idx != nil {
 		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])}
