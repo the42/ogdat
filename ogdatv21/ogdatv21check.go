@@ -292,7 +292,7 @@ nextbeschreibung:
 				message = append(message, ogdat.CheckMessage{
 					Type:  1,
 					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Schemabezeichnung vorhanden, enthält keine Referenz auf Version 2.0 oder Version 2.1 '%s'", ogdschemaspec, *schemaname)})
+					Text:  fmt.Sprintf("Schemabezeichnung vorhanden, enthält keine Referenz auf Version 2.0 oder Version 2.1 '%s'",  *schemaname)})
 			}
 		case "schema_language":
 			lang := md.Extras.Schema_Language
