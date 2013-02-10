@@ -2,6 +2,7 @@ package ogdatv21
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/the42/ogdat"
 	"io/ioutil"
 	"os"
@@ -29,6 +30,10 @@ var checkTests = []checkTest{
 		&checkRequest{"file1_test.json", false},
 		nil,
 	},
+	{
+		&checkRequest{"allempty.json", false},
+		nil,
+	},
 }
 
 func TestCheck(t *testing.T) {
@@ -46,10 +51,16 @@ func TestCheck(t *testing.T) {
 		if err := json.Unmarshal(ogdjsonmd, md); err != nil {
 			t.Fatalf("Can't unmarshall byte stream: %s\n", err)
 		}
-		res, err := md.Check(val.in.followlinks)
+		msgs, err := md.Check(val.in.followlinks)
+		// TODO: BEGIN remove this code
+		fmt.Fprintf(os.Stderr, "%d", len(msgs))
+		for idx, val := range msgs {
+			fmt.Fprintf(os.Stderr, "%d: [%d]: %s\n", idx, val.OGDID, val.Text)
+		}
+		// END
 		if val.out != nil {
 			// TODO: compare results
-			_ = res
+
 		}
 		file.Close()
 	}
