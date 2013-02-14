@@ -16,6 +16,10 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 	const wrongtimevalueCT2 = "Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
 	const expectedlink = "Gültigen Verweis (Link) erwartet, der Wert '%s' stellt keinen gültigen Link dar"
 
+	if md == nil {
+		return nil, fmt.Errorf("Verweis auf Metadaten ist nil")
+	}
+
 	ogdset := ogdat.GetOGDSetForVersion(Version)
 	if ogdset == nil {
 		return nil, fmt.Errorf("Beschreibung für OGD Version %s ist nicht vorhanden, check kann nicht durchgeführt werden", Version)
@@ -187,20 +191,23 @@ nextbeschreibung:
 
 		switch elm.OGD_Kurzname {
 		case "metadata_identifier":
-			if md.Extras.Metadata_Identifier.UUID == nil {
+			if md.Extras.Metadata_Identifier != nil && md.Extras.Metadata_Identifier.UUID == nil {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf("Feldwert vom Typ UUID erwartet, Wert ist aber keine UUID: '%s'", md.Extras.Metadata_Identifier.Raw)})
 			}
 		case "metadata_modified":
-			if md.Extras.Metadata_Modified.Format != CustomTimeSpecifier2 {
+			if md.Extras.Metadata_Modified != nil && md.Extras.Metadata_Modified.Format != CustomTimeSpecifier2 {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf(wrongtimevalueCT2, md.Extras.Metadata_Modified.Raw)})
 			}
 		case "title":
+			if md.Title == nil {
+				continue
+			}
 			// should this tool also check for spelling mistakes?
 			// Don't think so, it does only check for adherence to the specification
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Title); !ok {
@@ -212,6 +219,9 @@ nextbeschreibung:
 				}
 			}
 		case "description":
+			if md.Description == nil {
+				continue
+			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Description); !ok {
 				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
@@ -242,10 +252,13 @@ nextbeschreibung:
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Warning,
 					OGDID: elm.ID,
-					Text:  "Schlagworte dürfen zwar mit Kardinalität 'N' optional auftreten, die Angabe von Schlagworten wäre aber wünschenswert"})
+					Text:  "Schlagworte dürfen zwar mit Kardinalität 'N' optional auftreten, die Angabe von Schlagwörtern wäre aber wünschenswert"})
 
 			}
 		case "maintainer":
+			if md.Maintainer == nil {
+				continue
+			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Maintainer); !ok {
 				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
@@ -255,6 +268,9 @@ nextbeschreibung:
 				}
 			}
 		case "license":
+			if md.License == nil {
+				continue
+			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.License); !ok {
 				if cerr, ok := err.(*ogdat.CheckError); ok {
 					message = append(message, ogdat.CheckMessage{
@@ -264,7 +280,7 @@ nextbeschreibung:
 				}
 			}
 		case "begin_datetime":
-			if md.Extras.Begin_DateTime.Format != CustomTimeSpecifier1 {
+			if md.Extras.Begin_DateTime != nil && md.Extras.Begin_DateTime.Format != CustomTimeSpecifier1 {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,

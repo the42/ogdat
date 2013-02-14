@@ -139,7 +139,7 @@ func strrange(minrange, maxrange, idx int, s string) string {
 	} else {
 		prepend = "..."
 	}
-	
+
 	var postpone string
 	end := idx + maxrange
 	if end > len(s) {
