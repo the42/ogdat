@@ -26,12 +26,11 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 	}
 
 	if md.Resource == nil || len(md.Resource) == 0 {
-		message = append(message, ogdat.CheckMessage{Type: ogdat.StructuralError,
+		message = append(message, ogdat.CheckMessage{Type: ogdat.StructuralError, OGDID: -1,
 			Text: "Die Metadatenbeschreibung enthält keine Ressourcen"})
 	}
 
 	// (1) iterate over all resource elements
-	// save to iterate here, even without range elements, bu with an else, the nesting gets unwieldly ...
 	for _, element := range md.Resource {
 		ielements := reflect.TypeOf(element).NumField()
 		// (2) take every field in the resource element ...
@@ -43,8 +42,9 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 			if desc == nil {
 				return message, fmt.Errorf("Keine Beschreibung zu Feld mit ID%d", id)
 			}
+			fval := reflect.ValueOf(element).Field(i)
 			// (4a) if the field is required but not present
-			if desc.IsRequired() && ogdat.IsNil(f) {
+			if desc.IsRequired() && fval.Kind() == reflect.Ptr && fval.IsNil() {
 				// report as erroneous
 				message = append(message, ogdat.CheckMessage{Type: ogdat.Error, OGDID: desc.ID, Text: pflichtfeldfehlt})
 				continue // required field is not present - nothing more to check, continue with next field
@@ -181,10 +181,24 @@ nextbeschreibung:
 		if elm.IsRequired() && elm.Anzahl != "N" {
 			ielements := reflect.TypeOf(md).Elem().NumField()
 			for i := 0; i < ielements; i++ {
-				f := reflect.TypeOf(md).Elem().Field(i)
-				if ogdat.GetIDFromMetaDataStructField(f) == elm.ID && ogdat.IsNil(f) {
-					message = append(message, ogdat.CheckMessage{Type: ogdat.Error, OGDID: elm.ID, Text: pflichtfeldfehlt})
-					break nextbeschreibung // required field is not present - nothing more to check
+				fdef := reflect.TypeOf(md).Elem().Field(i)
+				if ogdat.GetIDFromMetaDataStructField(fdef) == elm.ID {
+					fval := reflect.ValueOf(*md).Field(i)
+					if fval.Kind() == reflect.Ptr && fval.IsNil() {
+						message = append(message, ogdat.CheckMessage{Type: ogdat.Error, OGDID: elm.ID, Text: pflichtfeldfehlt})
+						continue nextbeschreibung // required field is not present - nothing more to check
+					}
+				}
+			}
+			ielements = reflect.TypeOf(md.Extras).NumField()
+			for i := 0; i < ielements; i++ {
+				fdef := reflect.TypeOf(md.Extras).Field(i)
+				if ogdat.GetIDFromMetaDataStructField(fdef) == elm.ID {
+					fval := reflect.ValueOf((*md).Extras).Field(i)
+					if fval.Kind() == reflect.Ptr && fval.IsNil() {
+						message = append(message, ogdat.CheckMessage{Type: ogdat.Error, OGDID: elm.ID, Text: pflichtfeldfehlt})
+						continue nextbeschreibung // required field is not present - nothing more to check
+					}
 				}
 			}
 		}
@@ -308,7 +322,7 @@ nextbeschreibung:
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Info,
 					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Schemabezeichnung vorhanden, enthält keine Referenz auf Version 2.0 oder Version 2.1 '%s'",  *schemaname)})
+					Text:  fmt.Sprintf("Schemabezeichnung vorhanden, enthält keine Referenz auf Version 2.0 oder Version 2.1 '%s'", *schemaname)})
 			}
 		case "schema_language":
 			lang := md.Extras.Schema_Language

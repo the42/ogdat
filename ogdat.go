@@ -99,12 +99,3 @@ func GetIDFromMetaDataStructField(val reflect.StructField) int {
 	}
 	return -1
 }
-
-// Return if a value is nil. If value is nor a pointer, return will be false
-func IsNil(val interface{}) bool {
-	v := reflect.ValueOf(val)
-	if v.Kind() != reflect.Ptr {
-		return false
-	}
-	return v.IsNil()
-}
