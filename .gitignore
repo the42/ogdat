@@ -3,4 +3,5 @@ Procfile.local
 .env
 *.pdf
 *.html*
+.kateproject*
 !ogdat_spec-2.1.html
