@@ -26,12 +26,18 @@ func mymain() int {
 	var set *ogdat.OGDSet
 	var md ogdat.Checker
 
+	if flag.NFlag() == 0 {
+		fmt.Println("Keine Kommandozeilenparamter angegeben. Verwendung:")
+		flag.PrintDefaults()
+		return 2
+	}
+
 	switch *version {
 	case "V20", "V21":
 		set = ogdat.GetOGDSetForVersion(ogdatv21.Version)
 		md = &ogdatv21.MetaData{}
 	default:
-		log.Printf("Unsupported OGD Version: '%s'\n", *version)
+		log.Printf("Nicht unterstützte OGD Version: '%s'\n", *version)
 		return 2
 	}
 
@@ -87,10 +93,17 @@ func mymain() int {
 	if err != nil {
 		log.Printf("Unexpected error from Check: %s", err)
 	}
-	for idx, val := range msgs {
-		_, fieldname := set.GetBeschreibungForID(val.OGDID)
-		fmt.Printf("%d: %s [%d]: %s\n", idx, fieldname, val.OGDID, val.Text)
+
+	if len(msgs) > 0 {
+		for idx, val := range msgs {
+			_, fieldname := set.GetBeschreibungForID(val.OGDID)
+			fmt.Printf("%d: %s [%d]: %s\n", idx, fieldname, val.OGDID, val.Text)
+
+		}
+		return 1
 	}
+
+	fmt.Println("Keine Fehler gefunden")
 	return 0
 }
 
