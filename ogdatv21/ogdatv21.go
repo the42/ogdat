@@ -14,7 +14,7 @@ const Version20 = "OGD Austria Metadata 2.0"
 const Version = "OGD Austria Metadata 2.1" // Version 2.1: 15.10.2012
 const specfile = "ogdat_spec-2.1.csv"
 const CustomTimeSpecifier1 = "2006-01-02T15:04:05" // RFC 3339 = ISO 8601 ohne Zeitzone
-const CustomTimeSpecifier2 = "2006-12-02"          // RFC 3339 = ISO 8601 ohne Zeitzone
+const CustomTimeSpecifier2 = "2006-01-02"          // RFC 3339 = ISO 8601 ohne Zeitzone
 
 /// BEGIN:check wheater this code may be factored out
 var TimeFormat = []string{
@@ -163,7 +163,7 @@ func (cyc *Cycle) UnmarshalJSON(data []byte) error {
 	var matchcyc Cycle
 
 	for idx, matchcyc = range cycles {
-		if found := cmpstrtocycle(raw, matchcyc); found == true {
+		if found = cmpstrtocycle(raw, matchcyc); found == true {
 			break
 		}
 	}

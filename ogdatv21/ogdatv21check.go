@@ -148,12 +148,18 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				}
 				// the specification mentions only these encodings as valid
 				var specencodings = []string{"utf-8", "utf-16", "utf-32"}
+				var found bool
 				enc := strings.ToLower(*resencoding)
 				for _, val := range specencodings {
-					if enc == val || strings.Replace(enc, "-", "", -1) == val {
-						continue
+					if enc == val || strings.Replace(val, "-", "", -1) == enc {
+						found = true
 					}
 				}
+
+				if found {
+					continue
+				}
+
 				// ... but this is unfortunate, as certainly more encodings may be valid for OGD AT
 				if ogdat.CheckIANAEncoding(*resencoding) {
 					message = append(message, ogdat.CheckMessage{
