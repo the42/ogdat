@@ -94,11 +94,11 @@ func mymain() int {
 		log.Printf("Unexpected error from Check: %s", err)
 	}
 
-	if len(msgs) > 0 {
+	if fmsgs := len(msgs); fmsgs > 0 {
+		fmt.Printf("%d Fehler gefunden:\n", fmsgs)
 		for idx, val := range msgs {
 			_, fieldname := set.GetBeschreibungForID(val.OGDID)
 			fmt.Printf("%d: %s [%d]: %s\n", idx, fieldname, val.OGDID, val.Text)
-
 		}
 		return 1
 	}
