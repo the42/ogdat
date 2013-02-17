@@ -2,7 +2,7 @@ package ogdatv21
 
 import (
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"github.com/the42/ogdat"
 	"io/ioutil"
 	"os"
@@ -32,14 +32,17 @@ var checkTests = []checkTest{
 	},
 	{
 		&checkRequest{"allempty.json", false},
-		nil,
+		&checkResponse{message: []ogdat.CheckMessage{{Type: 4, OGDID: -1}, {Type: 3, OGDID: 1}, {Type: 3, OGDID: 5}, {Type: 3, OGDID: 8}, {Type: 3, OGDID: 9}, {Type: 2, OGDID: 10}, {Type: 2, OGDID: 11}, {Type: 3, OGDID: 19}, {Type: 3, OGDID: 21}, {Type: 3, OGDID: 24}}},
+	},
+	{
+		&checkRequest{"fullandok.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{}},
 	},
 }
 
 func TestCheck(t *testing.T) {
-	md := &MetaData{}
 
-	for _, val := range checkTests {
+	for numtest, val := range checkTests {
 		file, err := os.Open(path.Join("./testfiles", val.in.filename))
 		if err != nil {
 			t.Fatal(err)
@@ -48,19 +51,27 @@ func TestCheck(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		md := &MetaData{}
 		if err := json.Unmarshal(ogdjsonmd, md); err != nil {
 			t.Fatalf("Can't unmarshall byte stream: %s\n", err)
 		}
 		msgs, err := md.Check(val.in.followlinks)
-		// TODO: BEGIN remove this code
-		fmt.Fprintf(os.Stderr, "%d", len(msgs))
-		for idx, val := range msgs {
-			fmt.Fprintf(os.Stderr, "%d: [%d]: %s\n", idx, val.OGDID, val.Text)
-		}
-		// END
 		if val.out != nil {
-			// TODO: compare results
+			testlen := len(val.out.message)
+			retlen := len(msgs)
+			if testlen != retlen {
+				t.Fatalf("TestCheck [%d] (%s): ungleiche Anzahl an Fehlermeldungen. Test:%d, Return:%d", numtest, val.in.filename, testlen, retlen)
+			}
 
+			for i := 0; i < testlen; i++ {
+				testtype := val.out.message[i].Type
+				testid := val.out.message[i].OGDID
+				rettype := msgs[i].Type
+				retid := msgs[i].OGDID
+				if testtype != rettype || testid != retid {
+					t.Fatalf("TestCheck [%d] (%s): [Test.Type=%d, Test.OGDID=%d | Return.Type=%d, Return.OGDID=%d]", numtest, val.in.filename, testtype, testid, rettype, retid)
+				}
+			}
 		}
 		file.Close()
 	}
