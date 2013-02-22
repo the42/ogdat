@@ -31,9 +31,11 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 	}
 
 	// (1) iterate over all resource elements
-	for _, element := range md.Resource {
+	for iresource, element := range md.Resource {
+		resourceno := fmt.Sprintf("R%4d: ", iresource)
 		ielements := reflect.TypeOf(element).NumField()
 		// (2) take every field in the resource element ...
+	nextelement:
 		for i := 0; i < ielements; i++ {
 			f := reflect.TypeOf(element).Field(i)
 			// (3) ... and get the 'Beschreibung' for this field
@@ -46,7 +48,9 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 			// (4a) if the field is required but not present
 			if desc.IsRequired() && fval.Kind() == reflect.Ptr && fval.IsNil() {
 				// report as erroneous
-				message = append(message, ogdat.CheckMessage{Type: ogdat.Error, OGDID: desc.ID, Text: pflichtfeldfehlt})
+				message = append(message, ogdat.CheckMessage{Type: ogdat.Error,
+					OGDID: desc.ID,
+					Text:  resourceno + pflichtfeldfehlt})
 				continue // required field is not present - nothing more to check, continue with next field
 			}
 			// (4b) otherwise perform fieldwise checks within resources
@@ -57,14 +61,16 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
 						OGDID: desc.ID,
-						Text:  fmt.Sprintf(expectedlink, element.Url.Raw)})
+						Text:  resourceno + fmt.Sprintf(expectedlink, element.Url.Raw)})
 					continue
 				}
 				if ok, err := ogdat.CheckUrlContact(element.Url.Raw, followhttplinks); !ok {
-					message = append(message, ogdat.CheckMessage{
-						Type:  ogdat.Error,
-						OGDID: desc.ID,
-						Text:  err.Error()})
+					if cerr, ok := err.(*ogdat.CheckError); ok {
+						message = append(message, ogdat.CheckMessage{
+							Type:  cerr.Status,
+							OGDID: desc.ID,
+							Text:  resourceno + cerr.Error()})
+					}
 				}
 			case "resource_format":
 				const checkchars = `.:/\`
@@ -73,14 +79,14 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Warning,
 						OGDID: desc.ID,
-						Text:  fmt.Sprintf("Ungültiges Zeichen '%c' (Index %d)", format[idx], idx)})
+						Text:  resourceno + fmt.Sprintf("Ungültiges Zeichen '%c' (Index %d)", format[idx], idx)})
 				}
 				lower := strings.ToLower(format)
 				if format != lower {
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Warning,
 						OGDID: desc.ID,
-						Text:  "Format darf nur in Kleinbuchstaben angegeben werden"})
+						Text:  resourceno + "Format darf nur in Kleinbuchstaben angegeben werden"})
 				}
 			// ###################### OPTIONALE FELDER ######################
 			case "resource_name":
@@ -93,7 +99,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 						message = append(message, ogdat.CheckMessage{
 							Type:  cerr.Status,
 							OGDID: desc.ID,
-							Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
+							Text:  resourceno + fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 					}
 				}
 			case "resource_created":
@@ -105,7 +111,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
 						OGDID: desc.ID,
-						Text:  fmt.Sprintf(wrongtimevalueCT2, created.Raw)})
+						Text:  resourceno + fmt.Sprintf(wrongtimevalueCT2, created.Raw)})
 
 				}
 			case "resource_lastmodified":
@@ -117,7 +123,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
 						OGDID: desc.ID,
-						Text:  fmt.Sprintf(wrongtimevalueCT2, modified.Raw)})
+						Text:  resourceno + fmt.Sprintf(wrongtimevalueCT2, modified.Raw)})
 				}
 			case "resource_size":
 				size := element.Size
@@ -128,7 +134,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
 						OGDID: desc.ID,
-						Text:  fmt.Sprintf("Nur Zahlenangaben erlaubt, Zeichenkette enthält aber nicht-Zahlenzeichen: '%s'", size)})
+						Text:  resourceno + fmt.Sprintf("Nur Zahlenangaben erlaubt, Zeichenkette enthält aber nicht-Zahlenzeichen: '%s'", size)})
 				}
 			case "resource_language":
 				lang := element.Language
@@ -139,7 +145,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
 						OGDID: desc.ID,
-						Text:  fmt.Sprintf("'%s' ist keine gültiger dreistelliger Sprachcode nach  ISO 639-2", *lang)})
+						Text:  resourceno + fmt.Sprintf("'%s' ist keine gültiger dreistelliger Sprachcode nach  ISO 639-2", *lang)})
 				}
 			case "resource_encoding":
 				resencoding := element.Encoding
@@ -148,16 +154,11 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				}
 				// the specification mentions only these encodings as valid
 				var specencodings = []string{"utf-8", "utf-16", "utf-32"}
-				var found bool
 				enc := strings.ToLower(*resencoding)
 				for _, val := range specencodings {
 					if enc == val || strings.Replace(val, "-", "", -1) == enc {
-						found = true
+						continue nextelement
 					}
-				}
-
-				if found {
-					continue
 				}
 
 				// ... but this is unfortunate, as certainly more encodings may be valid for OGD AT
@@ -165,14 +166,14 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Warning,
 						OGDID: desc.ID,
-						Text:  fmt.Sprintf("'%s' ist kein gültiges Encoding nach Spezifiaktion, aber registiert bei IANA", *resencoding)})
+						Text:  resourceno + fmt.Sprintf("'%s' ist kein gültiges Encoding nach Spezifiaktion, aber registiert bei IANA", *resencoding)})
 					continue
 				}
 				// unknown encoding, report it
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: desc.ID,
-					Text:  fmt.Sprintf("'%s' ist kein bekanntes Encoding für Daten", *resencoding)})
+					Text:  fmt.Sprintf(resourceno+"'%s' ist kein bekanntes Encoding für Daten", *resencoding)})
 			}
 		}
 	}
@@ -322,7 +323,7 @@ nextbeschreibung:
 				var ogdschemaspec = []string{Version, Version20, "2.0", "2.1"}
 				for _, val := range ogdschemaspec {
 					if strings.Contains(*schemaname, val) {
-						break
+						continue nextbeschreibung
 					}
 				}
 				message = append(message, ogdat.CheckMessage{
