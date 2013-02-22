@@ -172,16 +172,16 @@ func CheckOGDTextStringForSaneCharacters(str string) (ok bool, _ error) {
 		}
 	}
 
-	if idx := regexphtmlcodecheck.FindIndex([]byte(str)); idx != nil {
+	if idx := regexphtmlcodecheck.FindStringIndex(str); idx != nil {
 		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", str[idx[0]:min(20, idx[1]-idx[0])])}
 	}
-	if idx := regexphtmlescape.FindIndex([]byte(str)); idx != nil {
+	if idx := regexphtmlescape.FindStringIndex(str); idx != nil {
 		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", str[idx[0]:min(15, idx[1]-idx[0])])}
 	}
-	if idx := regexpurlencode.FindIndex([]byte(str)); idx != nil {
+	if idx := regexpurlencode.FindStringIndex(str); idx != nil {
 		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", str[idx[0]:min(8, idx[1]-idx[0])])}
 	}
-	if idx := regexpposixescape.FindIndex([]byte(str)); idx != nil {
+	if idx := regexpposixescape.FindStringIndex(str); idx != nil {
 		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", str[idx[0]:min(5, idx[1]-idx[0])])}
 	}
 	return true, nil
@@ -193,7 +193,7 @@ func CheckOGDBBox(str string) (bool, error) {
 	if !utf8.ValidString(str) {
 		return false, &CheckError{Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
-	if idx := regexpbboxWKT.FindIndex([]byte(str)); idx == nil {
+	if idx := regexpbboxWKT.FindStringIndex(str); idx == nil {
 		return false, &CheckError{Error, -1, fmt.Sprintf("Keine gültige WKT-Angabe einer BoundingBox: '%s'", str)}
 	}
 	return true, nil
@@ -216,7 +216,7 @@ func CheckUrlContact(url string, followhttplink bool) (bool, error) {
 		return true, nil
 	}
 	// it's a contact point if it's an email address
-	if idx := regexpEMail.FindIndex([]byte(url)); idx != nil {
+	if idx := regexpEMail.FindStringIndex(url); idx != nil {
 		return true, nil
 	}
 	return false, &CheckError{Warning, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])}
