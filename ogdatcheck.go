@@ -199,8 +199,7 @@ func CheckOGDBBox(str string) (bool, error) {
 	return true, nil
 }
 
-// TODO: add switch for case-insenstive check
-var regexpEMail = regexp.MustCompile(`^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`)
+var regexpEMail = regexp.MustCompile(`(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`)
 
 func CheckUrlContact(url string, followhttplink bool) (bool, error) {
 	// it's a contact point if it's a http-link (starts with "http(s)" )
