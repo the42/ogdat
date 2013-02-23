@@ -27,16 +27,24 @@ type checkTest struct {
 
 var checkTests = []checkTest{
 	{
-		&checkRequest{"file1_test.json", false},
-		nil,
-	},
-	{
 		&checkRequest{"allempty.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: 4, OGDID: -1}, {Type: 3, OGDID: 1}, {Type: 3, OGDID: 5}, {Type: 3, OGDID: 8}, {Type: 3, OGDID: 9}, {Type: 2, OGDID: 10}, {Type: 2, OGDID: 11}, {Type: 3, OGDID: 19}, {Type: 3, OGDID: 21}, {Type: 3, OGDID: 24}}},
 	},
 	{
+		&checkRequest{"file14a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 14}}},
+	},
+	{
+		&checkRequest{"file14b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 14}}},
+	},
+	{
 		&checkRequest{"fullandok.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{}},
+	},
+	{
+		&checkRequest{"file1_test.json", false},
+		nil,
 	},
 }
 
