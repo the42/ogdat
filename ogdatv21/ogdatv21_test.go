@@ -46,6 +46,26 @@ var checkTests = []checkTest{
 		&checkRequest{"file1.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 1}}},
 	},
+	{ // CheckOGDTextStringForSaneCharacters: HTML-Escapes (&#319;)
+		&checkRequest{"file16a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 16}}},
+	},
+	{ // CheckOGDTextStringForSaneCharacters: Posix-Escapes (\n)
+		&checkRequest{"file16b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 16}}},
+	},
+	{ // CheckOGDTextStringForSaneCharacters: HTML-Sequenz (<p><br>)
+		&checkRequest{"file16c.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 16}}},
+	},
+	{ // CheckOGDTextStringForSaneCharacters: URL-Escape()
+		&checkRequest{"file16d.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 16}}},
+	},
+	{ // invalid date format
+		&checkRequest{"file17a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 17}}},
+	},
 	{
 		&checkRequest{"fullandok.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{}},
@@ -59,20 +79,21 @@ var checkTests = []checkTest{
 func TestCheck(t *testing.T) {
 
 	for numtest, val := range checkTests {
-		file, err := os.Open(path.Join("./testfiles", val.in.filename))
-		if err != nil {
-			t.Fatal(err)
-		}
-		ogdjsonmd, err := ioutil.ReadAll(file)
-		if err != nil {
-			t.Fatal(err)
-		}
-		md := &MetaData{}
-		if err := json.Unmarshal(ogdjsonmd, md); err != nil {
-			t.Fatalf("Can't unmarshall byte stream: %s\n", err)
-		}
-		msgs, err := md.Check(val.in.followlinks)
 		if val.out != nil {
+			file, err := os.Open(path.Join("./testfiles", val.in.filename))
+			if err != nil {
+				t.Fatal(err)
+			}
+			ogdjsonmd, err := ioutil.ReadAll(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			md := &MetaData{}
+			if err := json.Unmarshal(ogdjsonmd, md); err != nil {
+				t.Fatalf("Can't unmarshall byte stream: %s\n", err)
+			}
+			msgs, err := md.Check(val.in.followlinks)
+
 			testlen := len(val.out.message)
 			retlen := len(msgs)
 			if testlen != retlen {
@@ -88,7 +109,7 @@ func TestCheck(t *testing.T) {
 					t.Fatalf("TestCheck [%d] (%s): [Test.Type=%d, Test.OGDID=%d | Return.Type=%d, Return.OGDID=%d]", numtest, val.in.filename, testtype, testid, rettype, retid)
 				}
 			}
+			file.Close()
 		}
-		file.Close()
 	}
 }
