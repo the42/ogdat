@@ -134,7 +134,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
 						OGDID: desc.ID,
-						Text:  resourceno + fmt.Sprintf("Nur Zahlenangaben erlaubt, Zeichenkette enthält aber nicht-Zahlenzeichen: '%s'", size)})
+						Text:  resourceno + fmt.Sprintf("Nur Zahlenangaben erlaubt, Zeichenkette enthält aber nicht-Zahlenzeichen: '%s'", *size)})
 				}
 			case "resource_language":
 				lang := element.Language

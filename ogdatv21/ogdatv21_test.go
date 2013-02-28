@@ -63,8 +63,12 @@ var checkTests = []checkTest{
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 16}}},
 	},
 	{ // invalid date format
-		&checkRequest{"file17a.json", false},
-		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 17}}},
+		&checkRequest{"file17_18.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 17}, {Type: ogdat.Error, OGDID: 18}}},
+	},
+	{ // invalid resource size specification (onyl digits allowed)
+		&checkRequest{"file29.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 29}}},
 	},
 	{
 		&checkRequest{"fullandok.json", false},
