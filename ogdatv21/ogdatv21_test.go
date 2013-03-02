@@ -26,10 +26,17 @@ type checkTest struct {
 }
 
 var checkTests = []checkTest{
+	{ // This test is to check a metadata file in which every entry is OK
+		&checkRequest{"fullandok.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{}},
+	},
 	{ // Test, when all fields (required & optional ones) are empty
 		&checkRequest{"allempty.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: 4, OGDID: -1}, {Type: 3, OGDID: 1}, {Type: 3, OGDID: 5}, {Type: 3, OGDID: 8}, {Type: 3, OGDID: 9}, {Type: 2, OGDID: 10}, {Type: 2, OGDID: 11}, {Type: 3, OGDID: 19}, {Type: 3, OGDID: 21}, {Type: 3, OGDID: 24}}},
 	},
+	//
+	// resources
+	//
 	{ // invalid url
 		&checkRequest{"file14a.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 14}}},
@@ -41,10 +48,6 @@ var checkTests = []checkTest{
 	{ // invalid characters in resource format specifier
 		&checkRequest{"file15a1.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 15}, {Type: ogdat.Warning, OGDID: 15}}},
-	},
-	{ // non-uuid metadata identifier
-		&checkRequest{"file1.json", false},
-		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 1}}},
 	},
 	{ // CheckOGDTextStringForSaneCharacters: HTML-Escapes (&#319;)
 		&checkRequest{"file16a.json", false},
@@ -71,16 +74,19 @@ var checkTests = []checkTest{
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 29}}},
 	},
 	{ // unknown iso639-2 language code
-		&checkRequest{"file3.json", false},
+		&checkRequest{"file31.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 3}}},
 	},
 	{ // check that utf-8 and utf16 are valid resource encodings, big5 accepted as valid for IANA and 'klingon' invalid
 		&checkRequest{"file32.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 32}, {Type: ogdat.Error, OGDID: 32}}},
 	},
-	{
-		&checkRequest{"fullandok.json", false},
-		&checkResponse{message: []ogdat.CheckMessage{}},
+	//
+	// core and extras
+	//
+	{ // non-uuid metadata identifier
+		&checkRequest{"file1.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 1}}},
 	},
 	{
 		&checkRequest{"file1_test.json", false},
