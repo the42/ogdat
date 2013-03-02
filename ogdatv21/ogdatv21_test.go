@@ -70,6 +70,14 @@ var checkTests = []checkTest{
 		&checkRequest{"file29.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 29}}},
 	},
+	{ // unknown iso639-2 language code
+		&checkRequest{"file3.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 3}}},
+	},
+	{ // check that utf-8 and utf16 are valid resource encodings, big5 accepted as valid for IANA and 'klingon' invalid
+		&checkRequest{"file32.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 32}, {Type: ogdat.Error, OGDID: 32}}},
+	},
 	{
 		&checkRequest{"fullandok.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{}},
