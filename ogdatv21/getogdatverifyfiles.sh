@@ -38,6 +38,6 @@ XML=`basename  $IANACHARSET`
 IANATEXT=`basename  $IANACHARSET .xml`.txt
 echo "Extrahieren der Information als TXT ..."
 xsltproc character-sets.xsl $XML > $IANATEXT
-sort $IANATEXT -u -o $IANATEXT
+tr '[:upper:]' '[:lower:]' < $IANATEXT | sort -u -o $IANATEXT
 
 echo "Erfolgreich"

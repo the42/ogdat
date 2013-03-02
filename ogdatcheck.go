@@ -67,12 +67,16 @@ func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lan
 
 var ianaencmap map[string]struct{} = nil
 
+// CheckIANAEncoding will try to match and input of enc against the specified encodings found at http://www.iana.org/assignments/character-sets/character-sets.xml
+// The file at http://www.iana.org/assignments/character-sets/character-sets.xml is retrieved by a shell scripte,
+// converted to all-lower case and sorted for unique entries. Thus the encoding enc against which will be checked,
+// is converted to lower case and then compared to the IANA-encodings
 func CheckIANAEncoding(enc string) bool {
 	const ianaencfile = "character-sets.txt"
 	if ianaencmap == nil {
 		var err error
 		if ianaencmap, err = loadianaencodingfile(ianaencfile); err != nil {
-			panic(fmt.Sprintf("Can not load IANA encoding definition file '%s'", ianaencfile))
+			panic(fmt.Sprintf("Can not load IANA encoding definition file '%s': %s", ianaencfile, err))
 		}
 	}
 	enc = strings.ToLower(enc)
