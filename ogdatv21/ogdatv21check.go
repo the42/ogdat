@@ -173,7 +173,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: desc.ID,
-					Text:  fmt.Sprintf(resourceno+"'%s' ist kein bekanntes Encoding für Daten", *resencoding)})
+					Text:  resourceno + fmt.Sprintf("'%s' ist kein bekanntes Encoding für Daten", *resencoding)})
 			}
 		}
 	}
