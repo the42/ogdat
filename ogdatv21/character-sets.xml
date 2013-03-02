@@ -2,7 +2,7 @@
 <?xml-stylesheet type="text/xsl" href="character-sets.xsl"?>
 <?oxygen RNGSchema="character-sets.rng" type="xml"?>
 <registry xmlns="http://www.iana.org/assignments" id="character-sets">
-  <updated>2012-10-04</updated>
+  <updated>2013-01-23</updated>
   <title>Character Sets</title>
   <xref type="rfc" data="rfc2978"/>
   <registration_rule>Expert Review</registration_rule>
@@ -60,18 +60,14 @@ character set entry in the IANA Registry in order to distinguish the
 revised character set from the original character set.</note>
   <registry id="character-sets-1">
     <record>
-      <name>ANSI_X3.4-1968</name>
-      <xref type="rfc" data="rfc1345"/>
-      <xref type="person" data="Keld_Simonsen"/>
+      <name>US-ASCII</name>
+      <xref type="rfc" data="rfc2046"/>
       <value>3</value>
-      <description>
-        <xref type="uri" data="http://www.itscj.ipsj.or.jp/ISO-IR/">ISO-IR: International Register of Escape Sequences</xref><br/>
-        Note: The current registration authority is IPSJ/ITSCJ, Japan.
-      </description>
+      <description>ANSI X3.4-1986</description>
       <alias>iso-ir-6</alias>
+      <alias>ANSI_X3.4-1968</alias>
       <alias>ANSI_X3.4-1986</alias>
       <alias>ISO_646.irv:1991</alias>
-      <alias>ASCII</alias>
       <alias>ISO646-US</alias>
       <alias>US-ASCII</alias>
       <alias>us</alias>
