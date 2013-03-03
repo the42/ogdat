@@ -88,6 +88,53 @@ var checkTests = []checkTest{
 		&checkRequest{"file1.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 1}}},
 	},
+	{ // invalid date
+		&checkRequest{"file5.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 5}}},
+	},
+	{ // invalid characters in title
+		&checkRequest{"file8.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 8}}},
+	},
+	{ // invalid characters in description
+		&checkRequest{"file9.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 9}}},
+	},
+	{ // no entries for 'Kategorie' is a warning
+		&checkRequest{"file10a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 10}}},
+	},
+	{ // no entries for 'Kategorie' is a warning
+		&checkRequest{"file10b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 10}}},
+	},
+	{ // unknown entry for 'Kategorie'
+		&checkRequest{"file10c.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 10}}},
+	},
+	{ // no entries for 'Schlagworte' is a warning
+		&checkRequest{"file11a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 11}}},
+	},
+	{ // no entries for 'Schlagworte' is a warning
+		&checkRequest{"file11b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 11}}},
+	},
+	{ // invalid characters for 'maintainer' and 'license'
+		&checkRequest{"file19_21.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 19}, {Type: ogdat.Warning, OGDID: 21}}},
+	},
+	{ // invalid time format for 'begin_datetime'
+		&checkRequest{"file24.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 24}}},
+	},
+	//
+	// core and extras - optional fields
+	//
+	{ // invalid characters in schema_name and no reference to version 2.0 or 2.1 in name specifier
+		&checkRequest{"file2.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 2}, {Type: ogdat.Info, OGDID: 2}}},
+	},
 	{
 		&checkRequest{"file1_test.json", false},
 		nil,
