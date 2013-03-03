@@ -47,7 +47,7 @@
       "schema_language" : "ger",
       "metadata_modified" : "2012-10-17",
       "geographic_bbox" : "POLYGON ((-180.00 -90.00, 180.00 90.00))",
-      "categorization" : null
+      "categorization" : []
    },
    "maintainer_email" : null,
    "url" : "",
