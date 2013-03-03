@@ -252,7 +252,7 @@ nextbeschreibung:
 				}
 			}
 		case "categorization":
-			if cat := md.Extras.Categorization; cat == nil {
+			if cat := md.Extras.Categorization; cat == nil || len(cat) == 0 {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Warning,
 					OGDID: elm.ID,
@@ -269,7 +269,7 @@ nextbeschreibung:
 				}
 			}
 		case "keywords":
-			if keywords := md.Schlagworte; keywords == nil {
+			if keywords := md.Schlagworte; keywords == nil || len(keywords) == 0 {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Warning,
 					OGDID: elm.ID,
