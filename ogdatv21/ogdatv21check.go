@@ -9,6 +9,20 @@ import (
 	"strings"
 )
 
+// copmpare input against a slice of check strings.
+// input will first be converted to lower-case, and any occurence of "-" is removed.
+// The slice of checks will be iterated over,
+// individual elements of check will not be converted or have their "-" removed.
+func checkEncodingString(input string, check []string) bool {
+	input = strings.ToLower(strings.Replace(input, "-", "", -1))
+	for _, val := range check {
+		if input == val {
+			return true
+		}
+	}
+	return false
+}
+
 func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, err error) {
 	const pflichtfeldfehlt = "Pflichtfeld nicht gesetzt"
 	const invalidchars = "Zeichenfolge enthält potentiell ungeeignete Zeichen ab Position %d: %s"
@@ -35,7 +49,6 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 		resourceno := fmt.Sprintf("R%4d: ", iresource)
 		ielements := reflect.TypeOf(element).NumField()
 		// (2) take every field in the resource element ...
-	nextelement:
 		for i := 0; i < ielements; i++ {
 			f := reflect.TypeOf(element).Field(i)
 			// (3) ... and get the 'Beschreibung' for this field
@@ -153,12 +166,8 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					continue
 				}
 				// the specification mentions only these encodings as valid
-				var specencodings = []string{"utf-8", "utf-16", "utf-32"}
-				enc := strings.ToLower(*resencoding)
-				for _, val := range specencodings {
-					if enc == val || strings.Replace(val, "-", "", -1) == enc {
-						continue nextelement
-					}
+				if checkEncodingString(*resencoding, []string{"utf8", "utf16", "utf32"}) {
+					continue
 				}
 
 				// ... but this is unfortunate, as certainly more encodings may be valid for OGD AT
@@ -337,7 +346,7 @@ nextbeschreibung:
 				continue
 			}
 			const ogdschemalanguage = "ger"
-			if *lang != ogdschemalanguage {
+			if ogdschemalanguage != strings.ToLower(*lang) {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
@@ -349,7 +358,7 @@ nextbeschreibung:
 				continue
 			}
 			const ogdschemacharacterset = "utf8"
-			if *charset != ogdschemacharacterset {
+			if !checkEncodingString(*charset, []string{"utf8"}) {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
