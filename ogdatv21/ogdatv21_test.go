@@ -135,6 +135,45 @@ var checkTests = []checkTest{
 		&checkRequest{"file2.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 2}, {Type: ogdat.Info, OGDID: 2}}},
 	},
+	{ // schema language is german, specified as (GeR) which is ok as we check case-insensitive
+		&checkRequest{"file3a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{}},
+	},
+	{ // schema language is "xYz" which is an error. Only german allowed
+		&checkRequest{"file3b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 3}}},
+	},
+	{ // schema characterset specified as "utf-8": The specification is picky in this respect, as it refers to
+		// specification ON/EN/ISO 19115:2003 mdC(4), which only knows about "utf8". We accept anycase utf-8 and utf8
+		&checkRequest{"file4a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{}},
+	},
+	{ // schema characterset specified as "utf-8": The specification is picky in this respect, as it refers to
+		// specification ON/EN/ISO 19115:2003 mdC(4), which only knows about "utf8". We accept anycase utf-8 and utf8
+		// This check must fail, as the test file contains an encoding which is not utf-8
+		&checkRequest{"file4b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 4}}},
+	},
+	{ // an empty string is not a valid link
+		&checkRequest{"file6a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Info, OGDID: 6}, {Type: ogdat.Error, OGDID: 6}}},
+	},
+	{ // a null as metadata_linkage is ok (it's optional)
+		&checkRequest{"file6b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{}},
+	},
+	{ // an empty array as metadata_linkage is ok (it's optional)
+		&checkRequest{"file6c.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{}},
+	},
+	{ // an empty string as an element in a metadata_linkage array is ivalid
+		&checkRequest{"file6d.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 6}}},
+	},
+	{ // a single element as metadata_linkage is acutally erroneous as per spec, but accepted by practice. Report it as info
+		&checkRequest{"file6e.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Info, OGDID: 6}}},
+	},
 	{
 		&checkRequest{"file1_test.json", false},
 		nil,
