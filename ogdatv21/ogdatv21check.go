@@ -77,7 +77,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 						Text:  resourceno + fmt.Sprintf(expectedlink, element.Url.Raw)})
 					continue
 				}
-				if ok, err := ogdat.CheckUrlContact(element.Url.Raw, followhttplinks); !ok {
+				if ok, err := ogdat.CheckUrl(element.Url.Raw, followhttplinks); !ok {
 					if cerr, ok := err.(*ogdat.CheckError); ok {
 						message = append(message, ogdat.CheckMessage{
 							Type:  cerr.Status,
@@ -365,19 +365,32 @@ nextbeschreibung:
 					Text:  fmt.Sprintf("Characterset des Schemas als '%s' erwartet, der Wert ist aber '%s'", ogdschemacharacterset, *charset)})
 			}
 		case "metadata_linkage":
-			if element := md.Extras.Metadata_Linkage_single; element != nil {
-				message = append(message, ogdat.CheckMessage{
-					Type:  ogdat.Error,
-					OGDID: elm.ID,
-					Text:  fmt.Sprintf("JSON vom Typ 'Array of String' erwartet, es wurde jedoch ein einzelner Wert geliefert")})
-			}
-			for _, element := range md.Extras.Metadata_Linkage {
-				if element.URL == nil {
+			linkage := md.Extras.Metadata_Linkage
+			if linkage != nil {
+				if !linkage.isarray {
 					message = append(message, ogdat.CheckMessage{
-						Type:  ogdat.Error,
+						Type:  ogdat.Info,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf(expectedlink, element.Raw)})
+						Text:  fmt.Sprintf("JSON vom Typ 'Array of String' erwartet, es wurde jedoch ein einzelner Wert geliefert")})
 				}
+				for _, element := range linkage.Url {
+					if element.URL == nil {
+						message = append(message, ogdat.CheckMessage{
+							Type:  ogdat.Error,
+							OGDID: elm.ID,
+							Text:  fmt.Sprintf(expectedlink, element.Raw)})
+					} else {
+						if ok, err := ogdat.CheckUrl(element.Raw, followhttplinks); !ok {
+							if cerr, ok := err.(*ogdat.CheckError); ok {
+								message = append(message, ogdat.CheckMessage{
+									Type:  cerr.Status,
+									OGDID: elm.ID,
+									Text:  cerr.Error()})
+							}
+						}
+					}
+				}
+
 			}
 		case "attribute_description":
 			desc := md.Extras.Attribute_Description
