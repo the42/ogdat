@@ -117,6 +117,11 @@ type Url struct {
 	Raw string
 }
 
+type MetaDataLinkage struct {
+	Url     []Url
+	isarray bool
+}
+
 type Identifier struct {
 	*uuid.UUID
 	Raw string
@@ -208,6 +213,20 @@ func (u *Url) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (u *MetaDataLinkage) UnmarshalJSON(data []byte) error {
+	if len(data) > 0 && data[0] != '[' {
+		var inu Url
+		e := json.Unmarshal(data, &inu)
+		if e != nil {
+			return e
+		}
+		u.Url = append(u.Url, inu)
+		return nil
+	}
+	u.isarray = true
+	return json.Unmarshal(data, (*[]Url)(&u.Url))
+}
+
 func (id *Identifier) UnmarshalJSON(data []byte) error {
 	var raw string
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -248,15 +267,14 @@ type Extras struct {
 	Begin_DateTime      *Time       `json:"begin_datetime" ogdat:"ID:24"`
 
 	// Optional
-	Schema_Name             *string `json:"schema_name" ogdat:"ID:2"`
-	Schema_Language         *string `json:"schema_language" ogdat:"ID:3"`     // always "ger"
-	Schema_Characterset     *string `json:"schema_characterset" ogdat:"ID:4"` // always "utf8", cf. https://www.ghrsst.org/files/download.php?m=documents&f=ISO%2019115%20.pdf
-	Metadata_Linkage_single *Url    `json:"metadata_linkage" ogdat:"ID:6"`
-	Metadata_Linkage        []Url   `json:"metadata_linkage" ogdat:"ID:6"`
-	Attribute_Description   *string `json:"attribute_description" ogdat:"ID:12"`
-	Maintainer_Link         *Url    `json:"maintainer_link" ogdat:"ID:13"`
-	Publisher               *string `json:"publisher" ogdat:"ID:20"`
-	Geographich_Toponym     *string `json:"geographic_toponym" ogdat:"ID:22"`
+	Schema_Name           *string          `json:"schema_name" ogdat:"ID:2"`
+	Schema_Language       *string          `json:"schema_language" ogdat:"ID:3"`     // always "ger"
+	Schema_Characterset   *string          `json:"schema_characterset" ogdat:"ID:4"` // always "utf8", cf. https://www.ghrsst.org/files/download.php?m=documents&f=ISO%2019115%20.pdf
+	Metadata_Linkage      *MetaDataLinkage `json:"metadata_linkage" ogdat:"ID:6"`
+	Attribute_Description *string          `json:"attribute_description" ogdat:"ID:12"`
+	Maintainer_Link       *Url             `json:"maintainer_link" ogdat:"ID:13"`
+	Publisher             *string          `json:"publisher" ogdat:"ID:20"`
+	Geographich_Toponym   *string          `json:"geographic_toponym" ogdat:"ID:22"`
 
 	/*  ON/EN/ISO 19115:2003: westBL (344) & eastBL (345) & southBL (346) & northBL (347)
 	 * Specifiaction says a WKT of POLYGON should be used, which would make a
