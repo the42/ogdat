@@ -3,7 +3,7 @@
       {
          "position" : 0,
          "package_id" : "0045692c-00e7-4e46-8bfc-336a92bd51e9",
-         "size" : "4681 bytes",
+         "size" : "4681",
          "cache_last_updated" : null,
          "url" : "noname@example.com",
          "id" : "5d602ddc-ee03-4282-8075-e08e5a174634",
@@ -44,7 +44,7 @@
       "attribute_description" : "attribute_desciption: In-detail description of all fields",
       "license_citation" : "License Citation",
       "maintainer_link" : "http://example.com",
-      "schema_language" : "ger",
+      "schema_language" : "xYz",
       "metadata_modified" : "2012-10-17",
       "geographic_bbox" : "POLYGON ((-180.00 -90.00, 180.00 90.00))",
       "categorization" : [

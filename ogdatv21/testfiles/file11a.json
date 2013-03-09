@@ -38,7 +38,7 @@
       "publisher" : "publisher: ACME Company",
       "geographic_toponym" : "geographic_toponym: ACME country",
       "update_frequency" : "monatlich",
-      "metadata_linkage" : "http://example.com",
+      "metadata_linkage" : ["http://example.com"],
       "lineage_quality" : "lineage_quality is superior",
       "schema_name" : "OGD Austria Metadata 2.1",
       "attribute_description" : "attribute_desciption: In-detail description of all fields",

@@ -3,7 +3,7 @@
       {
          "position" : 0,
          "package_id" : "0045692c-00e7-4e46-8bfc-336a92bd51e9",
-         "size" : "4681 bytes",
+         "size" : "4681",
          "cache_last_updated" : null,
          "url" : "noname@example.com",
          "id" : "5d602ddc-ee03-4282-8075-e08e5a174634",
@@ -34,7 +34,7 @@
       "metadata_identifier" : "0045692c-00e7-4e46-8bfc-336a92bd51e9",
       "en_title_and_desc" : "The english description",
       "end_datetime" : "2012-10-15T00:00:00",
-      "schema_characterset" : "utf8",
+      "schema_characterset" : "unknown",
       "publisher" : "publisher: ACME Company",
       "geographic_toponym" : "geographic_toponym: ACME country",
       "update_frequency" : "monatlich",
