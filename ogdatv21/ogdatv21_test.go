@@ -178,6 +178,24 @@ var checkTests = []checkTest{
 		&checkRequest{"file12a.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 12}, {Type: ogdat.Warning, OGDID: 12}}},
 	},
+	{ // empty maintainer link is an error
+		&checkRequest{"file13a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 13}}},
+	},
+	{ // unknown protocoll of maintainer link is a warning
+		&checkRequest{"file13b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 13}}},
+	},
+	{ //
+		&checkRequest{"file20_22_27_28_30.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{
+			{Type: ogdat.Warning, OGDID: 20},
+			{Type: ogdat.Warning, OGDID: 22},
+			{Type: ogdat.Warning, OGDID: 27},
+			{Type: ogdat.Warning, OGDID: 28},
+			{Type: ogdat.Warning, OGDID: 30},
+		}},
+	},
 	{
 		&checkRequest{"file1_test.json", false},
 		nil,
