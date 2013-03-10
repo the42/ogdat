@@ -154,10 +154,10 @@ func strrange(minrange, maxrange, idx int, s string) string {
 	return prepend + s[start:end] + postpone
 }
 
-var regexphtmlcodecheck = regexp.MustCompile(`<\w+.*('|"|)>`)
+var regexphtmlcodecheck = regexp.MustCompile(`</{0,1}\w+.*('|"|)>`)
 var regexphtmlescape = regexp.MustCompile(`&\w{1,10};|&#\d{1,6};`)
 var regexpurlencode = regexp.MustCompile(`%[0-9a-fA-F][0-9a-fA-F]`)
-var regexpposixescape = regexp.MustCompile(`\\n|\\b|\\v|\\t`)
+var regexpposixescape = regexp.MustCompile(`\\n|\\b|\\v|\\t|\\r`)
 
 // return values are:
 // ok = false indicates sthg. was wrong in which case error will not be nil
