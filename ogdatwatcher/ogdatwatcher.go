@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/bmizerany/pq"
+	"github.com/lib/pq"
 	ogdat "github.com/the42/ogdat/ogdatv21"
 	"io/ioutil"
 	"log"
