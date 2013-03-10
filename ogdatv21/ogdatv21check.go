@@ -366,31 +366,31 @@ nextbeschreibung:
 			}
 		case "metadata_linkage":
 			linkage := md.Extras.Metadata_Linkage
-			if linkage != nil {
-				if !linkage.isarray {
+			if linkage == nil {
+				continue
+			}
+			if !linkage.isarray {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info,
+					OGDID: elm.ID,
+					Text:  fmt.Sprintf("JSON vom Typ 'Array of String' erwartet, es wurde jedoch ein einzelner Wert geliefert")})
+			}
+			for _, element := range linkage.Url {
+				if element.URL == nil {
 					message = append(message, ogdat.CheckMessage{
-						Type:  ogdat.Info,
+						Type:  ogdat.Error,
 						OGDID: elm.ID,
-						Text:  fmt.Sprintf("JSON vom Typ 'Array of String' erwartet, es wurde jedoch ein einzelner Wert geliefert")})
-				}
-				for _, element := range linkage.Url {
-					if element.URL == nil {
-						message = append(message, ogdat.CheckMessage{
-							Type:  ogdat.Error,
-							OGDID: elm.ID,
-							Text:  fmt.Sprintf(expectedlink, element.Raw)})
-					} else {
-						if ok, err := ogdat.CheckUrl(element.Raw, followhttplinks); !ok {
-							if cerr, ok := err.(*ogdat.CheckError); ok {
-								message = append(message, ogdat.CheckMessage{
-									Type:  cerr.Status,
-									OGDID: elm.ID,
-									Text:  cerr.Error()})
-							}
+						Text:  fmt.Sprintf(expectedlink, element.Raw)})
+				} else {
+					if ok, err := ogdat.CheckUrl(element.Raw, followhttplinks); !ok {
+						if cerr, ok := err.(*ogdat.CheckError); ok {
+							message = append(message, ogdat.CheckMessage{
+								Type:  cerr.Status,
+								OGDID: elm.ID,
+								Text:  cerr.Error()})
 						}
 					}
 				}
-
 			}
 		case "attribute_description":
 			desc := md.Extras.Attribute_Description
@@ -402,7 +402,7 @@ nextbeschreibung:
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Warning,
 					OGDID: elm.ID,
-					Text:  fmt.Sprintf("Beschreibung enthält weniger als %d Zeichen", i)})
+					Text:  fmt.Sprintf("Beschreibung enthält weniger als %d Zeichen (sinnvolle Beschreibung?)", ogddesclen)})
 
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*desc); !ok {
