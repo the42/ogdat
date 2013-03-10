@@ -423,6 +423,15 @@ nextbeschreibung:
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf(expectedlink, link.Raw)})
+			} else {
+				if ok, err := ogdat.CheckUrl(link.Raw, followhttplinks); !ok {
+					if cerr, ok := err.(*ogdat.CheckError); ok {
+						message = append(message, ogdat.CheckMessage{
+							Type:  cerr.Status,
+							OGDID: elm.ID,
+							Text:  cerr.Error()})
+					}
+				}
 			}
 		case "publisher":
 			publisher := md.Extras.Publisher
