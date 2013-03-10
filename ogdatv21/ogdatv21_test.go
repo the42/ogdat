@@ -174,6 +174,10 @@ var checkTests = []checkTest{
 		&checkRequest{"file6e.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Info, OGDID: 6}}},
 	},
+	{ // the field description must no be to short and must not contain escape characters (eg. \n, <br>)
+		&checkRequest{"file12a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 12}, {Type: ogdat.Warning, OGDID: 12}}},
+	},
 	{
 		&checkRequest{"file1_test.json", false},
 		nil,
