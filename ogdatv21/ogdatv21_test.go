@@ -124,9 +124,12 @@ var checkTests = []checkTest{
 		&checkRequest{"file19_21.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 19}, {Type: ogdat.Warning, OGDID: 21}}},
 	},
-	{ // invalid time format for 'begin_datetime'
-		&checkRequest{"file24.json", false},
-		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 24}}},
+	{ // invalid time format for 'begin_datetime' and end_datetime
+		&checkRequest{"file24_25.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{
+			{Type: ogdat.Error, OGDID: 24},
+			{Type: ogdat.Error, OGDID: 25},
+		}},
 	},
 	//
 	// core and extras - optional fields
@@ -195,6 +198,30 @@ var checkTests = []checkTest{
 			{Type: ogdat.Warning, OGDID: 28},
 			{Type: ogdat.Warning, OGDID: 30},
 		}},
+	},
+	{ // POLYGON may be specified with two (like the spec) or with one enclosing pair of brackets. Here test if one is ok
+		&checkRequest{"file23a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{}},
+	},
+	{ // POLYGON may only be specified in all caps
+		&checkRequest{"file23b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 23},}},
+	},
+	{ // . is the only valid not ,
+		&checkRequest{"file23c.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 23},}},
+	},
+	{ // unknown update frequency specification
+		&checkRequest{"file26a.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 26},}},
+	},
+	{ // english specification is ok
+		&checkRequest{"file26b.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{}},
+	},
+	{ // an code from code-table is also ok
+		&checkRequest{"file26c.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{}},
 	},
 	{
 		&checkRequest{"file1_test.json", false},

@@ -30,7 +30,7 @@
    ],
    "maintainer" : "A very important person",
    "extras" : {
-      "begin_datetime" : "2011-10-15",
+      "begin_datetime" : "2011-10-15T00:00:00",
       "metadata_identifier" : "0045692c-00e7-4e46-8bfc-336a92bd51e9",
       "en_title_and_desc" : "The english description",
       "end_datetime" : "2012-10-15T00:00:00",
@@ -46,7 +46,7 @@
       "maintainer_link" : "http://example.com",
       "schema_language" : "ger",
       "metadata_modified" : "2012-10-17",
-      "geographic_bbox" : "POLYGON ((-180.00 -90.00, 180.00 90.00))",
+      "geographic_bbox" : "POLYGON (-180.00 -90.00, 180.00 90.00)",
       "categorization" : [
          "kunst-und-kultur",
          "sport-und-freizeit",
