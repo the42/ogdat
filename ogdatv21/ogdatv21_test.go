@@ -205,15 +205,15 @@ var checkTests = []checkTest{
 	},
 	{ // POLYGON may only be specified in all caps
 		&checkRequest{"file23b.json", false},
-		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 23},}},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 23}}},
 	},
 	{ // . is the only valid not ,
 		&checkRequest{"file23c.json", false},
-		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 23},}},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 23}}},
 	},
 	{ // unknown update frequency specification
 		&checkRequest{"file26a.json", false},
-		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 26},}},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 26}}},
 	},
 	{ // english specification is ok
 		&checkRequest{"file26b.json", false},
@@ -223,9 +223,22 @@ var checkTests = []checkTest{
 		&checkRequest{"file26c.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{}},
 	},
-	{
-		&checkRequest{"file1_test.json", false},
-		nil,
+	// #### check for the links
+	{ // this dataset exists ....
+		&checkRequest{"file14c.json", true},
+		&checkResponse{message: []ogdat.CheckMessage{}},
+	},
+	{ // some of those not
+		&checkRequest{"actualtestfile1.json", true},
+		&checkResponse{message: []ogdat.CheckMessage{
+			{Type: ogdat.Error, OGDID: 14},
+			{Type: ogdat.Warning, OGDID: 15},
+			{Type: ogdat.Error, OGDID: 5},
+			{Type: ogdat.Error, OGDID: 9},
+			{Type: ogdat.Error, OGDID: 21},
+			{Type: ogdat.Error, OGDID: 24},
+			{Type: ogdat.Error, OGDID: 25},
+		}},
 	},
 }
 
