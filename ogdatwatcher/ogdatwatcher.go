@@ -19,55 +19,14 @@ import (
 )
 
 const dataseturl = "http://www.data.gv.at/katalog/api/2/rest/dataset/"
-const iso639canonicallocation = "http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt"
 const lockfilename = ".lock.pid"
 
 var logger *log.Logger
 
 var resettdb = flag.Bool("resetdb", false, "Delete the tracking database. You will be prompted before actual deletion. Process will terminate afterwards.")
 var inittdb = flag.Bool("initdb", false, "Initialize the tracking database. In case there are old entries in the tracking database, use init in conjunction with reset. Process will terminate afterwards.")
-var initisolangs = flag.Bool("initisolangs", false, fmt.Sprintf("Download ISO-639-alpha3 code table from %s (required for checking language codes). Process will terminate afterwards.", iso639canonicallocation))
 var servetdb = flag.Bool("serve", false, "Start in watchdog mode. Process will continue to run until it receives a (clean shutdown) or gets killed")
 var DEBUG = flag.Bool("DEBUG", false, "DEBUG MODE")
-
-func getdataforidentifier(id ogdat.Identifier) (*ogdat.MetaData, error) {
-	resp, err := http.Get(dataseturl + id.String())
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	bytedata, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	data := &ogdat.MetaData{}
-	if err := json.Unmarshal(bytedata, data); err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-func getalldatasetids() ([]ogdat.Identifier, error) {
-
-	var allsets []ogdat.Identifier
-	resp, err := http.Get(dataseturl)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	bytedata, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := json.Unmarshal(bytedata, &allsets); err != nil {
-		return nil, err
-	}
-	return allsets, nil
-}
 
 func createlockfile(filename string) *os.File {
 	lockfile, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_EXCL, os.FileMode(0666))
@@ -103,35 +62,6 @@ func writeinfotolockfile(lockfile *os.File) {
 	logger.Println("Info: Lockfile successfully written")
 }
 
-func getisolangfile() {
-
-	localisofilename := filepath.Base(iso639canonicallocation)
-	logger.Println("Info: requesting donwload of ISO language file")
-
-	resp, err := http.Get(iso639canonicallocation)
-	if err != nil {
-		logger.Panicf("Fatal: Can not fetch ISO language file: %s\n", err)
-	}
-	defer resp.Body.Close()
-
-	bytedata, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		logger.Panicf("Fatal: While fetching ISO language file: Can not read from http stream: %s\n", err)
-	}
-
-	isofile, err := os.Create(localisofilename)
-	if err != nil {
-		logger.Panicf("Fatal: Can not create local ISO language file %s: %s\n", localisofilename, err)
-	}
-	defer isofile.Close()
-
-	_, err = isofile.Write(bytedata)
-	if err != nil {
-		logger.Panicf("Fatal: Can not write to local ISO file %s: %s\n", localisofilename, err)
-	}
-	logger.Println("Info: ISO language file successfully downloaded")
-}
-
 func gotyesonprompt() bool {
 	var prompt string
 	fmt.Scanf("%s", &prompt)
@@ -140,6 +70,45 @@ func gotyesonprompt() bool {
 		return prompt[0] == 'y'
 	}
 	return false
+}
+
+func getalldatasetids() ([]ogdat.Identifier, error) {
+
+	var allsets []ogdat.Identifier
+	resp, err := http.Get(dataseturl)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bytedata, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(bytedata, &allsets); err != nil {
+		return nil, err
+	}
+	return allsets, nil
+}
+
+func getdataforidentifier(id ogdat.Identifier) (*ogdat.MetaData, error) {
+	resp, err := http.Get(dataseturl + id.String())
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bytedata, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	data := &ogdat.MetaData{}
+	if err := json.Unmarshal(bytedata, data); err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 func mymain() int {
@@ -154,10 +123,6 @@ func mymain() int {
 	defer deletelockfile(lockfile)
 
 	writeinfotolockfile(lockfile)
-
-	if *initisolangs {
-		getisolangfile()
-	}
 
 	var db sql.DB
 	if *resettdb || *inittdb || *servetdb {
@@ -204,7 +169,7 @@ func mymain() int {
 		// TODO: add functionality for initdb
 	}
 
-	if *resettdb || *initisolangs || *inittdb {
+	if *resettdb || *inittdb {
 		logger.Println("Info: Earyl exit due to maintainance switches")
 		return 2
 	}
