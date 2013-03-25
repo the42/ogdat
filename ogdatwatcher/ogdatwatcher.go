@@ -2,9 +2,9 @@ package main
 
 import (
 	"cgl.tideland.biz/net/atom"
-	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/the42/ogdat/ogdatv21"
 	"log"
 	"net/url"
 	"os"
@@ -42,10 +42,12 @@ func mymain() int {
 	defer deletelockfile(lockfile)
 	writeinfotolockfile(lockfile)
 
-	var db *sql.DB
+	var db *DBConn
+	var portal *Portal
 	if *resettdb || *inittdb || *servetdb {
 		// From here we need a database connection string
-		db = getDatabaseConnection()
+		db = GetDatabaseConnection()
+		portal = NewDataPortalAPIEndpoint(ogdatdataseturl)
 	}
 	defer db.Close()
 
@@ -56,12 +58,20 @@ func mymain() int {
 			fmt.Print("\nABORTING\n\n")
 			logger.Println("Info: Database reset canceled")
 		} else {
-			// TODO: Delete apporpriate tables
+			if err := db.ResetDatabase(); err != nil {
+				s := fmt.Sprintf("Database reset failed: %s", err)
+				fmt.Println(s)
+				logger.Panic(s)
+			}
 		}
 	}
 
 	if *inittdb {
-		// TODO: add functionality for initdb
+		if err := db.CreateDatabase(); err != nil {
+			s := fmt.Sprintf("Database initialisation failed: %s", err)
+			fmt.Println(s)
+			logger.Panic(s)
+		}
 	}
 
 	if *resettdb || *inittdb {
@@ -70,20 +80,6 @@ func mymain() int {
 	}
 
 	if *DEBUG {
-		allsets, err := getalldatasetids()
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Printf("%+v\n\n", allsets)
-
-		if len(allsets) > 0 {
-			data, err := getmetadataforidentifier(allsets[0])
-			if err != nil {
-				panic(err)
-			}
-			fmt.Printf("%+v\n\n", data)
-		}
 
 		url, err := url.Parse("http://www.data.gv.at/katalog/revision/list?format=atom")
 		if err != nil {
@@ -113,8 +109,20 @@ func mymain() int {
 	}
 
 	if *servetdb {
+		// TODO: Wrapp logic into select loop
+		var processids []ogdatv21.Identifier
+		hit, err := db.GetLastDBHit()
+		if err != nil {
+			s := fmt.Sprintf("Cannot read las DBHit: %s", err)
+			fmt.Println(s)
+			logger.Panic(s)
+		}
+		if hit == nil {
+			processids, err = portal.GetAllMetaDataIDs()
+		} else {
+		}
+		_ = processids
 	}
-
 	return 0
 }
 
