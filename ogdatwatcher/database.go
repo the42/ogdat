@@ -10,9 +10,10 @@ import (
 
 type DBConn struct {
 	*sql.DB
+	appid string
 }
 
-func GetDatabaseConnection() *DBConn {
+func GetDatabaseConnection(appid string) *DBConn {
 
 	var dburl, dbconnstring string
 
@@ -31,7 +32,7 @@ func GetDatabaseConnection() *DBConn {
 		fmt.Println("Unable to connect to dabase")
 		logger.Panicln("Unable to connect to dabase")
 	}
-	return &DBConn{db}
+	return &DBConn{DB: db, appid: appid}
 }
 
 func (conn *DBConn) GetLastDBHit() (*time.Time, error) {
@@ -61,6 +62,74 @@ func (conn *DBConn) CreateDatabase() error {
 		return err
 	}
 	return nil
+}
+
+func (conn *DBConn) HeartBeat(message string, code State) error {
+
+	const (
+		updatestmt = "UPDATE heartbeat SET ts=$1, statuscode=$2, statustext=$3 WHERE who=$4"
+		insertstmt = "INSERT INTO heartbeat(ts, statuscode, statustext, who) VALUES($1, $2, $3, $4)"
+	)
+
+	var hbstatement *sql.Stmt
+	var statuscode State
+
+	err := conn.QueryRow("SELECT asi.statuscode FROM (SELECT ts, statuscode, who, MAX(ts) OVER (PARTITION BY who) max_ts FROM heartbeat) asi WHERE asi.ts = max_ts AND who=$1", conn.appid).Scan(&statuscode)
+
+	switch {
+	case err == sql.ErrNoRows:
+		hbstatement, err = conn.Prepare(insertstmt)
+		if err != nil {
+			panic(err)
+		}
+	case err != nil:
+		return fmt.Errorf("Error reading heartbeat status code: %s", err)
+	case statuscode != StateOk:
+		return fmt.Errorf("Last heartbeat caused a non-ok state, doing nothing")
+	default:
+		hbstatement, err = conn.Prepare(updatestmt)
+	}
+	defer hbstatement.Close()
+
+	_, err = hbstatement.Exec(time.Now().UTC(), code, message, conn.appid)
+	if err != nil {
+		return fmt.Errorf("Error executing heartbeat: %s", err)
+	}
+	return nil
+}
+
+// Execute Database Timeouting Transaction
+func (conn *DBConn) ExecDBTT(timeout time.Duration, statement string, args ...interface{}) (sql.Result, error) {
+
+	tx, err := conn.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("Unable to create DB Transaction")
+	}
+
+	statementreturn := make(chan bool)
+	var sqlresult sql.Result
+	var execerror error
+
+	go func() {
+		sqlresult, execerror = tx.Exec(statement, args)
+		statementreturn <- true
+	}()
+
+	select {
+	case <-statementreturn:
+		if execerror != nil {
+			tx.Rollback()
+		} else {
+			execerror = nil
+			tx.Commit()
+		}
+
+	case <-time.After(timeout):
+		tx.Rollback()
+		return nil, fmt.Errorf("SQL Statement timed out, rolling back")
+	}
+
+	return sqlresult, execerror
 }
 
 const postgresdbcreatestatement = `

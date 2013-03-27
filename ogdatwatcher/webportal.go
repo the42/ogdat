@@ -10,11 +10,20 @@ import (
 	"path"
 )
 
-const ogdatdataseturl = "http://www.data.gv.at/katalog/api/2/rest/dataset/"
+const ogdatdataseturl = "http://www.data.gv.at:80/katalog/api/2/rest/dataset/"
 
 type Portal struct {
 	*url.URL
 }
+
+type State int16
+
+const (
+	StateOk State = iota + 1
+	StateWarning
+	StateError
+	StateFatal
+)
 
 func (p *Portal) GetAllMetaDataIDs() ([]ogdatv21.Identifier, error) {
 
@@ -37,7 +46,7 @@ func (p *Portal) GetAllMetaDataIDs() ([]ogdatv21.Identifier, error) {
 }
 
 func (p *Portal) GetMetadataforID(id ogdatv21.Identifier) (*ogdatv21.MetaData, error) {
-	resp, err := http.Get(path.Join(p.URL.String(), id.String()))
+	resp, err := http.Get(p.URL.Scheme + "://" + p.URL.Host + path.Join(p.URL.Path, id.String()))
 	if err != nil {
 		return nil, err
 	}

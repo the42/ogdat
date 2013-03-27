@@ -9,9 +9,12 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
+
+const AppID = "a6545f8f-e0c9-4917-83c7-3e47bd1e0247"
 
 var logger *log.Logger
 
@@ -30,6 +33,14 @@ func gotyesonprompt() bool {
 	return false
 }
 
+func getheartbeatinterval() int {
+
+	if i, err := strconv.Atoi(os.Getenv("HEARTBEATINTERVAL")); err == nil {
+		return i
+	}
+	return 10 // Minutes
+}
+
 func mymain() int {
 
 	if flag.NFlag() == 0 {
@@ -46,8 +57,7 @@ func mymain() int {
 	var portal *Portal
 	if *resettdb || *inittdb || *servetdb {
 		// From here we need a database connection string
-		db = GetDatabaseConnection()
-		portal = NewDataPortalAPIEndpoint(ogdatdataseturl)
+		db = GetDatabaseConnection(AppID)
 	}
 	defer db.Close()
 
@@ -109,19 +119,50 @@ func mymain() int {
 	}
 
 	if *servetdb {
+		portal = NewDataPortalAPIEndpoint(ogdatdataseturl)
 		// TODO: Wrapp logic into select loop
 		var processids []ogdatv21.Identifier
-		hit, err := db.GetLastDBHit()
-		if err != nil {
-			s := fmt.Sprintf("Cannot read las DBHit: %s", err)
-			fmt.Println(s)
-			logger.Panic(s)
+		heartbeatinterval := getheartbeatinterval()
+
+		for {
+
+			hit, err := db.GetLastDBHit()
+			if err != nil {
+				s := fmt.Sprintf("Cannot read last DBHit: %s", err)
+				fmt.Println(s)
+				logger.Panic(s)
+			}
+
+			if hit == nil {
+				processids, err = portal.GetAllMetaDataIDs()
+			} else {
+			}
+
+			if anzids := len(processids); anzids > 0 {
+				if err := db.HeartBeat(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk); err != nil {
+					panic(err)
+				}
+
+				for idx, id := range processids {
+
+					logger.Println(fmt.Sprintf("Processing %d (%d): %v", idx, anzids, id))
+
+					md, err := portal.GetMetadataforID(id)
+					if err != nil {
+						s := fmt.Sprintf("Cannot access Metadata for ID %v", id)
+						fmt.Println(s)
+						db.HeartBeat(s, StateFatal)
+						logger.Panic(err)
+					}
+
+					messages, err := md.Check(true)
+					_ = messages
+				}
+			}
+
+			db.HeartBeat("Idle", StateOk)
+			time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
 		}
-		if hit == nil {
-			processids, err = portal.GetAllMetaDataIDs()
-		} else {
-		}
-		_ = processids
 	}
 	return 0
 }
