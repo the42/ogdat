@@ -122,6 +122,11 @@ type MetaDataLinkage struct {
 	isarray bool
 }
 
+type MetaDataKategorie struct {
+	Kategorie []Kategorie
+	isstring  bool
+}
+
 type Identifier struct {
 	*uuid.UUID
 	Raw string
@@ -257,14 +262,27 @@ func (kat *Kategorie) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (kat *MetaDataKategorie) UnmarshalJSON(data []byte) error {
+	if len(data) > 0 && data[0] == '"' {
+		kat.isstring = true
+		var embeddedarray string
+		e := json.Unmarshal(data, &embeddedarray)
+		if e != nil {
+			return e
+		}
+		data = []byte(embeddedarray)
+	}
+	return json.Unmarshal(data, (*[]Kategorie)(&kat.Kategorie))
+}
+
 /// END:check wheater this code may be factored out
 
 type Extras struct {
 	// Core
-	Metadata_Identifier *Identifier `json:"metadata_identifier" ogdat:"ID:1"` // CKAN uses since API Version 2 a UUID V4, cf. https://github.com/okfn/ckan/blob/master/ckan/model/types.py
-	Metadata_Modified   *Time       `json:"metadata_modified" ogdat:"ID:5"`
-	Categorization      []Kategorie `json:"categorization" ogdat:"ID:10"`
-	Begin_DateTime      *Time       `json:"begin_datetime" ogdat:"ID:24"`
+	Metadata_Identifier *Identifier        `json:"metadata_identifier" ogdat:"ID:1"` // CKAN uses since API Version 2 a UUID V4, cf. https://github.com/okfn/ckan/blob/master/ckan/model/types.py
+	Metadata_Modified   *Time              `json:"metadata_modified" ogdat:"ID:5"`
+	Categorization      *MetaDataKategorie `json:"categorization" ogdat:"ID:10"`
+	Begin_DateTime      *Time              `json:"begin_datetime" ogdat:"ID:24"`
 
 	// Optional
 	Schema_Name           *string          `json:"schema_name" ogdat:"ID:2"`

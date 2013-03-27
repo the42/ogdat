@@ -261,14 +261,20 @@ nextbeschreibung:
 				}
 			}
 		case "categorization":
-			if cat := md.Extras.Categorization; cat == nil || len(cat) == 0 {
+			if cat := md.Extras.Categorization; cat == nil || len(cat.Kategorie) == 0 {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Warning,
 					OGDID: elm.ID,
 					Text:  "Die Kategorisierung darf zwar mit Kardinalität 'N' optional auftreten, jedoch sollte zumindest eine Zuordnung getroffen werden"})
-
 			} else {
-				for _, element := range cat {
+				if cat.isstring {
+					message = append(message, ogdat.CheckMessage{
+						Type:  ogdat.StructuralError,
+						OGDID: elm.ID,
+						Text:  "Kategorisierung muss als Array übergeben werden, ist aber als string spezifiziert"})
+
+				}
+				for _, element := range cat.Kategorie {
 					if element.NumID == -1 {
 						message = append(message, ogdat.CheckMessage{
 							Type:  ogdat.Error,
