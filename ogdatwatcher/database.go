@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/the42/ogdat"
 	"os"
 	"time"
 )
@@ -64,38 +65,75 @@ func (conn *DBConn) CreateDatabase() error {
 	return nil
 }
 
-func (conn *DBConn) HeartBeat(message string, code State) error {
+// Deliberately use no stored procedures
+func (conn *DBConn) HeartBeat() error {
+	const (
+		updatestmt = "UPDATE heartbeat SET ts=$1 WHERE who=$2 AND sysid=$3"
+		insertstmt = "INSERT INTO heartbeat(ts, statuscode, statustext, who) VALUES($1, 0, 'Alive', $2)"
+	)
+
+	var hbstatement *sql.Stmt
+	var sysid int
+
+	err := conn.QueryRow("SELECT asi.sysid FROM (SELECT sysid, ts, who, MAX(ts) OVER (PARTITION BY who) max_ts FROM heartbeat) asi WHERE asi.ts = max_ts AND who=$1", conn.appid).Scan(&sysid)
+
+	switch {
+	case err == sql.ErrNoRows:
+		hbstatement, err = conn.Prepare(insertstmt)
+		_, err = hbstatement.Exec(time.Now().UTC(), conn.appid)
+	case err != nil:
+		return fmt.Errorf("Error heartbeating database: %s", err)
+	default:
+		hbstatement, err = conn.Prepare(updatestmt)
+		_, err = hbstatement.Exec(time.Now().UTC(), conn.appid, sysid)
+	}
+	defer hbstatement.Close()
+
+	if err != nil {
+		return fmt.Errorf("Error executing heartbeat: %s", err)
+	}
+	return nil
+}
+
+// Deliberately use no stored procedures
+func (conn *DBConn) LogMessage(message string, code State, replacelatest bool) error {
 
 	const (
-		updatestmt = "UPDATE heartbeat SET ts=$1, statuscode=$2, statustext=$3 WHERE who=$4"
+		updatestmt = "UPDATE heartbeat SET ts=$1, statuscode=$2, statustext=$3 WHERE who=$4 AND sysid=$5"
 		insertstmt = "INSERT INTO heartbeat(ts, statuscode, statustext, who) VALUES($1, $2, $3, $4)"
 	)
 
 	var hbstatement *sql.Stmt
 	var statuscode State
+	var sysid int
 
-	err := conn.QueryRow("SELECT asi.statuscode FROM (SELECT ts, statuscode, who, MAX(ts) OVER (PARTITION BY who) max_ts FROM heartbeat) asi WHERE asi.ts = max_ts AND who=$1", conn.appid).Scan(&statuscode)
+	err := conn.QueryRow("SELECT asi.statuscode, asi.sysid FROM (SELECT sysid, ts, statuscode, who, MAX(ts) OVER (PARTITION BY who) max_ts FROM heartbeat) asi WHERE asi.ts = max_ts AND who=$1", conn.appid).Scan(&statuscode, &sysid)
 
 	switch {
 	case err == sql.ErrNoRows:
 		hbstatement, err = conn.Prepare(insertstmt)
-		if err != nil {
-			panic(err)
-		}
+		_, err = hbstatement.Exec(time.Now().UTC(), code, message, conn.appid)
 	case err != nil:
-		return fmt.Errorf("Error reading heartbeat status code: %s", err)
-	case statuscode != StateOk:
-		return fmt.Errorf("Last heartbeat caused a non-ok state, doing nothing")
-	default:
+		return fmt.Errorf("Error reading last DBLog status code: %s", err)
+	case statuscode != StateOk && replacelatest:
+		return fmt.Errorf("Last DBLog caused a non-ok state and update requested, doing nothing")
+	case replacelatest:
 		hbstatement, err = conn.Prepare(updatestmt)
+		_, err = hbstatement.Exec(time.Now().UTC(), code, message, conn.appid, sysid)
+	default:
+		hbstatement, err = conn.Prepare(insertstmt)
+		_, err = hbstatement.Exec(time.Now().UTC(), code, message, conn.appid)
 	}
 	defer hbstatement.Close()
 
-	_, err = hbstatement.Exec(time.Now().UTC(), code, message, conn.appid)
 	if err != nil {
-		return fmt.Errorf("Error executing heartbeat: %s", err)
+		return fmt.Errorf("Error executing DBLog: %s", err)
 	}
 	return nil
+}
+
+func (conn *DBConn) ProtocollCheck(messages []ogdat.CheckMessage, comparetoentries bool) {
+// TODO: decide wheather to insert with a prepare or using a SP
 }
 
 // Execute Database Timeouting Transaction

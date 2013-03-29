@@ -120,7 +120,7 @@ func mymain() int {
 
 	if *servetdb {
 		portal = NewDataPortalAPIEndpoint(ogdatdataseturl)
-		// TODO: Wrapp logic into select loop
+
 		var processids []ogdatv21.Identifier
 		heartbeatinterval := getheartbeatinterval()
 
@@ -139,7 +139,9 @@ func mymain() int {
 			}
 
 			if anzids := len(processids); anzids > 0 {
-				if err := db.HeartBeat(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk); err != nil {
+
+				// TODO: No need to check here, must not fail
+				if err := db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true); err != nil {
 					panic(err)
 				}
 
@@ -151,16 +153,22 @@ func mymain() int {
 					if err != nil {
 						s := fmt.Sprintf("Cannot access Metadata for ID %v", id)
 						fmt.Println(s)
-						db.HeartBeat(s, StateFatal)
+						db.LogMessage(s, StateFatal, true)
 						logger.Panic(err)
 					}
 
 					messages, err := md.Check(true)
-					_ = messages
+					if err != nil {
+						s := fmt.Sprintf("Metadata Check Error: %v", id)
+						fmt.Println(s)
+						db.LogMessage(s, StateFatal, true)
+						logger.Panic(err)
+					}
+
+					db.ProtocollCheck(messages, hit != nil)
 				}
 			}
-
-			db.HeartBeat("Idle", StateOk)
+			db.HeartBeat()
 			time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
 		}
 	}
