@@ -152,6 +152,13 @@ func (conn DBConn) LogMessage(message string, code State, replacelatest bool) er
 	return nil
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func DBStringLen(in string, length int) string {
 	return in[:min(length, len(in))]
 }

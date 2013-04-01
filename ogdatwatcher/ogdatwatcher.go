@@ -2,18 +2,17 @@ package main
 
 import (
 	"cgl.tideland.biz/net/atom"
-	"database/sql"
 	"flag"
 	"fmt"
 	"github.com/the42/ogdat/ckan"
 	"github.com/the42/ogdat/ogdatv21"
+	"github.com/the42/ogdat/schedule"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -46,7 +45,7 @@ func getheartbeatinterval() int {
 	return 10 // Minutes
 }
 
-func getnumworkers() uint {
+func getnumworkers() int {
 	return 4
 }
 
@@ -84,6 +83,27 @@ func resetdb() {
 	}
 }
 
+func stringslicetoiface(ss []string) []interface{} {
+					slice := make([]interface{}, len(ss))
+				for i, v := range ss {
+					slice[i] = v
+				}
+				return slice
+}
+
+func ifaceslicetostring(ifs []interface{}) []string {
+					slice := make([]string, len(ifs))
+					for i, v := range ifs {
+						s, ok := v.(string)
+						if !ok {
+							panic("Interface value not of string type")
+						}
+						slice[i] = s
+					}
+					return slice
+}
+
+
 func processmetadataids(conn DBer, processids []string) (string, error) {
 
 	for _, id := range processids {
@@ -115,52 +135,6 @@ func processmetadataids(conn DBer, processids []string) (string, error) {
 		}
 	}
 	return "", nil
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func processmetadataidsmultiplexer(dbconn *sql.DB, processids []string, numworkers uint) chan bool {
-
-	finish := make(chan bool)
-	tx, err := dbconn.Begin()
-	if err != nil {
-		logger.Panic(err)
-	}
-
-	go func() {
-		var workslice []string
-		var wg sync.WaitGroup
-
-		worklength := len(processids) / int(numworkers)
-		for workerindex := 0; workerindex < int(numworkers); workerindex++ {
-
-			workslice = processids[workerindex*worklength : min((workerindex+1)*worklength, len(processids))]
-
-			wg.Add(1)
-			go func(ids []string) {
-				defer wg.Done()
-
-				if s, err := processmetadataids(tx, ids); err != nil {
-					fmt.Println(s)
-					db.LogMessage(s, StateFatal, true)
-					logger.Panic(err)
-				}
-			}(workslice)
-		}
-
-		wg.Wait()
-		if err := tx.Commit(); err != nil {
-			logger.Panic(err)
-		}
-
-		finish <- true
-	}()
-	return finish
 }
 
 func mymain() int {
@@ -210,17 +184,26 @@ func mymain() int {
 			} else {
 			}
 
-			var finish chan bool
 			if anzids := len(processids); anzids > 0 {
-				db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true)
-				finish = processmetadataidsmultiplexer(dbconnection, processids, numworkers)
-			}
 
-			select {
-			case <-finish:
-				db.LogMessage("Idle", StateOk, true)
-			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
-				db.HeartBeat()
+				tx, _ := dbconnection.Begin()
+				f := func(slice []interface{}) {
+					if s, err := processmetadataids(tx, ifaceslicetostring(slice)); err != nil {
+						fmt.Println(s)
+						logger.Panic(s)
+					}
+				}
+
+				db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true)
+				finish := schedule.Schedule(stringslicetoiface(processids), numworkers, f)
+
+				select {
+				case <-finish:
+					tx.Commit()
+					db.LogMessage("Idle", StateOk, true)
+				case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
+					db.HeartBeat()
+				}
 			}
 		}
 	}
