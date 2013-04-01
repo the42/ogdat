@@ -2,8 +2,10 @@ package main
 
 import (
 	"cgl.tideland.biz/net/atom"
+	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/the42/ogdat/ckan"
 	"github.com/the42/ogdat/ogdatv21"
 	"log"
 	"net/url"
@@ -11,12 +13,15 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 const AppID = "a6545f8f-e0c9-4917-83c7-3e47bd1e0247"
 
 var logger *log.Logger
+var db *DBConn
+var portal *ckan.Portal
 
 var resettdb = flag.Bool("resetdb", false, "Delete the tracking database. You will be prompted before actual deletion. Process will terminate afterwards.")
 var inittdb = flag.Bool("initdb", false, "Initialize the tracking database. In case there are old entries in the tracking database, use init in conjunction with reset. Process will terminate afterwards.")
@@ -35,10 +40,127 @@ func gotyesonprompt() bool {
 
 func getheartbeatinterval() int {
 
-	if i, err := strconv.Atoi(os.Getenv("HEARTBEATINTERVAL")); err == nil {
+	if i, err := strconv.Atoi(os.Getenv("HEARTBEAT_INTERVAL")); err == nil {
 		return i
 	}
 	return 10 // Minutes
+}
+
+func getnumworkers() uint {
+	return 4
+}
+
+func getckanurl() (url string) {
+
+	const CKAN_URL = "http://www.data.gv.at/katalog/api/"
+
+	url = os.Getenv("CKAN_URL")
+	if url == "" {
+		url = CKAN_URL
+	}
+	return
+}
+
+func initdb() {
+	if err := db.CreateDatabase(); err != nil {
+		s := fmt.Sprintf("Database initialisation failed: %s", err)
+		fmt.Println(s)
+		logger.Panic(s)
+	}
+}
+
+func resetdb() {
+	logger.Println("Warning: Requesting database reset")
+	fmt.Print("\n\nALL RECORDED DATA IN DATABASE  WILL BE DELETED.\nDO YOU REALLY WANT TO PROCEED? [N,y]\n")
+	if !gotyesonprompt() {
+		fmt.Print("\nABORTING\n\n")
+		logger.Println("Info: Database reset canceled")
+	} else {
+		if err := db.ResetDatabase(); err != nil {
+			s := fmt.Sprintf("Database reset failed: %s", err)
+			fmt.Println(s)
+			logger.Panic(s)
+		}
+	}
+}
+
+func processmetadataids(conn DBer, processids []string) (string, error) {
+
+	for _, id := range processids {
+
+		logger.Println(fmt.Sprintf("Processing %v", id))
+
+		mdjson, err := portal.GetJSONforID(id, true)
+		if err != nil {
+			return fmt.Sprintf("Cannot fetch JSON for ID %v", id), err
+		}
+
+		md, err := ogdatv21.MetadatafromJSON(mdjson)
+		if err != nil {
+			return fmt.Sprintf("Cannot access Metadata for ID %v", id), err
+		}
+
+		dbdatasetid, err := db.InsertOrUpdateMetadataInfo(md)
+		if err != nil {
+			return fmt.Sprintf("Database Error: %v", id), err
+		}
+
+		messages, err := md.Check(true)
+		if err != nil {
+			return fmt.Sprintf("Metadata Check Error: %v", id), err
+		}
+
+		if err = db.ProtocollCheck(dbdatasetid, messages); err != nil {
+			return fmt.Sprintf("Metadata Check Error: %v", id), err
+		}
+	}
+	return "", nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func processmetadataidsmultiplexer(dbconn *sql.DB, processids []string, numworkers uint) chan bool {
+
+	finish := make(chan bool)
+	tx, err := dbconn.Begin()
+	if err != nil {
+		logger.Panic(err)
+	}
+
+	go func() {
+		var workslice []string
+		var wg sync.WaitGroup
+
+		worklength := len(processids) / int(numworkers)
+		for workerindex := 0; workerindex < int(numworkers); workerindex++ {
+
+			workslice = processids[workerindex*worklength : min((workerindex+1)*worklength, len(processids))]
+
+			wg.Add(1)
+			go func(ids []string) {
+				defer wg.Done()
+
+				if s, err := processmetadataids(tx, ids); err != nil {
+					fmt.Println(s)
+					db.LogMessage(s, StateFatal, true)
+					logger.Panic(err)
+				}
+			}(workslice)
+		}
+
+		wg.Wait()
+		if err := tx.Commit(); err != nil {
+			logger.Panic(err)
+		}
+
+		finish <- true
+	}()
+	return finish
 }
 
 func mymain() int {
@@ -49,44 +171,58 @@ func mymain() int {
 		logger.Panicln("Fatal: No command line flags given")
 	}
 
-	lockfile := createlockfile(lockfilename)
-	defer deletelockfile(lockfile)
-	writeinfotolockfile(lockfile)
+	lockfile := NewLockfile(lockfilename)
+	defer lockfile.Delete()
+	lockfile.WriteInfo()
 
-	var db *DBConn
-	var portal *Portal
-	if *resettdb || *inittdb || *servetdb {
-		// From here we need a database connection string
-		db = GetDatabaseConnection(AppID)
+	dbconnection := GetDatabaseConnection(AppID)
+	db = &DBConn{dbconnection, AppID}
+	defer dbconnection.Close()
+
+	if *resettdb || *inittdb {
+		if *inittdb {
+			initdb()
+		}
+		if *resettdb {
+			resetdb()
+		}
+		logger.Println("Info: Earyl exit due to maintainance switches")
+		return 2
 	}
-	defer db.Close()
 
-	if *resettdb {
-		logger.Println("Warning: Requesting database reset")
-		fmt.Print("\n\nALL RECORDED DATA IN DATABASE  WILL BE DELETED.\nDO YOU REALLY WANT TO PROCEED? [N,y]\n")
-		if !gotyesonprompt() {
-			fmt.Print("\nABORTING\n\n")
-			logger.Println("Info: Database reset canceled")
-		} else {
-			if err := db.ResetDatabase(); err != nil {
-				s := fmt.Sprintf("Database reset failed: %s", err)
+	if *servetdb {
+
+		portal = ckan.NewDataPortalAPIEndpoint(getckanurl(), "2/")
+		heartbeatinterval := getheartbeatinterval()
+		numworkers := getnumworkers()
+
+		for {
+			hit, err := db.GetLastHit()
+			if err != nil {
+				s := fmt.Sprintf("Cannot read last DBHit: %s", err)
 				fmt.Println(s)
 				logger.Panic(s)
 			}
-		}
-	}
 
-	if *inittdb {
-		if err := db.CreateDatabase(); err != nil {
-			s := fmt.Sprintf("Database initialisation failed: %s", err)
-			fmt.Println(s)
-			logger.Panic(s)
-		}
-	}
+			var processids []string
+			if hit == nil {
+				processids, err = portal.GetAllMetaDataIDs()
+			} else {
+			}
 
-	if *resettdb || *inittdb {
-		logger.Println("Info: Earyl exit due to maintainance switches")
-		return 2
+			var finish chan bool
+			if anzids := len(processids); anzids > 0 {
+				db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true)
+				finish = processmetadataidsmultiplexer(dbconnection, processids, numworkers)
+			}
+
+			select {
+			case <-finish:
+				db.LogMessage("Idle", StateOk, true)
+			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
+				db.HeartBeat()
+			}
+		}
 	}
 
 	if *DEBUG {
@@ -115,61 +251,6 @@ func mymain() int {
 			fmt.Println("Datasets have not changed")
 		} else {
 			fmt.Println("Datasets have changed")
-		}
-	}
-
-	if *servetdb {
-		portal = NewDataPortalAPIEndpoint(ogdatdataseturl)
-
-		var processids []ogdatv21.Identifier
-		heartbeatinterval := getheartbeatinterval()
-
-		for {
-
-			hit, err := db.GetLastDBHit()
-			if err != nil {
-				s := fmt.Sprintf("Cannot read last DBHit: %s", err)
-				fmt.Println(s)
-				logger.Panic(s)
-			}
-
-			if hit == nil {
-				processids, err = portal.GetAllMetaDataIDs()
-			} else {
-			}
-
-			if anzids := len(processids); anzids > 0 {
-
-				// TODO: No need to check here, must not fail
-				if err := db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true); err != nil {
-					panic(err)
-				}
-
-				for idx, id := range processids {
-
-					logger.Println(fmt.Sprintf("Processing %d (%d): %v", idx, anzids, id))
-
-					md, err := portal.GetMetadataforID(id)
-					if err != nil {
-						s := fmt.Sprintf("Cannot access Metadata for ID %v", id)
-						fmt.Println(s)
-						db.LogMessage(s, StateFatal, true)
-						logger.Panic(err)
-					}
-
-					messages, err := md.Check(true)
-					if err != nil {
-						s := fmt.Sprintf("Metadata Check Error: %v", id)
-						fmt.Println(s)
-						db.LogMessage(s, StateFatal, true)
-						logger.Panic(err)
-					}
-
-					db.ProtocollCheck(messages, hit != nil)
-				}
-			}
-			db.HeartBeat()
-			time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
 		}
 	}
 	return 0

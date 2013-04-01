@@ -2,19 +2,39 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/the42/ogdat"
+	"github.com/the42/ogdat/ogdatv21"
 	"os"
 	"time"
 )
 
+type DBer interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Prepare(query string) (*sql.Stmt, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
+
 type DBConn struct {
-	*sql.DB
+	DBer
 	appid string
 }
 
-func GetDatabaseConnection(appid string) *DBConn {
+type State int16
+
+const (
+	StateOk State = iota + 1
+	StateWarning
+	StateError
+	StateFatal
+)
+
+type DBID int32
+
+func GetDatabaseConnection(appid string) *sql.DB {
 
 	var dburl, dbconnstring string
 
@@ -33,10 +53,10 @@ func GetDatabaseConnection(appid string) *DBConn {
 		fmt.Println("Unable to connect to dabase")
 		logger.Panicln("Unable to connect to dabase")
 	}
-	return &DBConn{DB: db, appid: appid}
+	return db
 }
 
-func (conn *DBConn) GetLastDBHit() (*time.Time, error) {
+func (conn *DBConn) GetLastHit() (*time.Time, error) {
 	row := conn.QueryRow("SELECT getlasttimestamp()")
 
 	var t pq.NullTime
@@ -49,7 +69,7 @@ func (conn *DBConn) GetLastDBHit() (*time.Time, error) {
 	return nil, nil
 }
 
-func (conn *DBConn) ResetDatabase() error {
+func (conn DBConn) ResetDatabase() error {
 	_, err := conn.Exec("SELECT deleteallentries()")
 	if err != nil {
 		return err
@@ -73,7 +93,7 @@ func (conn *DBConn) HeartBeat() error {
 	)
 
 	var hbstatement *sql.Stmt
-	var sysid int
+	var sysid DBID
 
 	err := conn.QueryRow("SELECT asi.sysid FROM (SELECT sysid, ts, who, MAX(ts) OVER (PARTITION BY who) max_ts FROM heartbeat) asi WHERE asi.ts = max_ts AND who=$1", conn.appid).Scan(&sysid)
 
@@ -96,7 +116,7 @@ func (conn *DBConn) HeartBeat() error {
 }
 
 // Deliberately use no stored procedures
-func (conn *DBConn) LogMessage(message string, code State, replacelatest bool) error {
+func (conn DBConn) LogMessage(message string, code State, replacelatest bool) error {
 
 	const (
 		updatestmt = "UPDATE heartbeat SET ts=$1, statuscode=$2, statustext=$3 WHERE who=$4 AND sysid=$5"
@@ -105,7 +125,7 @@ func (conn *DBConn) LogMessage(message string, code State, replacelatest bool) e
 
 	var hbstatement *sql.Stmt
 	var statuscode State
-	var sysid int
+	var sysid DBID
 
 	err := conn.QueryRow("SELECT asi.statuscode, asi.sysid FROM (SELECT sysid, ts, statuscode, who, MAX(ts) OVER (PARTITION BY who) max_ts FROM heartbeat) asi WHERE asi.ts = max_ts AND who=$1", conn.appid).Scan(&statuscode, &sysid)
 
@@ -132,12 +152,65 @@ func (conn *DBConn) LogMessage(message string, code State, replacelatest bool) e
 	return nil
 }
 
-func (conn *DBConn) ProtocollCheck(messages []ogdat.CheckMessage, comparetoentries bool) {
-// TODO: decide wheather to insert with a prepare or using a SP
+func DBStringLen(in string, length int) string {
+	return in[:min(length, len(in))]
+}
+
+func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, error) {
+	// insertorupdatemetadatainfo(id character varying, pub character varying, cont character varying, descr text, vers character varying, category json, stime timestamp with time zone)
+	const stmt = "SELECT * FROM insertorupdatemetadatainfo($1, $2, $3, $4, $5, $6, $7)"
+
+	dbs, err := conn.Prepare(stmt)
+	if err != nil {
+		return -1, err
+	}
+
+	id := DBStringLen(md.Metadata_Identifier.String(), 255)
+
+	pub := md.Publisher
+	if pub != nil {
+		*pub = DBStringLen(*pub, 255)
+	}
+
+	maint := DBStringLen(md.Maintainer_Link.String(), 255)
+
+	desc := md.Description
+	if desc != nil {
+		*desc = DBStringLen(*desc, 255)
+	}
+
+	vers := md.Schema_Name
+	if vers != nil {
+		*vers = DBStringLen(*vers, 255)
+	}
+
+	var cats []string
+	if cat := md.Categorization; cat != nil {
+		for _, cat := range cat.Kategorie {
+			cats = append(cats, cat.ID)
+		}
+	}
+	cat, _ := json.Marshal(cats)
+
+	t := time.Now().UTC()
+
+	row := dbs.QueryRow(id, pub, maint, desc, vers, string(cat), t)
+
+	var sysid DBID
+	err = row.Scan(&sysid)
+	if err != nil {
+		return -1, err
+	}
+	return sysid, nil
+}
+
+func (conn *DBConn) ProtocollCheck(id DBID, messages []ogdat.CheckMessage) error {
+	// TODO: decide wheather to insert with a prepare or using a SP
+	return nil
 }
 
 // Execute Database Timeouting Transaction
-func (conn *DBConn) ExecDBTT(timeout time.Duration, statement string, args ...interface{}) (sql.Result, error) {
+func ExecDBTT(conn *sql.DB, timeout time.Duration, statement string, args ...interface{}) (sql.Result, error) {
 
 	tx, err := conn.Begin()
 	if err != nil {

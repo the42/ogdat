@@ -9,17 +9,21 @@ import (
 
 const lockfilename = ".lock.pid"
 
-func createlockfile(filename string) *os.File {
+type LockFile struct {
+	*os.File
+}
+
+func NewLockfile(filename string) *LockFile {
 	lockfile, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_EXCL, os.FileMode(0666))
 	if lockfile == nil || err != nil {
 		fmt.Printf("Could not create lock file %s. Probably an instance of %s is running?\n", lockfilename, filepath.Base(os.Args[0]))
 		logger.Panicln("Fatal: Lockfile creation error")
 	}
 	logger.Println("Info: Lockfile successfully created")
-	return lockfile
+	return &LockFile{lockfile}
 }
 
-func deletelockfile(lockfile *os.File) {
+func (lockfile *LockFile) Delete() {
 	filename := lockfile.Name()
 	if err := lockfile.Close(); err != nil { // Windows want's it's file closed before unlinking
 		logger.Panicln("Fatal: Can not close lockfile")
@@ -30,7 +34,7 @@ func deletelockfile(lockfile *os.File) {
 	logger.Println("Info: Lockfile successfully deleted")
 }
 
-func writeinfotolockfile(lockfile *os.File) {
+func (lockfile *LockFile) WriteInfo() {
 	if err := lockfile.Truncate(0); err != nil {
 		logger.Panicln("Fatal: Can not truncate lockfile")
 	}
