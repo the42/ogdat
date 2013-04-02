@@ -84,25 +84,24 @@ func resetdb() {
 }
 
 func stringslicetoiface(ss []string) []interface{} {
-					slice := make([]interface{}, len(ss))
-				for i, v := range ss {
-					slice[i] = v
-				}
-				return slice
+	slice := make([]interface{}, len(ss))
+	for i, v := range ss {
+		slice[i] = v
+	}
+	return slice
 }
 
 func ifaceslicetostring(ifs []interface{}) []string {
-					slice := make([]string, len(ifs))
-					for i, v := range ifs {
-						s, ok := v.(string)
-						if !ok {
-							panic("Interface value not of string type")
-						}
-						slice[i] = s
-					}
-					return slice
+	slice := make([]string, len(ifs))
+	for i, v := range ifs {
+		s, ok := v.(string)
+		if !ok {
+			panic("Interface value not of string type")
+		}
+		slice[i] = s
+	}
+	return slice
 }
-
 
 func processmetadataids(conn DBer, processids []string) (string, error) {
 
