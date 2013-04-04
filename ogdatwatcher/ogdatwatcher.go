@@ -103,7 +103,7 @@ func ifaceslicetostring(ifs []interface{}) []string {
 	return slice
 }
 
-func processmetadataids(conn DBer, processids []string) (string, error) {
+func processmetadataids(conn *DBConn, processids []string) (string, error) {
 
 	for _, id := range processids {
 
@@ -119,7 +119,7 @@ func processmetadataids(conn DBer, processids []string) (string, error) {
 			return fmt.Sprintf("Cannot access Metadata for ID %v", id), err
 		}
 
-		dbdatasetid, err := db.InsertOrUpdateMetadataInfo(md)
+		dbdatasetid, err := conn.InsertOrUpdateMetadataInfo(md)
 		if err != nil {
 			return fmt.Sprintf("Database Error: %v", id), err
 		}
@@ -129,7 +129,7 @@ func processmetadataids(conn DBer, processids []string) (string, error) {
 			return fmt.Sprintf("Metadata Check Error: %v", id), err
 		}
 
-		if err = db.ProtocollCheck(dbdatasetid, messages); err != nil {
+		if err = conn.ProtocollCheck(dbdatasetid, messages); err != nil {
 			return fmt.Sprintf("Metadata Check Error: %v", id), err
 		}
 	}
@@ -186,8 +186,9 @@ func mymain() int {
 			if anzids := len(processids); anzids > 0 {
 
 				tx, _ := dbconnection.Begin()
+				conn := &DBConn{DBer: tx, appid: AppID}
 				f := func(slice []interface{}) {
-					if s, err := processmetadataids(tx, ifaceslicetostring(slice)); err != nil {
+					if s, err := processmetadataids(conn, ifaceslicetostring(slice)); err != nil {
 						fmt.Println(s)
 						logger.Panic(s)
 					}
