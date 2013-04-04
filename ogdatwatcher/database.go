@@ -69,7 +69,7 @@ func (conn *DBConn) GetLastHit() (*time.Time, error) {
 	return nil, nil
 }
 
-func (conn DBConn) ResetDatabase() error {
+func (conn *DBConn) ResetDatabase() error {
 	_, err := conn.Exec("SELECT deleteallentries()")
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (conn *DBConn) HeartBeat() error {
 }
 
 // Deliberately use no stored procedures
-func (conn DBConn) LogMessage(message string, code State, replacelatest bool) error {
+func (conn *DBConn) LogMessage(message string, code State, replacelatest bool) error {
 
 	const (
 		updatestmt = "UPDATE heartbeat SET ts=$1, statuscode=$2, statustext=$3 WHERE who=$4 AND sysid=$5"
