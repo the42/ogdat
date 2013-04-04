@@ -201,10 +201,9 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, err
 
 	t := time.Now().UTC()
 
-	row := dbs.QueryRow(id, pub, maint, desc, vers, string(cat), t)
-
 	var sysid DBID
-	err = row.Scan(&sysid)
+	err = dbs.QueryRow(id, pub, maint, desc, vers, string(cat), t).Scan(&sysid)
+
 	if err != nil {
 		return -1, err
 	}
