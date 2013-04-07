@@ -163,13 +163,13 @@ func DBStringLen(in string, length int) string {
 	return in[:min(length, len(in))]
 }
 
-func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, error) {
+func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, bool, error) {
 	// insertorupdatemetadatainfo(id character varying, pub character varying, cont character varying, descr text, vers character varying, category json, stime timestamp with time zone)
 	const stmt = "SELECT * FROM insertorupdatemetadatainfo($1, $2, $3, $4, $5, $6, $7)"
 
 	dbs, err := conn.Prepare(stmt)
 	if err != nil {
-		return -1, err
+		return -1, false, err
 	}
 
 	id := DBStringLen(md.Metadata_Identifier.String(), 255)
@@ -202,51 +202,35 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, err
 	t := time.Now().UTC()
 
 	var sysid DBID
-	err = dbs.QueryRow(id, pub, maint, desc, vers, string(cat), t).Scan(&sysid)
+	var isnew bool
+	err = dbs.QueryRow(id, pub, maint, desc, vers, string(cat), t).Scan(&sysid, &isnew)
 
 	if err != nil {
-		return -1, err
+		return -1, false, err
 	}
-	return sysid, nil
+	return sysid, isnew, nil
 }
 
-func (conn *DBConn) ProtocollCheck(id DBID, messages []ogdat.CheckMessage) error {
-	// TODO: decide wheather to insert with a prepare or using a SP
-	return nil
-}
+// DBID is the ID of the correspondig metadata record
+func (conn *DBConn) ProtocollCheck(id DBID, isnew bool, messages []ogdat.CheckMessage) error {
 
-// Execute Database Timeouting Transaction
-func ExecDBTT(conn *sql.DB, timeout time.Duration, statement string, args ...interface{}) (sql.Result, error) {
+	// This is append only; revise later if it should also delete or update entries.
+	const insstmt = "SELECT insertstatus($1, $2, $3, $4, $5, $6)"
 
-	tx, err := conn.Begin()
-	if err != nil {
-		return nil, fmt.Errorf("Unable to create DB Transaction")
+	var stmt *sql.Stmt
+	var err error
+	if stmt, err = conn.Prepare(insstmt); err != nil {
+		return err
 	}
 
-	statementreturn := make(chan bool)
-	var sqlresult sql.Result
-	var execerror error
-
-	go func() {
-		sqlresult, execerror = tx.Exec(statement, args)
-		statementreturn <- true
-	}()
-
-	select {
-	case <-statementreturn:
-		if execerror != nil {
-			tx.Rollback()
-		} else {
-			execerror = nil
-			tx.Commit()
+	// get time here and not within the loop so we have a grouping possibilitiy
+	t := time.Now().UTC()
+	for _, msg := range messages {
+		if _, err = stmt.Exec(id, msg.OGDID, msg.Type, nil, msg.Text, t); err != nil {
+			fmt.Errorf("Error inserting status for datasetid %d, fieldid %d: %s", id, msg.OGDID, err)
 		}
-
-	case <-time.After(timeout):
-		tx.Rollback()
-		return nil, fmt.Errorf("SQL Statement timed out, rolling back")
 	}
-
-	return sqlresult, execerror
+	return nil
 }
 
 const postgresdbcreatestatement = `

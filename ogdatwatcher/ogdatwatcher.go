@@ -119,7 +119,7 @@ func processmetadataids(conn *DBConn, processids []string) (string, error) {
 			return fmt.Sprintf("Cannot access Metadata for ID %v", id), err
 		}
 
-		dbdatasetid, err := conn.InsertOrUpdateMetadataInfo(md)
+		dbdatasetid, isnew, err := conn.InsertOrUpdateMetadataInfo(md)
 		if err != nil {
 			return fmt.Sprintf("Database Error: %v", id), err
 		}
@@ -129,7 +129,7 @@ func processmetadataids(conn *DBConn, processids []string) (string, error) {
 			return fmt.Sprintf("Metadata Check Error: %v", id), err
 		}
 
-		if err = conn.ProtocollCheck(dbdatasetid, messages); err != nil {
+		if err = conn.ProtocollCheck(dbdatasetid, isnew, messages); err != nil {
 			return fmt.Sprintf("Metadata Check Error: %v", id), err
 		}
 	}
@@ -190,7 +190,7 @@ func mymain() int {
 				f := func(slice []interface{}) {
 					if s, err := processmetadataids(conn, ifaceslicetostring(slice)); err != nil {
 						fmt.Println(s)
-						logger.Panic(s)
+						logger.Panic(err)
 					}
 				}
 
