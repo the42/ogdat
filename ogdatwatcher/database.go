@@ -215,7 +215,7 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, boo
 func (conn *DBConn) ProtocollCheck(id DBID, isnew bool, messages []ogdat.CheckMessage) error {
 
 	// This is append only; revise later if it should also delete or update entries.
-	const insstmt = "SELECT insertstatus($1, $2, $3, $4, $5, $6)"
+	const insstmt = "SELECT insertstatus($1, $2, $3, $4, $5)"
 
 	var stmt *sql.Stmt
 	var err error
@@ -225,9 +225,18 @@ func (conn *DBConn) ProtocollCheck(id DBID, isnew bool, messages []ogdat.CheckMe
 
 	// get time here and not within the loop so we have a grouping possibilitiy
 	t := time.Now().UTC()
+	var s string
 	for _, msg := range messages {
-		if _, err = stmt.Exec(id, msg.OGDID, msg.Type, nil, msg.Text, t); err != nil {
-			fmt.Errorf("Error inserting status for datasetid %d, fieldid %d: %s", id, msg.OGDID, err)
+		switch msg.Type {
+		case ogdat.Error, ogdat.StructuralError:
+			s = "error"
+		default:
+			s = "warning"
+		}
+		// actually an .Exec would we enough here, but as we call select at least something gets returned
+		var dbret string
+		if err = stmt.QueryRow(id, msg.OGDID, s, msg.Text, t).Scan(&dbret); err != nil {
+			return fmt.Errorf("Error inserting status for datasetid %d, fieldid %d: %s", id, msg.OGDID, err)
 		}
 	}
 	return nil

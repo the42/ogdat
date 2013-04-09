@@ -1,14 +1,12 @@
 package main
 
 import (
-	"cgl.tideland.biz/net/atom"
 	"flag"
 	"fmt"
 	"github.com/the42/ogdat/ckan"
 	"github.com/the42/ogdat/ogdatv21"
 	"github.com/the42/ogdat/schedule"
 	"log"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -46,7 +44,10 @@ func getheartbeatinterval() int {
 }
 
 func getnumworkers() int {
-	return 4
+	if i, err := strconv.Atoi(os.Getenv("PARALLEL_FETCHNO")); err == nil {
+		return i
+	}
+	return 4 // process four IDs in parallel
 }
 
 func getckanurl() (url string) {
@@ -103,7 +104,7 @@ func ifaceslicetostring(ifs []interface{}) []string {
 	return slice
 }
 
-func processmetadataids(conn *DBConn, processids []string) (string, error) {
+func processmetadataids(conn *DBConn, processids []string) error {
 
 	for _, id := range processids {
 
@@ -111,29 +112,29 @@ func processmetadataids(conn *DBConn, processids []string) (string, error) {
 
 		mdjson, err := portal.GetJSONforID(id, true)
 		if err != nil {
-			return fmt.Sprintf("Cannot fetch JSON for ID %v", id), err
+			return fmt.Errorf("Cannot fetch JSON for ID %v: %s", id, err)
 		}
 
 		md, err := ogdatv21.MetadatafromJSON(mdjson)
 		if err != nil {
-			return fmt.Sprintf("Cannot access Metadata for ID %v", id), err
+			return fmt.Errorf("Cannot access Metadata for ID %v: %s", id, err)
 		}
 
 		dbdatasetid, isnew, err := conn.InsertOrUpdateMetadataInfo(md)
 		if err != nil {
-			return fmt.Sprintf("Database Error: %v", id), err
+			return fmt.Errorf("InsertOrUpdateMetadataInfo: Database Error at id %v: %s", id, err)
 		}
 
 		messages, err := md.Check(true)
 		if err != nil {
-			return fmt.Sprintf("Metadata Check Error: %v", id), err
+			return fmt.Errorf("Metadata Check Error for id %v: %s", id, err)
 		}
 
 		if err = conn.ProtocollCheck(dbdatasetid, isnew, messages); err != nil {
-			return fmt.Sprintf("Metadata Check Error: %v", id), err
+			return fmt.Errorf("ProtocollCheck: Database Error at id %v: %s", id, err)
 		}
 	}
-	return "", nil
+	return nil
 }
 
 func mymain() int {
@@ -181,59 +182,47 @@ func mymain() int {
 			if hit == nil {
 				processids, err = portal.GetAllMetaDataIDs()
 			} else {
+				processids, err = portal.GetChangedPackageIDsSince(*hit, numworkers)
 			}
 
 			if anzids := len(processids); anzids > 0 {
 
 				tx, _ := dbconnection.Begin()
+				scheduler := schedule.New(numworkers)
 				conn := &DBConn{DBer: tx, appid: AppID}
-				f := func(slice []interface{}) {
-					if s, err := processmetadataids(conn, ifaceslicetostring(slice)); err != nil {
-						fmt.Println(s)
-						logger.Panic(err)
+				f := func(slice []interface{}) error {
+					if err := processmetadataids(conn, ifaceslicetostring(slice)); err != nil {
+						return err
 					}
+					return nil
 				}
 
 				db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true)
-				finish := schedule.Schedule(stringslicetoiface(processids), numworkers, f)
-
-				select {
-				case <-finish:
-					tx.Commit()
-					db.LogMessage("Idle", StateOk, true)
-				case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
-					db.HeartBeat()
+				workchannel := scheduler.Schedule(f, stringslicetoiface(processids))
+			workloop:
+				for {
+					select {
+					case workreply := <-workchannel:
+						if err := workreply.Err; err != nil {
+							logger.Panicln("Scheduler didn't return success:", err)
+						} else if workreply.Code == schedule.StateFinish {
+							tx.Commit()
+							db.LogMessage("Idle", StateOk, true)
+							break workloop
+						}
+					case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
+						logger.Println("Alive")
+						db.HeartBeat()
+					}
 				}
+
 			}
-		}
-	}
+			select {
+			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
+				logger.Println("Alive")
+				db.HeartBeat()
+			}
 
-	if *DEBUG {
-
-		url, err := url.Parse("http://www.data.gv.at/katalog/revision/list?format=atom")
-		if err != nil {
-			panic(err)
-		}
-		feed, err := atom.Get(url)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Printf("%+v\n\n", feed)
-
-		onedayago := time.Now().Add(-24 * time.Hour)
-		fmt.Println(onedayago)
-		atomtime, err := atom.ParseTime(feed.Updated)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println(atomtime)
-
-		if atomtime.Before(onedayago) {
-			fmt.Println("Datasets have not changed")
-		} else {
-			fmt.Println("Datasets have changed")
 		}
 	}
 	return 0

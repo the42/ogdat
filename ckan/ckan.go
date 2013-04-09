@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/the42/ogdat/schedule"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sync"
+	"time"
 )
 
 type Portal struct {
@@ -35,6 +38,119 @@ func (p *Portal) GetAllMetaDataIDs() ([]string, error) {
 		return nil, err
 	}
 	return allsets, nil
+}
+
+func (p *Portal) GetRevisionsetSince(t time.Time) ([]string, error) {
+
+	revisions := fmt.Sprintf("rest/revision?since_time=%s", t)
+	var revs []string
+
+	revurl, _ := url.Parse(revisions)
+	resp, err := http.Get(p.ResolveReference(revurl).String())
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bytedata, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(bytedata, &revs); err != nil {
+		return nil, err
+	}
+
+	return revs, nil
+}
+
+func stringslicetoiface(ss []string) []interface{} {
+	slice := make([]interface{}, len(ss))
+	for i, v := range ss {
+		slice[i] = v
+	}
+	return slice
+}
+
+type concurrentSet struct {
+	lock  sync.RWMutex
+	value map[string]struct{}
+}
+
+func (cs *concurrentSet) add(key string) {
+	cs.lock.RLock()
+	defer cs.lock.RUnlock()
+	cs.value[key] = struct{}{}
+
+}
+
+func (cs *concurrentSet) deleteAll() {
+	cs.lock.RLock()
+	defer cs.lock.RUnlock()
+	cs.value = nil
+}
+
+type Revision struct {
+	Packages []string `json:"packages"`
+}
+
+func (p *Portal) GetRevisionforID(id string) (*Revision, error) {
+	revurl, _ := url.Parse("rest/revision/" + id)
+
+	resp, err := http.Get(p.ResolveReference(revurl).String())
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bytedata, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	rev := &Revision{}
+	if err := json.Unmarshal(bytedata, rev); err != nil {
+		return nil, err
+	}
+
+	return rev, nil
+}
+
+func (p *Portal) GetChangedPackageIDsSince(t time.Time, workers int) ([]string, error) {
+	revs, err := p.GetRevisionsetSince(t)
+	if err != nil {
+		return nil, err
+	}
+
+	scheduler := schedule.New(workers)
+	var conset concurrentSet
+	f := func(slice []interface{}) error {
+		for _, val := range slice {
+			revid, ok := val.(string)
+			if !ok {
+				panic("Interface value not of string type")
+			}
+			rev, err := p.GetRevisionforID(revid)
+			if err != nil {
+				conset.deleteAll()
+				return err
+			}
+			for _, packageid := range rev.Packages {
+				conset.add(packageid)
+			}
+		}
+		return nil
+	}
+
+	<-scheduler.Schedule(f, stringslicetoiface(revs))
+
+	changedids := make([]string, len(conset.value))
+	idx := 0
+	for key, _ := range conset.value {
+		changedids[idx] = key
+		idx++
+	}
+	return changedids, nil
 }
 
 func (p *Portal) GetJSONforID(id string, indent bool) (io.Reader, error) {
