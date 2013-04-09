@@ -187,7 +187,10 @@ func mymain() int {
 
 			if anzids := len(processids); anzids > 0 {
 
-				tx, _ := dbconnection.Begin()
+				tx, err := dbconnection.Begin()
+				if err != nil {
+					logger.Panicln("Cannot create database transaction")
+				}
 				scheduler := schedule.New(numworkers)
 				conn := &DBConn{DBer: tx, appid: AppID}
 				f := func(slice []interface{}) error {
