@@ -169,6 +169,8 @@ func mymain() int {
 		portal = ckan.NewDataPortalAPIEndpoint(getckanurl(), "2/")
 		heartbeatinterval := getheartbeatinterval()
 		numworkers := getnumworkers()
+		
+		logger.Println("Doing Jobs in parallel:", numworkers)
 
 		for {
 			hit, err := db.GetLastHit()
