@@ -167,19 +167,22 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, boo
 	// insertorupdatemetadatainfo(id character varying, pub character varying, cont character varying, descr text, vers character varying, category json, stime timestamp with time zone)
 	const stmt = "SELECT * FROM insertorupdatemetadatainfo($1, $2, $3, $4, $5, $6, $7)"
 
+	if md == nil {
+		return -1, false, fmt.Errorf("No input to process")
+	}
+
 	dbs, err := conn.Prepare(stmt)
 	if err != nil {
 		return -1, false, err
 	}
 
 	id := DBStringLen(md.Metadata_Identifier.String(), 255)
+	maint := DBStringLen(md.Maintainer_Link.String(), 255)
 
 	pub := md.Publisher
 	if pub != nil {
 		*pub = DBStringLen(*pub, 255)
 	}
-
-	maint := DBStringLen(md.Maintainer_Link.String(), 255)
 
 	desc := md.Description
 	if desc != nil {
