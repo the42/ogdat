@@ -170,7 +170,7 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, boo
 	if md == nil {
 		panic("Metadata is nil")
 	}
-	
+
 	dbs, err := conn.Prepare(stmt)
 	if err != nil {
 		return -1, false, err
@@ -184,6 +184,10 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, boo
 	pub := md.Publisher
 	if pub != nil {
 		*pub = DBStringLen(*pub, 255)
+	}
+
+	if md.Maintainer_Link == nil {
+		panic("Maintainer_Link is nil")
 	}
 
 	maint := DBStringLen(md.Maintainer_Link.String(), 255)

@@ -146,6 +146,7 @@ func (p *Portal) GetChangedPackageIDsSince(t time.Time, workers int) ([]string, 
 
 	changedids := make([]string, len(conset.value))
 	idx := 0
+
 	for key, _ := range conset.value {
 		changedids[idx] = key
 		idx++
