@@ -110,7 +110,7 @@ func processmetadataids(conn *DBConn, processids []string) error {
 
 		logger.Println(fmt.Sprintf("Processing %v", id))
 
-		mdjson, err := portal.GetJSONforID(id, true)
+		mdjson, err := portal.GetJSONforID(id, false)
 		if err != nil {
 			return fmt.Errorf("Cannot fetch JSON for ID %v: %s", id, err)
 		}
