@@ -8,7 +8,6 @@ import (
 
 func MetadatafromJSON(jsondata io.Reader) (*MetaData, error) {
 	bytedata, err := ioutil.ReadAll(jsondata)
-	println("++++++++++++++++++++++", len(bytedata), "::::::::::::::::")
 	if err != nil {
 		return nil, err
 	}
