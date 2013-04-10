@@ -75,6 +75,10 @@ type concurrentSet struct {
 	value map[string]struct{}
 }
 
+func newSet() *concurrentSet {
+	return &concurrentSet{value: make(map[string]struct{})}
+}
+
 func (cs *concurrentSet) add(key string) {
 	cs.lock.RLock()
 	defer cs.lock.RUnlock()
@@ -120,7 +124,8 @@ func (p *Portal) GetChangedPackageIDsSince(t time.Time, workers int) ([]string, 
 	}
 
 	scheduler := schedule.New(workers)
-	var conset concurrentSet
+	conset := newSet()
+
 	f := func(slice []interface{}) error {
 		for _, val := range slice {
 			revid, ok := val.(string)
