@@ -110,12 +110,12 @@ func processmetadataids(conn *DBConn, processids []string) error {
 
 		logger.Println(fmt.Sprintf("Processing %v", id))
 
-		mdjson, err := portal.GetJSONforID(id, true)
+		mdjson, err := portal.GetDatasetStreamforID(id, true)
 		if err != nil {
 			return fmt.Errorf("Cannot fetch JSON for ID %v: %s", id, err)
 		}
 
-		md, err := ogdatv21.MetadatafromJSON(mdjson)
+		md, err := ogdatv21.MetadatafromJSONStream(mdjson)
 		if err != nil {
 			return fmt.Errorf("Cannot access Metadata for ID %v: %s", id, err)
 		}
@@ -140,7 +140,7 @@ func processmetadataids(conn *DBConn, processids []string) error {
 func heartbeat(interval int) {
 	for {
 		dbconn := GetDatabaseConnection()
-			db = &DBConn{dbconn, AppID}
+		db = &DBConn{dbconn, AppID}
 		if err := db.HeartBeat(); err != nil {
 			logger.Panicln(err)
 		}

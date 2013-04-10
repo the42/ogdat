@@ -23,13 +23,12 @@ func (p *Portal) GetAllMetaDataIDs() ([]string, error) {
 	var allsets []string
 
 	alldataseturl, _ := url.Parse(alldatasets)
-	resp, err := http.Get(p.ResolveReference(alldataseturl).String())
+	jsonstream, err := getjson(alldataseturl.String(), false)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	bytedata, err := ioutil.ReadAll(resp.Body)
+	bytedata, err := ioutil.ReadAll(jsonstream)
 	if err != nil {
 		return nil, err
 	}
@@ -46,13 +45,12 @@ func (p *Portal) GetRevisionsetSince(t time.Time) ([]string, error) {
 	var revs []string
 
 	revurl, _ := url.Parse(revisions)
-	resp, err := http.Get(p.ResolveReference(revurl).String())
+	resp, err := getjson(p.ResolveReference(revurl).String(), false)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	bytedata, err := ioutil.ReadAll(resp.Body)
+	bytedata, err := ioutil.ReadAll(resp)
 	if err != nil {
 		return nil, err
 	}
@@ -97,13 +95,12 @@ type Revision struct {
 func (p *Portal) GetRevisionforID(id string) (*Revision, error) {
 	revurl, _ := url.Parse("rest/revision/" + id)
 
-	resp, err := http.Get(p.ResolveReference(revurl).String())
+	resp, err := getjson(p.ResolveReference(revurl).String(), false)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	bytedata, err := ioutil.ReadAll(resp.Body)
+	bytedata, err := ioutil.ReadAll(resp)
 	if err != nil {
 		return nil, err
 	}
@@ -154,20 +151,24 @@ func (p *Portal) GetChangedPackageIDsSince(t time.Time, workers int) ([]string, 
 	return changedids, nil
 }
 
-func (p *Portal) GetJSONforID(id string, indent bool) (io.Reader, error) {
+func (p *Portal) GetDatasetStreamforID(id string, indent bool) (io.Reader, error) {
 
 	const datasetid = "rest/dataset/"
+	seturl, _ := url.Parse(datasetid + id)
+	return getjson(p.ResolveReference(seturl).String(), indent)
+}
+
+func getjson(url string, indent bool) (io.Reader, error) {
+
 	// number of retries to get data from the web
 	const exhausted = 3
 
-	seturl, _ := url.Parse(datasetid + id)
-
 	var resp *http.Response
 	var err error
-	retry := 0
 
+	retry := 0
 	for ; retry < exhausted; retry++ {
-		resp, err = http.Get(p.ResolveReference(seturl).String())
+		resp, err = http.Get(url)
 		if err == nil {
 			break
 		}
