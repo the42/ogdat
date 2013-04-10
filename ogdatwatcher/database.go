@@ -160,7 +160,10 @@ func min(a, b int) int {
 }
 
 func DBStringLen(in string, length int) string {
-	return in[:min(length, len(in))]
+	// This is a very expensive operation. For strings len(in) >> length,
+	// building by appending runes is probably cheaper
+	rs := []rune(in)
+	return string(rs[:min(length, len(rs))])
 }
 
 func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, bool, error) {
