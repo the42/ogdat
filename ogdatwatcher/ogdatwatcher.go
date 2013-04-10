@@ -8,6 +8,7 @@ import (
 	"github.com/the42/ogdat/schedule"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -106,9 +107,10 @@ func ifaceslicetostring(ifs []interface{}) []string {
 
 func processmetadataids(conn *DBConn, processids []string) error {
 
-	for _, id := range processids {
+	nums := len(processids)
+	for idx, id := range processids {
 
-		logger.Println(fmt.Sprintf("Processing %v", id))
+		logger.Printf("%4d / %4d : processing %v\n", idx, nums, id)
 
 		mdjson, err := portal.GetDatasetStreamforID(id, true)
 		if err != nil {
@@ -117,21 +119,21 @@ func processmetadataids(conn *DBConn, processids []string) error {
 
 		md, err := ogdatv21.MetadatafromJSONStream(mdjson)
 		if err != nil {
-			return fmt.Errorf("Cannot access Metadata for ID %v: %s", id, err)
+			return fmt.Errorf("Cannot access metadata for ID %v: %s", id, err)
 		}
 
 		dbdatasetid, isnew, err := conn.InsertOrUpdateMetadataInfo(md)
 		if err != nil {
-			return fmt.Errorf("InsertOrUpdateMetadataInfo: Database Error at id %v: %s", id, err)
+			return fmt.Errorf("InsertOrUpdateMetadataInfo: database error at id %v: %s", id, err)
 		}
 
 		messages, err := md.Check(true)
 		if err != nil {
-			return fmt.Errorf("Metadata Check Error for id %v: %s", id, err)
+			return fmt.Errorf("Metadata check error for id %v: %s", id, err)
 		}
 
 		if err = conn.ProtocollCheck(dbdatasetid, isnew, messages); err != nil {
-			return fmt.Errorf("ProtocollCheck: Database Error at id %v: %s", id, err)
+			return fmt.Errorf("ProtocollCheck: database error at id %v: %s", id, err)
 		}
 	}
 	return nil
@@ -140,12 +142,12 @@ func processmetadataids(conn *DBConn, processids []string) error {
 func heartbeat(interval int) {
 	for {
 		dbconn := GetDatabaseConnection()
-		db = &DBConn{dbconn, AppID}
+		db := &DBConn{dbconn, AppID}
 		if err := db.HeartBeat(); err != nil {
 			logger.Panicln(err)
 		}
 		dbconn.Close()
-		logger.Println("Alive")
+		logger.Println("Watchdog alive")
 		time.Sleep(time.Duration(interval) * time.Minute)
 	}
 }
@@ -161,6 +163,16 @@ func mymain() int {
 	lockfile := NewLockfile(lockfilename)
 	defer lockfile.Delete()
 	lockfile.WriteInfo()
+
+	// When the process gets killed, try to delete the lock file
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+	go func() {
+		<-interrupt
+		logger.Println("Terminate requested")
+		lockfile.Delete()
+		os.Exit(10)
+	}()
 
 	dbconnection := GetDatabaseConnection()
 	db = &DBConn{dbconnection, AppID}
@@ -183,7 +195,7 @@ func mymain() int {
 		heartbeatinterval := getheartbeatinterval()
 		numworkers := getnumworkers()
 
-		logger.Println("Doing jobs in parallel:", numworkers)
+		logger.Printf("Doing %d jobs in parallel\n", numworkers)
 		go heartbeat(heartbeatinterval)
 
 		for {
@@ -196,8 +208,10 @@ func mymain() int {
 
 			var processids []string
 			if hit == nil {
+				logger.Println("No checkpoint in database found, getting all datasets")
 				processids, err = portal.GetAllMetaDataIDs()
 			} else {
+				logger.Printf("Getting changed datasets since %s\n", hit)
 				processids, err = portal.GetChangedPackageIDsSince(*hit, numworkers)
 			}
 
@@ -225,12 +239,13 @@ func mymain() int {
 					} else if workreply.Code == schedule.StateFinish {
 						tx.Commit()
 						db.LogMessage("Idle", StateOk, true)
+						logger.Println("Finished processing %d datasets", anzids)
 					}
 				}
 
 			} else {
 				// When there was nothing to do, wait for heartbeatinterval time
-				logger.Println("Sleeping")
+				logger.Printf("Nothing to do, sleeping for %d minutes\n", heartbeatinterval)
 				time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
 			}
 		}
