@@ -59,7 +59,7 @@ func (s *schedule) Schedule(f mapperfunc, queue []interface{}) chan State {
 		}
 		for workerindex := 0; workerindex < s.workers; workerindex++ {
 
-			workslice = queue[min(workerindex*worklength, len(queue)) : min((workerindex+1)*worklength, len(queue))]
+			workslice = queue[min(workerindex*worklength, len(queue)):min((workerindex+1)*worklength, len(queue))]
 
 			wg.Add(1)
 			go func(ids []interface{}) {
