@@ -34,7 +34,7 @@ const (
 
 type DBID int32
 
-func GetDatabaseConnection(appid string) *sql.DB {
+func GetDatabaseConnection() *sql.DB {
 
 	var dburl, dbconnstring string
 

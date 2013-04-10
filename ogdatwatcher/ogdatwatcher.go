@@ -139,9 +139,12 @@ func processmetadataids(conn *DBConn, processids []string) error {
 
 func heartbeat(interval int) {
 	for {
+		dbconn := GetDatabaseConnection()
+			db = &DBConn{dbconn, AppID}
 		if err := db.HeartBeat(); err != nil {
 			logger.Panicln(err)
 		}
+		dbconn.Close()
 		logger.Println("Alive")
 		time.Sleep(time.Duration(interval) * time.Minute)
 	}
@@ -159,7 +162,7 @@ func mymain() int {
 	defer lockfile.Delete()
 	lockfile.WriteInfo()
 
-	dbconnection := GetDatabaseConnection(AppID)
+	dbconnection := GetDatabaseConnection()
 	db = &DBConn{dbconnection, AppID}
 	defer dbconnection.Close()
 
