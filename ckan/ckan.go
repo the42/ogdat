@@ -41,7 +41,7 @@ func (p *Portal) GetAllMetaDataIDs() ([]string, error) {
 
 func (p *Portal) GetRevisionsetSince(t time.Time) ([]string, error) {
 
-	revisions := fmt.Sprintf("rest/revision?since_time=%s", t)
+	revisions := fmt.Sprintf("search/revision?since_time=%s", t.Format("2006-01-02T15:04:05.000000"))
 	var revs []string
 
 	revurl, _ := url.Parse(revisions)
@@ -58,7 +58,6 @@ func (p *Portal) GetRevisionsetSince(t time.Time) ([]string, error) {
 	if err := json.Unmarshal(bytedata, &revs); err != nil {
 		return nil, err
 	}
-
 	return revs, nil
 }
 
