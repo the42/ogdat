@@ -54,9 +54,12 @@ func (s *schedule) Schedule(f mapperfunc, queue []interface{}) chan State {
 		var wg sync.WaitGroup
 
 		worklength := len(queue) / s.workers
+		if len(queue) > 0 && worklength == 0 {
+			worklength = len(queue)
+		}
 		for workerindex := 0; workerindex < s.workers; workerindex++ {
 
-			workslice = queue[workerindex*worklength : min((workerindex+1)*worklength, len(queue))]
+			workslice = queue[min(workerindex*worklength, len(queue)) : min((workerindex+1)*worklength, len(queue))]
 
 			wg.Add(1)
 			go func(ids []interface{}) {
