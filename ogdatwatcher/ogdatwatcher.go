@@ -139,8 +139,10 @@ func processmetadataids(conn *DBConn, processids []string) error {
 
 func heartbeat(interval int) {
 	for {
+		if err := db.HeartBeat(); err != nil {
+			logger.Panicln(err)
+		}
 		logger.Println("Alive")
-		db.HeartBeat()
 		time.Sleep(time.Duration(interval) * time.Minute)
 	}
 }
@@ -225,6 +227,7 @@ func mymain() int {
 
 			} else {
 				// When there was nothing to do, wait for heartbeatinterval time
+				logger.Println("Sleeping")
 				time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
 			}
 		}
