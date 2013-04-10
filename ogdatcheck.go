@@ -288,7 +288,7 @@ func Loadogdatspec(version, filename string) (*OGDSet, error) {
 		spec = append(spec, descrecord)
 	}
 	set.Beschreibung = spec
-	log.Printf("Info: Read %d %s specifiaction records", len(spec), version)
+	log.Printf("Info: Read %d %s specification records", len(spec), version)
 
 	return set, nil
 }
