@@ -137,6 +137,14 @@ func processmetadataids(conn *DBConn, processids []string) error {
 	return nil
 }
 
+func heartbeat(interval int) {
+	for {
+		logger.Println("Alive")
+		db.HeartBeat()
+		time.Sleep(time.Duration(interval) * time.Minute)
+	}
+}
+
 func mymain() int {
 
 	if flag.NFlag() == 0 {
@@ -170,7 +178,8 @@ func mymain() int {
 		heartbeatinterval := getheartbeatinterval()
 		numworkers := getnumworkers()
 
-		logger.Println("Doing Jobs in parallel:", numworkers)
+		logger.Println("Doing jobs in parallel:", numworkers)
+		go heartbeat(heartbeatinterval)
 
 		for {
 			hit, err := db.GetLastHit()
@@ -204,30 +213,20 @@ func mymain() int {
 
 				db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true)
 				workchannel := scheduler.Schedule(f, stringslicetoiface(processids))
-			workloop:
-				for {
-					select {
-					case workreply := <-workchannel:
-						if err := workreply.Err; err != nil {
-							logger.Panicln("Scheduler didn't return success:", err)
-						} else if workreply.Code == schedule.StateFinish {
-							tx.Commit()
-							db.LogMessage("Idle", StateOk, true)
-							break workloop
-						}
-					case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
-						logger.Println("Alive")
-						db.HeartBeat()
+				select {
+				case workreply := <-workchannel:
+					if err := workreply.Err; err != nil {
+						logger.Panicln("Scheduler didn't return success:", err)
+					} else if workreply.Code == schedule.StateFinish {
+						tx.Commit()
+						db.LogMessage("Idle", StateOk, true)
 					}
 				}
 
+			} else {
+				// When there was nothing to do, wait for heartbeatinterval time
+				time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
 			}
-			select {
-			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
-				logger.Println("Alive")
-				db.HeartBeat()
-			}
-
 		}
 	}
 	return 0
