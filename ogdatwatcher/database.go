@@ -185,9 +185,6 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, boo
 	}
 
 	desc := md.Description
-	if desc != nil {
-		*desc = DBStringLen(*desc, 255)
-	}
 
 	vers := md.Schema_Name
 	if vers != nil {
