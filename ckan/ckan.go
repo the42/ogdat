@@ -157,10 +157,22 @@ func (p *Portal) GetChangedPackageIDsSince(t time.Time, workers int) ([]string, 
 func (p *Portal) GetJSONforID(id string, indent bool) (io.Reader, error) {
 
 	const datasetid = "rest/dataset/"
+	// number of retries to get data from the web
+	const exhausted = 3
+
 	seturl, _ := url.Parse(datasetid + id)
 
-	resp, err := http.Get(p.ResolveReference(seturl).String())
-	if err != nil {
+	var resp *http.Response
+	var err error
+	retry := 0
+
+	for ; retry < exhausted; retry++ {
+		resp, err = http.Get(p.ResolveReference(seturl).String())
+		if err == nil {
+			break
+		}
+	}
+	if retry == exhausted {
 		return nil, err
 	}
 	defer resp.Body.Close()
