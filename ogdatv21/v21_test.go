@@ -100,6 +100,14 @@ var checkTests = []checkTest{
 		&checkRequest{"file9.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 9}}},
 	},
+	{ // Kategorie directly as a string
+		&checkRequest{"file10d.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.StructuralError, OGDID: 10}}},
+	},
+	{ // Kategorie directly as a array embeded in a string
+		&checkRequest{"file10e.json", false},
+		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.StructuralError, OGDID: 10}, {Type: ogdat.Error, OGDID: 10}}},
+	},
 	{ // no entries for 'Kategorie' is a warning
 		&checkRequest{"file10a.json", false},
 		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Warning, OGDID: 10}}},
@@ -256,7 +264,7 @@ func TestCheck(t *testing.T) {
 			}
 			md := &MetaData{}
 			if err := json.Unmarshal(ogdjsonmd, md); err != nil {
-				t.Fatalf("Can't unmarshall byte stream: %s\n", err)
+				t.Fatalf("%s: Can't unmarshall byte stream: %s\n", val.in.filename, err)
 			}
 			msgs, err := md.Check(val.in.followlinks)
 
