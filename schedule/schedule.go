@@ -53,25 +53,23 @@ func (s *schedule) Schedule(f mapperfunc, queue []interface{}) chan State {
 		var workslice []interface{}
 		var wg sync.WaitGroup
 
-		worklength := len(queue) / s.workers
-		if len(queue) > 0 && worklength == 0 {
-			worklength = len(queue)
+		if len(queue) > 0 {
+			worklength := (len(queue)-1)/s.workers + 1
+
+			for workerindex := 0; workerindex < s.workers; workerindex++ {
+				workslice = queue[min(workerindex*worklength, len(queue)):min((workerindex+1)*worklength, len(queue))]
+
+				wg.Add(1)
+				go func(ids []interface{}) {
+					defer wg.Done()
+					if err := f(ids); err != nil {
+						finish <- State{Err: err, Code: StateError}
+						return
+					}
+				}(workslice)
+			}
+			wg.Wait()
 		}
-		for workerindex := 0; workerindex < s.workers; workerindex++ {
-
-			workslice = queue[min(workerindex*worklength, len(queue)):min((workerindex+1)*worklength, len(queue))]
-
-			wg.Add(1)
-			go func(ids []interface{}) {
-				defer wg.Done()
-				if err := f(ids); err != nil {
-					finish <- State{Err: err, Code: StateError}
-					return
-				}
-			}(workslice)
-		}
-
-		wg.Wait()
 		finish <- State{Err: nil, Code: StateFinish}
 	}()
 	return finish
