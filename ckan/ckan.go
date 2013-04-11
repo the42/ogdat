@@ -23,7 +23,7 @@ func (p *Portal) GetAllMetaDataIDs() ([]string, error) {
 	var allsets []string
 
 	alldataseturl, _ := url.Parse(alldatasets)
-	jsonstream, err := getjson(alldataseturl.String(), false)
+	jsonstream, err := getjson(p.ResolveReference(alldataseturl).String(), false)
 	if err != nil {
 		return nil, err
 	}
