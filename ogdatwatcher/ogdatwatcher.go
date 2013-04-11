@@ -165,7 +165,7 @@ func mymain() int {
 	lockfile.WriteInfo()
 
 	// When the process gets killed, try to delete the lock file
-	interrupt := make(chan os.Signal, 1)
+	interrupt := make(chan os.Signal)
 	signal.Notify(interrupt, os.Interrupt)
 	go func() {
 		<-interrupt

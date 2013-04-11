@@ -57,7 +57,7 @@ func GetDatabaseConnection() *sql.DB {
 }
 
 func (conn *DBConn) GetLastHit() (*time.Time, error) {
-	row := conn.QueryRow("SELECT getlasttimestamp()")
+	row := conn.QueryRow("SELECT MAX(hittime) FROM status WHERE status != 'deleted'")
 
 	var t pq.NullTime
 	if err := row.Scan(&t); err != nil {
@@ -70,7 +70,7 @@ func (conn *DBConn) GetLastHit() (*time.Time, error) {
 }
 
 func (conn *DBConn) ResetDatabase() error {
-	_, err := conn.Exec("SELECT deleteallentries()")
+	_, err := conn.Exec("DELETE FROM status; DELETE FROM dataset;")
 	if err != nil {
 		return err
 	}
@@ -218,7 +218,7 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, boo
 func (conn *DBConn) ProtocollCheck(id DBID, isnew bool, messages []ogdat.CheckMessage) error {
 
 	// This is append only; revise later if it should also delete or update entries.
-	const insstmt = "SELECT insertstatus($1, $2, $3, $4, $5)"
+	const insstmt = "INSERT INTO status(datasetid, field_id, status, reason_text, hittime) VALUES ($1, $2, $3, $4, $5)"
 
 	var stmt *sql.Stmt
 	var err error
@@ -228,17 +228,15 @@ func (conn *DBConn) ProtocollCheck(id DBID, isnew bool, messages []ogdat.CheckMe
 
 	// get time here and not within the loop so we have a grouping possibilitiy
 	t := time.Now().UTC()
-	var s string
+	var status string
 	for _, msg := range messages {
 		switch msg.Type {
 		case ogdat.Error, ogdat.StructuralError:
-			s = "error"
+			status = "error"
 		default:
-			s = "warning"
+			status = "warning"
 		}
-		// actually an .Exec would we enough here, but as we call select at least something gets returned
-		var dbret string
-		if err = stmt.QueryRow(id, msg.OGDID, s, msg.Text, t).Scan(&dbret); err != nil {
+		if _, err = stmt.Exec(id, msg.OGDID, status, msg.Text, t); err != nil {
 			return fmt.Errorf("Error inserting status for datasetid %d, fieldid %d: %s", id, msg.OGDID, err)
 		}
 	}
