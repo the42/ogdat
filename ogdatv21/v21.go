@@ -3,6 +3,7 @@ package ogdatv21
 import (
 	"code.google.com/p/go-uuid/uuid"
 	"encoding/json"
+	"errors"
 	"github.com/the42/ogdat"
 	"net/url"
 	"reflect"
@@ -263,16 +264,34 @@ func (kat *Kategorie) UnmarshalJSON(data []byte) error {
 }
 
 func (kat *MetaDataKategorie) UnmarshalJSON(data []byte) error {
-	if len(data) > 0 && data[0] == '"' {
-		kat.isstring = true
-		var embeddedarray string
-		e := json.Unmarshal(data, &embeddedarray)
-		if e != nil {
-			return e
+	if len(data) > 1 {
+		// Some specify the category as an embedded array ...
+		if data[0] == '"' && data[1] == '[' {
+			kat.isstring = true
+			var embeddedarray string
+			e := json.Unmarshal(data, &embeddedarray)
+			if e != nil {
+				return e
+			}
+			data = []byte(embeddedarray)
 		}
-		data = []byte(embeddedarray)
+		// .. that's how it should be ...
+		if data[0] == '[' {
+			return json.Unmarshal(data, (*[]Kategorie)(&kat.Kategorie))
+		}
+		// and some only specify a single string
+		if data[0] == '"' {
+			kat.isstring = true
+			var cat Kategorie
+			e := json.Unmarshal(data, &cat)
+			if e != nil {
+				return e
+			}
+			kat.Kategorie = append(kat.Kategorie, cat)
+			return nil
+		}
 	}
-	return json.Unmarshal(data, (*[]Kategorie)(&kat.Kategorie))
+	return errors.New("MetaDataKategorie: Unknow structure to unmarshal")
 }
 
 /// END:check wheater this code may be factored out
