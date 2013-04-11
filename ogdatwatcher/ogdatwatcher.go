@@ -100,7 +100,7 @@ func processmetadataids(conn *DBConn, processids []string) error {
 	nums := len(processids)
 	for idx, id := range processids {
 
-		logger.Printf("%4d / %4d : processing %v\n", idx, nums, id)
+		logger.Printf("%4d / %4d : processing %v\n", idx+1, nums, id)
 
 		mdjson, err := portal.GetDatasetStreamforID(id, true)
 		if err != nil {
@@ -126,6 +126,7 @@ func processmetadataids(conn *DBConn, processids []string) error {
 			return fmt.Errorf("ProtocollCheck: database error at id %v: %s", id, err)
 		}
 	}
+	logger.Printf("Worker finished processing %d entries", nums)
 	return nil
 }
 
@@ -230,7 +231,7 @@ func mymain() int {
 					} else if workreply.Code == schedule.StateFinish {
 						tx.Commit()
 						db.LogMessage("Idle", StateOk, true)
-						logger.Println("Finished processing %d datasets", anzids)
+						logger.Printf("Finished processing %d datasets\n", anzids)
 					}
 				}
 
