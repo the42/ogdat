@@ -22,9 +22,7 @@ var db *DBConn
 var portal *ckan.Portal
 
 var resettdb = flag.Bool("resetdb", false, "Delete the tracking database. You will be prompted before actual deletion. Process will terminate afterwards.")
-var inittdb = flag.Bool("initdb", false, "Initialize the tracking database. In case there are old entries in the tracking database, use init in conjunction with reset. Process will terminate afterwards.")
 var servetdb = flag.Bool("serve", false, "Start in watchdog mode. Process will continue to run until it receives a (clean shutdown) or gets killed")
-var DEBUG = flag.Bool("DEBUG", false, "DEBUG MODE")
 
 func gotyesonprompt() bool {
 	var prompt string
@@ -60,14 +58,6 @@ func getckanurl() (url string) {
 		url = CKAN_URL
 	}
 	return
-}
-
-func initdb() {
-	if err := db.CreateDatabase(); err != nil {
-		s := fmt.Sprintf("Database initialisation failed: %s", err)
-		fmt.Println(s)
-		logger.Panic(s)
-	}
 }
 
 func resetdb() {
@@ -122,7 +112,7 @@ func processmetadataids(conn *DBConn, processids []string) error {
 			return fmt.Errorf("Cannot access metadata for ID %v: %s", id, err)
 		}
 
-		dbdatasetid, isnew, err := conn.InsertOrUpdateMetadataInfo(md)
+		dbdatasetid, isnew, err := conn.InsertOrUpdateMetadataInfo(id, md)
 		if err != nil {
 			return fmt.Errorf("InsertOrUpdateMetadataInfo: database error at id %v: %s", id, err)
 		}
@@ -178,13 +168,8 @@ func mymain() int {
 	db = &DBConn{dbconnection, AppID}
 	defer dbconnection.Close()
 
-	if *resettdb || *inittdb {
-		if *inittdb {
-			initdb()
-		}
-		if *resettdb {
-			resetdb()
-		}
+	if *resettdb {
+		resetdb()
 		logger.Println("Info: Earyl exit due to maintainance switches")
 		return 2
 	}
@@ -213,6 +198,12 @@ func mymain() int {
 			} else {
 				logger.Printf("Getting changed datasets since %s\n", hit)
 				processids, err = portal.GetChangedPackageIDsSince(*hit, numworkers)
+			}
+
+			if err != nil {
+				fmt.Println(err)
+				logger.Panic(err)
+
 			}
 
 			if anzids := len(processids); anzids > 0 {

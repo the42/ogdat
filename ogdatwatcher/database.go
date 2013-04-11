@@ -77,14 +77,6 @@ func (conn *DBConn) ResetDatabase() error {
 	return nil
 }
 
-func (conn *DBConn) CreateDatabase() error {
-	_, err := conn.Exec(postgresdbcreatestatement)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // Deliberately use no stored procedures
 func (conn *DBConn) HeartBeat() error {
 	const (
@@ -166,9 +158,9 @@ func DBStringLen(in string, length int) string {
 	return string(rs[:min(length, len(rs))])
 }
 
-func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, bool, error) {
+func (conn *DBConn) InsertOrUpdateMetadataInfo(ckanid string, md *ogdatv21.MetaData) (DBID, bool, error) {
 	// insertorupdatemetadatainfo(id character varying, pub character varying, cont character varying, descr text, vers character varying, category json, stime timestamp with time zone)
-	const stmt = "SELECT * FROM insertorupdatemetadatainfo($1, $2, $3, $4, $5, $6, $7)"
+	const stmt = "SELECT * FROM insertorupdatemetadatainfo($1, $2, $3, $4, $5, $6, $7, $8)"
 
 	if md == nil {
 		return -1, false, fmt.Errorf("No input to process")
@@ -206,7 +198,7 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(md *ogdatv21.MetaData) (DBID, boo
 
 	var sysid DBID
 	var isnew bool
-	err = dbs.QueryRow(id, pub, maint, desc, vers, string(cat), t).Scan(&sysid, &isnew)
+	err = dbs.QueryRow(ckanid, id, pub, maint, desc, vers, string(cat), t).Scan(&sysid, &isnew)
 
 	if err != nil {
 		return -1, false, err
@@ -242,134 +234,3 @@ func (conn *DBConn) ProtocollCheck(id DBID, isnew bool, messages []ogdat.CheckMe
 	}
 	return nil
 }
-
-const postgresdbcreatestatement = `
-SET statement_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = off;
-SET check_function_bodies = false;
-SET client_min_messages = warning;
-SET escape_string_warning = off;
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-CREATE TYPE odcategory AS ENUM (
-    'arbeit',
-    'bevölkerung',
-    'bildung-und-forschung',
-    'finanzen-und-rechnungswesen',
-    'geographie-und-planung',
-    'gesellschaft-und-soziales',
-    'gesundheit',
-    'kunst-und-kultur',
-    'land-und-forstwirtschaft',
-    'sport-und-freizeit',
-    'umwelt',
-    'verkehr-und-technik',
-    'verwaltung-und-politik',
-    'wirtschaft-und-tourismus'
-);
-CREATE TYPE odstatus AS ENUM (
-    'updated',
-    'inserted',
-    'deleted',
-    'error_fix',
-    'warning_fix',
-    'warning',
-    'error'
-);
-
-CREATE FUNCTION deleteallentries() RETURNS void
-    LANGUAGE sql
-    AS $$
-delete from status;
--- insert into status(reason_text) values('Hallo');
-delete from dataset;
-$$;
-
-CREATE FUNCTION getlasttimestamp() RETURNS timestamp with time zone
-    LANGUAGE sql
-    AS $$select max(hittime) from status;$$;
-
-SET default_tablespace = '';
-
-SET default_with_oids = false;
-
-CREATE TABLE dataset (
-    sysid integer NOT NULL,
-    id character varying(255) NOT NULL,
-    publisher character varying(255),
-    contact character varying(255) NOT NULL,
-    description text,
-    version character varying(20) DEFAULT 'v1'::character varying NOT NULL,
-    category json
-);
-
-CREATE SEQUENCE dataset_sysid_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE dataset_sysid_seq OWNED BY dataset.sysid;
-
-SELECT pg_catalog.setval('dataset_sysid_seq', 1, true);
-
-CREATE TABLE heartbeat (
-    sysid integer NOT NULL,
-    "when" timestamp with time zone,
-    statustext character varying(255),
-    fetchtime timestamp with time zone,
-    statuscode smallint
-);
-
-CREATE SEQUENCE heartbeat_sysid_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE heartbeat_sysid_seq OWNED BY heartbeat.sysid;
-
-SELECT pg_catalog.setval('heartbeat_sysid_seq', 1, false);
-
-CREATE TABLE status (
-    sysid integer NOT NULL,
-    datasetid integer NOT NULL,
-    reason_text character varying(255),
-    field_id integer,
-    hittime timestamp with time zone,
-    status odstatus
-);
-
-CREATE SEQUENCE status_sysid_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE status_sysid_seq OWNED BY status.sysid;
-
-SELECT pg_catalog.setval('status_sysid_seq', 1, true);
-
-
-ALTER TABLE ONLY dataset ALTER COLUMN sysid SET DEFAULT nextval('dataset_sysid_seq'::regclass);
-
-ALTER TABLE ONLY heartbeat ALTER COLUMN sysid SET DEFAULT nextval('heartbeat_sysid_seq'::regclass);
-
-ALTER TABLE ONLY status ALTER COLUMN sysid SET DEFAULT nextval('status_sysid_seq'::regclass);
-
-
-ALTER TABLE ONLY heartbeat
-    ADD CONSTRAINT pk_sysid PRIMARY KEY (sysid);
-
-ALTER TABLE ONLY dataset
-    ADD CONSTRAINT pkey PRIMARY KEY (sysid);
-
-ALTER TABLE ONLY status
-    ADD CONSTRAINT status_pkey PRIMARY KEY (sysid);
-
-ALTER TABLE ONLY status
-    ADD CONSTRAINT status_datasetid_fkey FOREIGN KEY (datasetid) REFERENCES dataset(sysid);
-`
