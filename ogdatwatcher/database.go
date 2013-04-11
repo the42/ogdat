@@ -171,8 +171,15 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(ckanid string, md *ogdatv21.MetaD
 		return -1, false, err
 	}
 
-	id := DBStringLen(md.Metadata_Identifier.String(), 255)
-	maint := DBStringLen(md.Maintainer_Link.String(), 255)
+	var id, maint *string
+	if md.Metadata_Identifier != nil {
+		id = new(string)
+		*id = DBStringLen(md.Metadata_Identifier.String(), 255)
+	}
+	if md.Maintainer_Link != nil {
+		maint = new(string)
+		*maint = DBStringLen(md.Maintainer_Link.String(), 255)
+	}
 
 	pub := md.Publisher
 	if pub != nil {
