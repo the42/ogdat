@@ -77,14 +77,8 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 						Text:  resourceno + fmt.Sprintf(expectedlink, element.Url.Raw)})
 					continue
 				}
-				if ok, err := ogdat.CheckUrl(element.Url.Raw, followhttplinks); !ok {
-					if cerr, ok := err.(*ogdat.CheckError); ok {
-						message = append(message, ogdat.CheckMessage{
-							Type:  cerr.Status,
-							OGDID: desc.ID,
-							Text:  resourceno + cerr.Error()})
-					}
-				}
+				_, checkresult := ogdat.CheckUrl(element.Url.Raw, followhttplinks)
+				message = ogdat.AppendcheckerrorTocheckmessage(message, checkresult, desc.ID, "")
 			case "resource_format":
 				const checkchars = `.:/\`
 				format := string(*element.Format)
@@ -388,14 +382,8 @@ nextbeschreibung:
 						OGDID: elm.ID,
 						Text:  fmt.Sprintf(expectedlink, element.Raw)})
 				} else {
-					if ok, err := ogdat.CheckUrl(element.Raw, followhttplinks); !ok {
-						if cerr, ok := err.(*ogdat.CheckError); ok {
-							message = append(message, ogdat.CheckMessage{
-								Type:  cerr.Status,
-								OGDID: elm.ID,
-								Text:  cerr.Error()})
-						}
-					}
+					_, checkresult := ogdat.CheckUrl(element.Raw, followhttplinks)
+					message = ogdat.AppendcheckerrorTocheckmessage(message, checkresult, elm.ID, "")
 				}
 			}
 		case "attribute_description":
@@ -430,14 +418,8 @@ nextbeschreibung:
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf(expectedlink, link.Raw)})
 			} else {
-				if ok, err := ogdat.CheckUrl(link.Raw, followhttplinks); !ok {
-					if cerr, ok := err.(*ogdat.CheckError); ok {
-						message = append(message, ogdat.CheckMessage{
-							Type:  cerr.Status,
-							OGDID: elm.ID,
-							Text:  cerr.Error()})
-					}
-				}
+				_, checkresult := ogdat.CheckUrl(link.Raw, followhttplinks)
+				message = ogdat.AppendcheckerrorTocheckmessage(message, checkresult, elm.ID, "")
 			}
 		case "publisher":
 			publisher := md.Extras.Publisher

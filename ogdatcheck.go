@@ -24,6 +24,7 @@ const (
 const (
 	StructuralError  = 0x8000
 	NoDataatUrlError = 0x4000
+	FetchableUrl     = 0x2000
 )
 
 var isolangfilemap map[string]*ISO6392Lang = nil
@@ -209,19 +210,25 @@ func CheckOGDBBox(str string) (bool, error) {
 
 var regexpEMail = regexp.MustCompile(`(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`)
 
-func CheckUrl(url string, followhttplink bool) (bool, error) {
+func CheckUrl(url string, followhttplink bool) (bool, []CheckError) {
 	// it's a contact point if it's a http-link (starts with "http(s)" )
+	var checkmessages []CheckError
+	ok := true
 	if len(url) >= 4 && url[:4] == "http" {
+		checkmessages = append(checkmessages, CheckError{Info | FetchableUrl, -1, url})
 		if followhttplink {
 			resp, err := http.Head(url)
 			if err != nil {
-				return false, &CheckError{Error | NoDataatUrlError, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)}
-			}
-			if sc := resp.StatusCode; sc != 200 {
-				return false, &CheckError{Error, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)}
+				ok = false
+				checkmessages = append(checkmessages, CheckError{Error | NoDataatUrlError, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)})
+			} else {
+				if sc := resp.StatusCode; sc != 200 {
+					ok = false
+					checkmessages = append(checkmessages, CheckError{Error, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)})
+				}
 			}
 		}
-		return true, nil
+		return ok, checkmessages
 	}
 	// it's a contact point if it's an email address
 	if idx := regexpEMail.FindStringIndex(url); idx != nil {
@@ -229,10 +236,13 @@ func CheckUrl(url string, followhttplink bool) (bool, error) {
 	}
 
 	if len(url) == 0 {
-		return false, &CheckError{Error, -1, "kein Wert für Link angegeben (Länge 0)"}
+		checkmessages = append(checkmessages, CheckError{Error, -1, "kein Wert für Link angegeben (Länge 0)"})
+		return false, checkmessages
 	}
 
-	return false, &CheckError{Warning, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])}
+	checkmessages = append(checkmessages, CheckError{Warning, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])})
+
+	return false, checkmessages
 }
 
 type CheckMessage struct {
@@ -244,6 +254,16 @@ type CheckMessage struct {
 
 type Checker interface {
 	Check(bool) ([]CheckMessage, error)
+}
+
+func AppendcheckerrorTocheckmessage(msgs []CheckMessage, checkresults []CheckError, ID int, prepend string) []CheckMessage {
+	for _, result := range checkresults {
+		msgs = append(msgs, CheckMessage{
+			Type:  result.Status,
+			OGDID: ID,
+			Text:  prepend + result.message})
+	}
+	return msgs
 }
 
 func Loadogdatspec(version, filename string) (*OGDSet, error) {
