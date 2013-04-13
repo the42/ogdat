@@ -217,7 +217,7 @@ func (conn *DBConn) InsertOrUpdateMetadataInfo(ckanid string, md *ogdatv21.MetaD
 func (conn *DBConn) ProtocollCheck(id DBID, isnew bool, messages []ogdat.CheckMessage) error {
 
 	// This is append only; revise later if it should also delete or update entries.
-	const insstmt = "INSERT INTO status(datasetid, field_id, status, reason_text, hittime) VALUES ($1, $2, $3, $4, $5)"
+	const insstmt = "INSERT INTO status(datasetid, field_id, status, fieldstatus, reason_text, hittime) VALUES ($1, $2, $3, $4, $5, $6)"
 
 	var stmt *sql.Stmt
 	var err error
@@ -229,13 +229,15 @@ func (conn *DBConn) ProtocollCheck(id DBID, isnew bool, messages []ogdat.CheckMe
 	t := time.Now().UTC()
 	var status string
 	for _, msg := range messages {
-		switch msg.Type {
-		case ogdat.Error, ogdat.StructuralError:
+		switch {
+		case (msg.Type & ogdat.Error) != 0:
 			status = "error"
-		default:
+		case (msg.Type & ogdat.Warning) != 0:
 			status = "warning"
+		case (msg.Type & ogdat.Info) != 0:
+			status = "info"
 		}
-		if _, err = stmt.Exec(id, msg.OGDID, status, msg.Text, t); err != nil {
+		if _, err = stmt.Exec(id, msg.OGDID, status, msg.Type, msg.Text, t); err != nil {
 			return fmt.Errorf("Error inserting status for datasetid %d, fieldid %d: %s", id, msg.OGDID, err)
 		}
 	}
