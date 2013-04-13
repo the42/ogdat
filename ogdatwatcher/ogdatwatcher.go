@@ -39,7 +39,7 @@ func getheartbeatinterval() int {
 	if i, err := strconv.Atoi(os.Getenv("HEARTBEAT_INTERVAL")); err == nil {
 		return i
 	}
-	return 10 // Minutes
+	return 60 // Minutes
 }
 
 func getnumworkers() int {
@@ -183,6 +183,8 @@ func mymain() int {
 
 		logger.Printf("Doing %d jobs in parallel\n", numworkers)
 		go heartbeat(heartbeatinterval)
+		
+		urlcheckpointchan := time.Tick(1 * time.Hour * 24)
 
 		for {
 			hit, err := db.GetLastHit()
@@ -239,6 +241,17 @@ func mymain() int {
 				// When there was nothing to do, wait for heartbeatinterval time
 				logger.Printf("Nothing to do, sleeping for %d minutes\n", heartbeatinterval)
 				time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
+			}
+			
+			// Check urls once a day, and when there is an error, report
+			for _ = range urlcheckpointchan {
+				// get all urls to check
+				// = jene, die als fetchable eingestuft sind nicht mit einem strukturellen Problem belegt sind
+				// = und die im bezug auf den datensatz am aktuellesten im statusrecord sind (group by time)
+				
+				// schedule check:
+				// getable: OK <-- what to do, when last check was 'not getable'?
+				// report result
 			}
 		}
 	}
