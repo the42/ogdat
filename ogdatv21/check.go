@@ -40,7 +40,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 	}
 
 	if md.Resource == nil || len(md.Resource) == 0 {
-		message = append(message, ogdat.CheckMessage{Type: ogdat.StructuralError, OGDID: -1,
+		message = append(message, ogdat.CheckMessage{Type: ogdat.Error | ogdat.StructuralError, OGDID: -1,
 			Text: "Die Metadatenbeschreibung enthält keine Ressourcen"})
 	}
 
@@ -269,7 +269,7 @@ nextbeschreibung:
 			} else {
 				if cat.isstring {
 					message = append(message, ogdat.CheckMessage{
-						Type:  ogdat.StructuralError,
+						Type:  ogdat.Error | ogdat.StructuralError,
 						OGDID: elm.ID,
 						Text:  "Kategorisierung muss als Array übergeben werden, ist aber als string spezifiziert"})
 

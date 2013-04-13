@@ -16,10 +16,14 @@ import (
 )
 
 const (
-	Info            = 1
-	Warning         = 2
-	Error           = 3
-	StructuralError = 4
+	Info    = 1 << iota
+	Warning = 1 << iota
+	Error   = 1 << iota
+)
+
+const (
+	StructuralError  = 0x8000
+	NoDataatUrlError = 0x4000
 )
 
 var isolangfilemap map[string]*ISO6392Lang = nil
@@ -211,7 +215,7 @@ func CheckUrl(url string, followhttplink bool) (bool, error) {
 		if followhttplink {
 			resp, err := http.Head(url)
 			if err != nil {
-				return false, &CheckError{Error, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)}
+				return false, &CheckError{Error | NoDataatUrlError, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)}
 			}
 			if sc := resp.StatusCode; sc != 200 {
 				return false, &CheckError{Error, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)}
@@ -232,7 +236,7 @@ func CheckUrl(url string, followhttplink bool) (bool, error) {
 }
 
 type CheckMessage struct {
-	Type    int // 1 = Info, 2 = Warning, 3 = Error, 4 = StructuralError
+	Type    int // 1 = Info, 2 = Warning, 4 = Error, ...
 	Text    string
 	OGDID   int
 	Context string
