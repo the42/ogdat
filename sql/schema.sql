@@ -5,7 +5,8 @@ CREATE TYPE odstatus AS ENUM (
     'error_fix',
     'warning_fix',
     'warning',
-    'error'
+    'error',
+    'info'
 );
 
 CREATE TABLE dataset (
@@ -51,7 +52,8 @@ CREATE TABLE status (
     reason_text text,
     field_id integer,
     hittime timestamp with time zone,
-    status odstatus
+    status odstatus,
+    fieldstatus integer
 );
 
 CREATE SEQUENCE status_sysid_seq
@@ -83,6 +85,8 @@ CREATE INDEX dataset_publisher ON dataset USING btree (publisher);
 CREATE INDEX status_hittime ON status USING btree (hittime);
 
 CREATE INDEX status_status ON status USING btree (status);
+
+CREATE INDEX status_fieldstatus ON status USING btree (fieldstatus);
 
 ALTER TABLE ONLY status
     ADD CONSTRAINT status_datasetid_fkey FOREIGN KEY (datasetid) REFERENCES dataset(sysid);
