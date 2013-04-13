@@ -20,7 +20,11 @@ var ofs = flag.String("ofs", "", "Dateiname, unter dem nur die relevanten OGD-Me
 var followlinks = flag.Bool("follow", false, "Sollen http(s)-Links in den Metadaten auf Verfügbarkeit überprüft werden? Werte: {true|false}, Standard: false")
 var version = flag.String("version", "", "Version, nach der das OGD Metadatendokument überprüft werden soll. Werte: {V20|V21}")
 
-var labels = []string{"Info", "Warning", "Error", "StructuralError"}
+var labels = map[int]string{
+	ogdat.Info:    "Info",
+	ogdat.Warning: "Warning",
+	ogdat.Error:   "Error",
+}
 
 func mymain() int {
 	flag.Parse()
@@ -97,10 +101,11 @@ func mymain() int {
 	}
 
 	if fmsgs := len(msgs); fmsgs > 0 {
-		fmt.Printf("%d Fehler gefunden:\n", fmsgs)
+		fmt.Printf("%d Informationspunkte gefunden:\n", fmsgs)
 		for idx, val := range msgs {
 			_, fieldname := set.GetBeschreibungForID(val.OGDID)
-			fmt.Printf("%d: %s: %s [%d]: %s\n", idx, labels[val.Type-1], fieldname, val.OGDID, val.Text)
+			// val.Type & 7 : filter higher informative flags
+			fmt.Printf("%d: %s:(%d) %s [%d]: %s\n", idx+1, labels[val.Type&7], val.Type, fieldname, val.OGDID, val.Text)
 		}
 		return 1
 	}
