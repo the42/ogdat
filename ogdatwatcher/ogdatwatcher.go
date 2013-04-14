@@ -183,7 +183,7 @@ func mymain() int {
 
 		logger.Printf("Doing %d jobs in parallel\n", numworkers)
 		go heartbeat(heartbeatinterval)
-		
+
 		urlcheckpointchan := time.Tick(1 * time.Hour * 24)
 
 		for {
@@ -237,22 +237,30 @@ func mymain() int {
 					}
 				}
 
-			} else {
-				// When there was nothing to do, wait for heartbeatinterval time
-				logger.Printf("Nothing to do, sleeping for %d minutes\n", heartbeatinterval)
-				time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
 			}
-			
-			// Check urls once a day, and when there is an error, report
+
+			// Check urls once a day?, and when there is an error, report
 			for _ = range urlcheckpointchan {
 				// get all urls to check
-				// = jene, die als fetchable eingestuft sind nicht mit einem strukturellen Problem belegt sind
-				// = und die im bezug auf den datensatz am aktuellesten im statusrecord sind (group by time)
-				
+
+				// 				SELECT t.reason_text, t.datasetid, t.hittime
+				// 				FROM status AS t
+				// 				where t.hittime=
+				// 				(SELECT MAX(hittime)
+				// 					FROM status
+				// 					WHERE datasetid = t.datasetid)
+				// 				and fieldstatus = 8193
+				// 				order by datasetid
+
 				// schedule check:
 				// getable: OK <-- what to do, when last check was 'not getable'?
 				// report result
 			}
+
+			// Wait for heartbeatinterval time
+			logger.Printf("Nothing to do, sleeping for %d minutes\n", heartbeatinterval)
+			time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
+
 		}
 	}
 	return 0
