@@ -239,8 +239,8 @@ func mymain() int {
 
 			}
 
-			// Check urls once a day?, and when there is an error, report
-			for _ = range urlcheckpointchan {
+			select {
+				case <-urlcheckpointchan :
 				// get all urls to check
 
 				// 				SELECT t.reason_text, t.datasetid, t.hittime
@@ -255,12 +255,11 @@ func mymain() int {
 				// schedule check:
 				// getable: OK <-- what to do, when last check was 'not getable'?
 				// report result
+					
+				default:
+					logger.Printf("Nothing to do, sleeping for %d minutes\n", heartbeatinterval)
+					time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
 			}
-
-			// Wait for heartbeatinterval time
-			logger.Printf("Nothing to do, sleeping for %d minutes\n", heartbeatinterval)
-			time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
-
 		}
 	}
 	return 0
