@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"github.com/the42/ogdat/ckan"
@@ -143,6 +144,59 @@ func heartbeat(interval int) {
 	}
 }
 
+func checkdata(dbconnection *sql.DB) error {
+
+	hit, err := db.GetLastHit()
+	if err != nil {
+		return fmt.Errorf("Cannot read last DBHit: %s", err)
+	}
+
+	var processids []string
+	if hit == nil {
+		logger.Println("No checkpoint in database found, getting all datasets")
+		processids, err = portal.GetAllMetaDataIDs()
+	} else {
+		logger.Printf("Getting changed datasets since %s\n", hit)
+		processids, err = portal.GetChangedPackageIDsSince(*hit, getnumworkers())
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if anzids := len(processids); anzids > 0 {
+
+		tx, err := dbconnection.Begin()
+		if err != nil {
+			return fmt.Errorf("Cannot create database transaction: %s", err)
+		}
+		scheduler := schedule.New(getnumworkers())
+		logger.Printf("Doing %d jobs in parallel\n", scheduler.GetWorkers())
+		conn := &DBConn{DBer: tx, appid: AppID}
+		f := func(slice []interface{}) error {
+			if err := processmetadataids(conn, ifaceslicetostring(slice)); err != nil {
+				return err
+			}
+			return nil
+		}
+
+		db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true)
+		workchannel := scheduler.Schedule(f, stringslicetoiface(processids))
+		select {
+		case workreply := <-workchannel:
+			if err := workreply.Err; err != nil {
+				return fmt.Errorf("Scheduler didn't return success: %s", err)
+			} else if workreply.Code == schedule.StateFinish {
+				tx.Commit()
+				db.LogMessage("Idle", StateOk, true)
+				logger.Printf("Finished processing %d datasets\n", anzids)
+			}
+		}
+
+	}
+	return nil
+}
+
 func mymain() int {
 
 	if flag.NFlag() == 0 {
@@ -179,86 +233,38 @@ func mymain() int {
 
 		portal = ckan.NewDataPortalAPIEndpoint(getckanurl(), "2/")
 		heartbeatinterval := getheartbeatinterval()
-		numworkers := getnumworkers()
-
-		logger.Printf("Doing %d jobs in parallel\n", numworkers)
 		go heartbeat(heartbeatinterval)
 
 		urlcheckpointchan := time.Tick(1 * time.Hour * 24)
+		datacheckpointchan := time.Tick(1 * time.Hour * 24)
 
 		for {
-			hit, err := db.GetLastHit()
-			if err != nil {
-				s := fmt.Sprintf("Cannot read last DBHit: %s", err)
-				fmt.Println(s)
-				logger.Panic(s)
+			if err := checkdata(dbconnection); err != nil {
+				logger.Panicln(err)
 			}
-
-			var processids []string
-			if hit == nil {
-				logger.Println("No checkpoint in database found, getting all datasets")
-				processids, err = portal.GetAllMetaDataIDs()
-			} else {
-				logger.Printf("Getting changed datasets since %s\n", hit)
-				processids, err = portal.GetChangedPackageIDsSince(*hit, numworkers)
-			}
-
-			if err != nil {
-				fmt.Println(err)
-				logger.Panic(err)
-
-			}
-
-			if anzids := len(processids); anzids > 0 {
-
-				tx, err := dbconnection.Begin()
-				if err != nil {
-					logger.Panicln("Cannot create database transaction")
-				}
-				scheduler := schedule.New(numworkers)
-				conn := &DBConn{DBer: tx, appid: AppID}
-				f := func(slice []interface{}) error {
-					if err := processmetadataids(conn, ifaceslicetostring(slice)); err != nil {
-						return err
-					}
-					return nil
-				}
-
-				db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true)
-				workchannel := scheduler.Schedule(f, stringslicetoiface(processids))
-				select {
-				case workreply := <-workchannel:
-					if err := workreply.Err; err != nil {
-						logger.Panicln("Scheduler didn't return success:", err)
-					} else if workreply.Code == schedule.StateFinish {
-						tx.Commit()
-						db.LogMessage("Idle", StateOk, true)
-						logger.Printf("Finished processing %d datasets\n", anzids)
-					}
-				}
-
-			}
-
 			select {
-				case <-urlcheckpointchan :
-				// get all urls to check
+			case <-urlcheckpointchan:
+			// get all urls to check
 
-				// 				SELECT t.reason_text, t.datasetid, t.hittime
-				// 				FROM status AS t
-				// 				where t.hittime=
-				// 				(SELECT MAX(hittime)
-				// 					FROM status
-				// 					WHERE datasetid = t.datasetid)
-				// 				and fieldstatus = 8193
-				// 				order by datasetid
+			// 				SELECT t.reason_text, t.datasetid, t.hittime
+			// 				FROM status AS t
+			// 				where t.hittime=
+			// 				(SELECT MAX(hittime)
+			// 					FROM status
+			// 					WHERE datasetid = t.datasetid)
+			// 				and fieldstatus = 8193
+			// 				order by datasetid
 
-				// schedule check:
-				// getable: OK <-- what to do, when last check was 'not getable'?
-				// report result
-					
-				default:
-					logger.Printf("Nothing to do, sleeping for %d minutes\n", heartbeatinterval)
-					time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
+			// schedule check:
+			// getable: OK <-- what to do, when last check was 'not getable'?
+			// report result
+			case <-datacheckpointchan:
+				if err := checkdata(dbconnection); err != nil {
+					logger.Panicln(err)
+				}
+			default:
+				logger.Printf("Nothing to do, sleeping for %d minutes\n", heartbeatinterval)
+				time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
 			}
 		}
 	}
