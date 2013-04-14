@@ -102,7 +102,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					continue
 				}
 				if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*resname); !ok {
-					if cerr, ok := err.(*ogdat.CheckError); ok {
+					if cerr, ok := err.(*ogdat.CheckInfo); ok {
 						message = append(message, ogdat.CheckMessage{
 							Type:  cerr.Status,
 							OGDID: desc.ID,
@@ -235,7 +235,7 @@ nextbeschreibung:
 			// should this tool also check for spelling mistakes?
 			// Don't think so, it does only check for adherence to the specification
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Title); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -247,7 +247,7 @@ nextbeschreibung:
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Description); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -290,7 +290,7 @@ nextbeschreibung:
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.Maintainer); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -302,7 +302,7 @@ nextbeschreibung:
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*md.License); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -323,7 +323,7 @@ nextbeschreibung:
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*schemaname); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -400,7 +400,7 @@ nextbeschreibung:
 
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*desc); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -427,7 +427,7 @@ nextbeschreibung:
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*publisher); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -440,7 +440,7 @@ nextbeschreibung:
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*toponym); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -486,7 +486,7 @@ nextbeschreibung:
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*quality); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -499,7 +499,7 @@ nextbeschreibung:
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*en_desc); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,
@@ -512,7 +512,7 @@ nextbeschreibung:
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*licensecit); !ok {
-				if cerr, ok := err.(*ogdat.CheckError); ok {
+				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
 						Type:  cerr.Status,
 						OGDID: elm.ID,

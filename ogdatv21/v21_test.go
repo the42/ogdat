@@ -35,7 +35,11 @@ var checkTests = []checkTest{
 	//
 	{ // invalid url
 		&checkRequest{"file14a.json", false},
-		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Error, OGDID: 14}, {Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 6}, {Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 13}}},
+		&checkResponse{message: []ogdat.CheckMessage{
+			{Type: ogdat.Error, OGDID: 14},
+			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 6},
+			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 13},
+		}},
 	},
 	{ // unknown protocoll in url
 		&checkRequest{"file14b.json", false},
@@ -242,17 +246,26 @@ var checkTests = []checkTest{
 	// #### check for the links
 	{ // this dataset exists ....
 		&checkRequest{"file14c.json", true},
-		&checkResponse{message: []ogdat.CheckMessage{{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 14}, {Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 6},
-			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 13}}},
+		&checkResponse{message: []ogdat.CheckMessage{
+			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 14},
+			{Type: ogdat.Info | ogdat.FetchableUrl | ogdat.FetchSuccess, OGDID: 14},
+			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 6},
+			{Type: ogdat.Info | ogdat.FetchableUrl | ogdat.FetchSuccess, OGDID: 6},
+			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 13},
+			{Type: ogdat.Info | ogdat.FetchableUrl | ogdat.FetchSuccess, OGDID: 13},
+		}},
 	},
 	{ // some of those not
 		&checkRequest{"actualtestfile1.json", true},
 		&checkResponse{message: []ogdat.CheckMessage{
 			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 14},
+			{Type: ogdat.Info | ogdat.FetchableUrl | ogdat.FetchSuccess, OGDID: 14},
 			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 14},
-			{Type: ogdat.Error | ogdat.NoDataatUrlError, OGDID: 14},
+			{Type: ogdat.Error | ogdat.FetchableUrl | ogdat.NoDataatUrlError, OGDID: 14},
 			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 14},
+			{Type: ogdat.Info | ogdat.FetchableUrl | ogdat.FetchSuccess, OGDID: 14},
 			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 14},
+			{Type: ogdat.Info | ogdat.FetchableUrl | ogdat.FetchSuccess, OGDID: 14},
 			{Type: ogdat.Warning, OGDID: 15},
 			{Type: ogdat.Error, OGDID: 5},
 			{Type: ogdat.Error, OGDID: 9},

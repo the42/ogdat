@@ -25,6 +25,7 @@ const (
 	StructuralError  = 0x8000
 	NoDataatUrlError = 0x4000
 	FetchableUrl     = 0x2000
+	FetchSuccess     = 0x1000
 )
 
 var isolangfilemap map[string]*ISO6392Lang = nil
@@ -123,13 +124,13 @@ func min(a, b int) int {
 	return b
 }
 
-type CheckError struct {
+type CheckInfo struct {
 	Status, Position int
-	message          string
+	Context          string
 }
 
-func (ce *CheckError) Error() string {
-	return ce.message
+func (c *CheckInfo) Error() string {
+	return c.Context
 }
 
 func strrange(minrange, maxrange, idx int, s string) string {
@@ -173,25 +174,25 @@ var regexpposixescape = regexp.MustCompile(`\\n|\\b|\\v|\\t|\\r`)
 // message: An error message describing the problem
 func CheckOGDTextStringForSaneCharacters(str string) (ok bool, _ error) {
 	if !utf8.ValidString(str) {
-		return false, &CheckError{Error, 0, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
+		return false, &CheckInfo{Error, 0, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
 	for idx, val := range str {
 		if val == unicode.ReplacementChar {
-			return false, &CheckError{Error, idx, fmt.Sprintf("Ungültige Unicode-Sequenz: '0x%x' (Bereich '%s')", val, strrange(-20, 20, idx, str))}
+			return false, &CheckInfo{Error, idx, fmt.Sprintf("Ungültige Unicode-Sequenz: '0x%x' (Bereich '%s')", val, strrange(-20, 20, idx, str))}
 		}
 	}
 
 	if idx := regexphtmlcodecheck.FindStringIndex(str); idx != nil {
-		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", strrange(-10, 10, idx[0], str))}
+		return false, &CheckInfo{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Sequenz: '%s'", strrange(-10, 10, idx[0], str))}
 	}
 	if idx := regexphtmlescape.FindStringIndex(str); idx != nil {
-		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", strrange(-8, 8, idx[0], str))}
+		return false, &CheckInfo{Warning, idx[0], fmt.Sprintf("Mögliche HTML-Escapes: '%s'", strrange(-8, 8, idx[0], str))}
 	}
 	if idx := regexpurlencode.FindStringIndex(str); idx != nil {
-		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", strrange(-6, 6, idx[0], str))}
+		return false, &CheckInfo{Warning, idx[0], fmt.Sprintf("Mögliche Url-Escapes: '%s'", strrange(-6, 6, idx[0], str))}
 	}
 	if idx := regexpposixescape.FindStringIndex(str); idx != nil {
-		return false, &CheckError{Warning, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", strrange(-6, 6, idx[0], str))}
+		return false, &CheckInfo{Warning, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", strrange(-6, 6, idx[0], str))}
 	}
 	return true, nil
 }
@@ -200,32 +201,34 @@ var regexpbboxWKT = regexp.MustCompile(`^POLYGON\s{0,1}\({1,2}\s{0,2}[-+]?[0-9]*
 
 func CheckOGDBBox(str string) (bool, error) {
 	if !utf8.ValidString(str) {
-		return false, &CheckError{Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
+		return false, &CheckInfo{Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
 	if idx := regexpbboxWKT.FindStringIndex(str); idx == nil {
-		return false, &CheckError{Error, -1, fmt.Sprintf("Keine gültige WKT-Angabe einer BoundingBox: '%s'", str)}
+		return false, &CheckInfo{Error, -1, fmt.Sprintf("Keine gültige WKT-Angabe einer BoundingBox: '%s'", str)}
 	}
 	return true, nil
 }
 
 var regexpEMail = regexp.MustCompile(`(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`)
 
-func CheckUrl(url string, followhttplink bool) (bool, []CheckError) {
+func CheckUrl(url string, followhttplink bool) (bool, []CheckInfo) {
 	// it's a contact point if it's a http-link (starts with "http(s)" )
-	var checkmessages []CheckError
+	var checkmessages []CheckInfo
 	ok := true
 	if len(url) >= 4 && url[:4] == "http" {
-		checkmessages = append(checkmessages, CheckError{Info | FetchableUrl, -1, url})
+		urlinfo := CheckInfo{Info | FetchableUrl, -1, url}
+		checkmessages = append(checkmessages, urlinfo)
 		if followhttplink {
 			resp, err := http.Head(url)
 			if err != nil {
 				ok = false
-				checkmessages = append(checkmessages, CheckError{Error | NoDataatUrlError, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)})
+				checkmessages = append(checkmessages, CheckInfo{Error | FetchableUrl | NoDataatUrlError, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)})
+			} else if sc := resp.StatusCode; sc != 200 {
+				ok = false
+				checkmessages = append(checkmessages, CheckInfo{Error | FetchableUrl | NoDataatUrlError, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)})
 			} else {
-				if sc := resp.StatusCode; sc != 200 {
-					ok = false
-					checkmessages = append(checkmessages, CheckError{Error, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)})
-				}
+				urlinfo.Status |= FetchSuccess
+				checkmessages = append(checkmessages, urlinfo)
 			}
 		}
 		return ok, checkmessages
@@ -236,11 +239,11 @@ func CheckUrl(url string, followhttplink bool) (bool, []CheckError) {
 	}
 
 	if len(url) == 0 {
-		checkmessages = append(checkmessages, CheckError{Error, -1, "kein Wert für Link angegeben (Länge 0)"})
+		checkmessages = append(checkmessages, CheckInfo{Error, -1, "kein Wert für Link angegeben (Länge 0)"})
 		return false, checkmessages
 	}
 
-	checkmessages = append(checkmessages, CheckError{Warning, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])})
+	checkmessages = append(checkmessages, CheckInfo{Warning, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])})
 
 	return false, checkmessages
 }
@@ -256,12 +259,12 @@ type Checker interface {
 	Check(bool) ([]CheckMessage, error)
 }
 
-func AppendcheckerrorTocheckmessage(msgs []CheckMessage, checkresults []CheckError, ID int, prepend string) []CheckMessage {
+func AppendcheckerrorTocheckmessage(msgs []CheckMessage, checkresults []CheckInfo, ID int, prepend string) []CheckMessage {
 	for _, result := range checkresults {
 		msgs = append(msgs, CheckMessage{
 			Type:  result.Status,
 			OGDID: ID,
-			Text:  prepend + result.message})
+			Text:  prepend + result.Context})
 	}
 	return msgs
 }
