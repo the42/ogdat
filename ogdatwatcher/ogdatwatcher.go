@@ -320,13 +320,15 @@ func mymain() int {
 		heartbeatinterval := getheartbeatinterval()
 		go heartbeat(heartbeatinterval)
 
-		urlcheckpointchan := time.Tick(1 * time.Hour * 24)
-		datacheckpointchan := time.Tick(1 * time.Hour * 24)
+		urlcheckpointchan := time.Tick(1 * time.Hour * 4)
+		datacheckpointchan := time.Tick(1 * time.Hour * 4)
+
+		if err := checkdata(dbconnection); err != nil {
+			logger.Panicln(err)
+		}
 
 		for {
-			if err := checkdata(dbconnection); err != nil {
-				logger.Panicln(err)
-			}
+
 			select {
 			case <-urlcheckpointchan:
 				if err := checkurls(dbconnection); err != nil {
