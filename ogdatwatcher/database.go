@@ -69,6 +69,44 @@ func (conn *DBConn) GetLastHit() (*time.Time, error) {
 	return nil, nil
 }
 
+type DataUrl struct {
+	Url         string
+	Field_id    int
+	FieldStatus int
+	DatasetID   DBID
+}
+
+var getdataurlselect = fmt.Sprintf(`SELECT t.datasetid, t.field_id, t.fieldstatus, t.reason_text
+FROM status AS t
+WHERE t.hittime = (SELECT MAX(hittime)
+FROM status
+WHERE datasetid = t.datasetid)
+AND fieldstatus = %d`, ogdat.Info|ogdat.FetchableUrl)
+
+func (conn *DBConn) GetDataUrls() ([]DataUrl, error) {
+	var dataurls []DataUrl
+	rows, err := conn.Query(getdataurlselect)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+
+		var url string
+		var field_id int
+		var fieldstatus int
+		var dbid DBID
+
+		if err := rows.Scan(&dbid, &field_id, &fieldstatus, &url); err != nil {
+			return nil, err
+		}
+		dataurls = append(dataurls, DataUrl{DatasetID: dbid, Url: url, Field_id: field_id, FieldStatus: fieldstatus})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return dataurls, nil
+}
+
 func (conn *DBConn) ResetDatabase() error {
 	_, err := conn.Exec("DELETE FROM status; DELETE FROM dataset;")
 	if err != nil {

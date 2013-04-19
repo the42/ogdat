@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/the42/ogdat"
 	"github.com/the42/ogdat/ckan"
 	"github.com/the42/ogdat/ogdatv21"
 	"github.com/the42/ogdat/schedule"
@@ -76,6 +77,39 @@ func resetdb() {
 	}
 }
 
+func heartbeat(interval int) {
+	for {
+		dbconn := GetDatabaseConnection()
+		db := &DBConn{dbconn, AppID}
+		if err := db.HeartBeat(); err != nil {
+			logger.Panicln(err)
+		}
+		dbconn.Close()
+		logger.Println("Watchdog alive")
+		time.Sleep(time.Duration(interval) * time.Minute)
+	}
+}
+
+func dataurlslicetoiface(dus []DataUrl) []interface{} {
+	slice := make([]interface{}, len(dus))
+	for i, v := range dus {
+		slice[i] = v
+	}
+	return slice
+}
+
+func ifaceslicetodataurl(ifs []interface{}) []DataUrl {
+	slice := make([]DataUrl, len(ifs))
+	for i, v := range ifs {
+		s, ok := v.(DataUrl)
+		if !ok {
+			panic("Interface value not of DataUrl type")
+		}
+		slice[i] = s
+	}
+	return slice
+}
+
 func stringslicetoiface(ss []string) []interface{} {
 	slice := make([]interface{}, len(ss))
 	for i, v := range ss {
@@ -131,17 +165,25 @@ func processmetadataids(conn *DBConn, processids []string) error {
 	return nil
 }
 
-func heartbeat(interval int) {
-	for {
-		dbconn := GetDatabaseConnection()
-		db := &DBConn{dbconn, AppID}
-		if err := db.HeartBeat(); err != nil {
-			logger.Panicln(err)
+func processdataseturls(conn *DBConn, urls []DataUrl) error {
+
+	nums := len(urls)
+	message := make([]ogdat.CheckMessage, 1)
+	for idx, url := range urls {
+
+		logger.Printf("%4d / %4d : processing %v\n", idx+1, nums, url.Url)
+
+		_, checkresult := ogdat.FetchHead(url.Url)
+
+		message[0].Type = checkresult.Status
+		message[0].Text = url.Url
+		message[0].OGDID = url.Field_id
+		if err := conn.ProtocollCheck(url.DatasetID, true, message); err != nil {
+			return fmt.Errorf("ProtocollCheck: database error at id %v: %s", url.DatasetID, err)
 		}
-		dbconn.Close()
-		logger.Println("Watchdog alive")
-		time.Sleep(time.Duration(interval) * time.Minute)
 	}
+	logger.Printf("Worker finished processing %d entries", nums)
+	return nil
 }
 
 func checkdata(dbconnection *sql.DB) error {
@@ -197,6 +239,49 @@ func checkdata(dbconnection *sql.DB) error {
 	return nil
 }
 
+func checkurls(dbconnection *sql.DB) error {
+
+	urls, err := db.GetDataUrls()
+	if err != nil {
+		return err
+	}
+
+	if anzurls := len(urls); anzurls > 0 {
+
+		tx, err := dbconnection.Begin()
+		if err != nil {
+			return fmt.Errorf("Cannot create database transaction: %s", err)
+		}
+
+		scheduler := schedule.New(getnumworkers())
+		logger.Printf("Doing %d jobs in parallel\n", scheduler.GetWorkers())
+
+		conn := &DBConn{DBer: tx, appid: AppID}
+
+		f := func(slice []interface{}) error {
+			if err := processdataseturls(conn, ifaceslicetodataurl(slice)); err != nil {
+				return err
+			}
+			return nil
+		}
+
+		db.LogMessage(fmt.Sprintf("%d Urls werden gecheckt", anzurls), StateOk, true)
+		workchannel := scheduler.Schedule(f, dataurlslicetoiface(urls))
+
+		select {
+		case workreply := <-workchannel:
+			if err := workreply.Err; err != nil {
+				return fmt.Errorf("Scheduler didn't return success: %s", err)
+			} else if workreply.Code == schedule.StateFinish {
+				tx.Commit()
+				db.LogMessage("Idle", StateOk, true)
+				logger.Printf("Finished checking %d Urls\n", anzurls)
+			}
+		}
+	}
+	return nil
+}
+
 func mymain() int {
 
 	if flag.NFlag() == 0 {
@@ -244,20 +329,9 @@ func mymain() int {
 			}
 			select {
 			case <-urlcheckpointchan:
-			// get all urls to check
-
-			// 				SELECT t.reason_text, t.datasetid, t.hittime
-			// 				FROM status AS t
-			// 				where t.hittime=
-			// 				(SELECT MAX(hittime)
-			// 					FROM status
-			// 					WHERE datasetid = t.datasetid)
-			// 				and fieldstatus = 8193
-			// 				order by datasetid
-
-			// schedule check:
-			// getable: OK <-- what to do, when last check was 'not getable'?
-			// report result
+				if err := checkurls(dbconnection); err != nil {
+					logger.Panicln(err)
+				}
 			case <-datacheckpointchan:
 				if err := checkdata(dbconnection); err != nil {
 					logger.Panicln(err)

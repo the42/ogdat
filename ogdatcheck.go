@@ -211,25 +211,33 @@ func CheckOGDBBox(str string) (bool, error) {
 
 var regexpEMail = regexp.MustCompile(`(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$`)
 
+func FetchHead(url string) (bool, CheckInfo) {
+
+	var info CheckInfo
+
+	resp, err := http.Head(url)
+	if err != nil {
+		info = CheckInfo{Error | FetchableUrl | NoDataatUrlError, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)}
+	} else if sc := resp.StatusCode; sc != 200 {
+		info = CheckInfo{Error | FetchableUrl | NoDataatUrlError, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)}
+	} else {
+		info = CheckInfo{Info | FetchableUrl | FetchSuccess, -1, url}
+	}
+
+	return (info.Status & (Info | FetchSuccess)) == (Info | FetchSuccess), info
+}
+
 func CheckUrl(url string, followhttplink bool) (bool, []CheckInfo) {
 	// it's a contact point if it's a http-link (starts with "http(s)" )
 	var checkmessages []CheckInfo
-	ok := true
 	if len(url) >= 4 && url[:4] == "http" {
 		urlinfo := CheckInfo{Info | FetchableUrl, -1, url}
 		checkmessages = append(checkmessages, urlinfo)
+
+		ok := true
 		if followhttplink {
-			resp, err := http.Head(url)
-			if err != nil {
-				ok = false
-				checkmessages = append(checkmessages, CheckInfo{Error | FetchableUrl | NoDataatUrlError, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)})
-			} else if sc := resp.StatusCode; sc != 200 {
-				ok = false
-				checkmessages = append(checkmessages, CheckInfo{Error | FetchableUrl | NoDataatUrlError, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)})
-			} else {
-				urlinfo.Status |= FetchSuccess
-				checkmessages = append(checkmessages, urlinfo)
-			}
+			ok, urlinfo = FetchHead(urlinfo.Context)
+			checkmessages = append(checkmessages, urlinfo)
 		}
 		return ok, checkmessages
 	}
