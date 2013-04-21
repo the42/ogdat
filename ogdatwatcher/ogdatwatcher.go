@@ -19,6 +19,8 @@ import (
 
 const AppID = "a6545f8f-e0c9-4917-83c7-3e47bd1e0247"
 
+const location = "Europe/Vienna"
+
 var logger *log.Logger
 var db *DBConn
 var portal *ckan.Portal
@@ -34,6 +36,10 @@ func gotyesonprompt() bool {
 		return prompt[0] == 'y'
 	}
 	return false
+}
+
+func getlocation() string {
+	return location
 }
 
 func getheartbeatinterval() int {
@@ -241,6 +247,9 @@ func checkdata(dbconnection *sql.DB) error {
 
 func checkurls(dbconnection *sql.DB) error {
 
+	// TODO: unclear: if last URL check was within x minutes, do not check?
+	// Actually it's program enforeced, but may be worth adding as an additional safety
+	// in order not to grow the database to hefty
 	urls, err := db.GetDataUrls()
 	if err != nil {
 		return err
@@ -282,6 +291,40 @@ func checkurls(dbconnection *sql.DB) error {
 	return nil
 }
 
+func date(t time.Time, loc *time.Location) time.Time {
+	y, m, d := t.Date()
+	return time.Date(y, m, d, 0, 0, 0, 0, loc)
+}
+
+func nextWeekday(t time.Time, w time.Weekday, d time.Duration, loc *time.Location) time.Time {
+	s := date(t.Add(-d), loc)
+	u := int(w - s.Weekday())
+	if u <= 0 {
+		u += 7
+	}
+	s = s.AddDate(0, 0, u)
+	s = s.Add(d)
+	return s
+}
+
+func nextHour(t time.Time, d time.Duration, loc *time.Location) time.Time {
+	s := date(t.Add(-d), loc)
+	s = s.Add(d + 24*time.Hour)
+	return s
+}
+
+// An Url check happens every sunday at 22 o'clock
+func urlchecktime(loc *time.Location) time.Time {
+	t := time.Now().In(loc)
+	return nextWeekday(t, time.Sunday, 22*time.Hour, loc)
+}
+
+// A data check happens every day at 23 o'clock
+func datachecktime(loc *time.Location) time.Time {
+	t := time.Now().In(loc)
+	return nextHour(t, 23*time.Hour, loc)
+}
+
 func mymain() int {
 
 	if flag.NFlag() == 0 {
@@ -320,27 +363,36 @@ func mymain() int {
 		heartbeatinterval := getheartbeatinterval()
 		go heartbeat(heartbeatinterval)
 
-		urlcheckpointchan := time.Tick(1 * time.Hour * 4)
-		datacheckpointchan := time.Tick(1 * time.Hour * 4)
-
-		if err := checkdata(dbconnection); err != nil {
+		loc, err := time.LoadLocation(getlocation())
+		if err != nil {
 			logger.Panicln(err)
 		}
 
-		for {
+		whenurlcheck := urlchecktime(loc)
+		whendatacheck := datachecktime(loc)
 
+		datacheckchan := time.After(0 * time.Second) // assign a ticker of 0 to immediately trigger a data check
+		urlcheckchan := time.After(whenurlcheck.Sub(time.Now().In(loc)))
+
+		for {
 			select {
-			case <-urlcheckpointchan:
+			case <-urlcheckchan:
 				if err := checkurls(dbconnection); err != nil {
 					logger.Panicln(err)
 				}
-			case <-datacheckpointchan:
+				whenurlcheck = urlchecktime(loc)
+				urlcheckchan = time.After(whenurlcheck.Sub(time.Now().In(loc)))
+			case <-datacheckchan:
 				if err := checkdata(dbconnection); err != nil {
 					logger.Panicln(err)
 				}
-			default:
-				logger.Printf("Nothing to do, sleeping for %d minutes\n", heartbeatinterval)
-				time.Sleep(time.Duration(heartbeatinterval) * time.Minute)
+				whendatacheck = datachecktime(loc)
+				datacheckchan = time.After(whenurlcheck.Sub(time.Now().In(loc)))
+			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
+
+				logger.Printf("Next Data check in %v", whendatacheck.Sub(time.Now().In(loc)))
+				logger.Printf("Next Url check in %v", whenurlcheck.Sub(time.Now().In(loc)))
+
 			}
 		}
 	}
