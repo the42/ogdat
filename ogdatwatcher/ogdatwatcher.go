@@ -387,12 +387,11 @@ func mymain() int {
 					logger.Panicln(err)
 				}
 				whendatacheck = datachecktime(loc)
-				datacheckchan = time.After(whenurlcheck.Sub(time.Now().In(loc)))
+				datacheckchan = time.After(whendatacheck.Sub(time.Now().In(loc)))
 			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
 
 				logger.Printf("Next Data check in %v", whendatacheck.Sub(time.Now().In(loc)))
 				logger.Printf("Next Url check in %v", whenurlcheck.Sub(time.Now().In(loc)))
-
 			}
 		}
 	}
