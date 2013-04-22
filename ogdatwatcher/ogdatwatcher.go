@@ -167,7 +167,7 @@ func processmetadataids(conn *DBConn, processids []string) error {
 			return fmt.Errorf("ProtocollCheck: database error at id %v: %s", id, err)
 		}
 	}
-	logger.Printf("Worker finished processing %d entries", nums)
+	logger.Printf("Worker finished processing %d entries\n", nums)
 	return nil
 }
 
@@ -188,7 +188,7 @@ func processdataseturls(conn *DBConn, urls []DataUrl) error {
 			return fmt.Errorf("ProtocollCheck: database error at id %v: %s", url.DatasetID, err)
 		}
 	}
-	logger.Printf("Worker finished processing %d entries", nums)
+	logger.Printf("Worker finished processing %d entries\n", nums)
 	return nil
 }
 
@@ -389,10 +389,10 @@ func mymain() int {
 				whendatacheck = datachecktime(loc)
 				datacheckchan = time.After(whendatacheck.Sub(time.Now().In(loc)))
 			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
-
-				logger.Printf("Next Data check in %v", whendatacheck.Sub(time.Now().In(loc)))
-				logger.Printf("Next Url check in %v", whenurlcheck.Sub(time.Now().In(loc)))
 			}
+			logger.Println("Nothing to do")
+			logger.Printf("Next Data check in %v\n", whendatacheck.Sub(time.Now().In(loc)))
+			logger.Printf("Next Url check in %v\n", whenurlcheck.Sub(time.Now().In(loc)))
 		}
 	}
 	return 0
