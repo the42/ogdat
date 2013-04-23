@@ -187,7 +187,7 @@ func processdataseturls(conn *DBConn, nestedurls [][]DataUrl) error {
 
 			anz++
 		}
-		if err := conn.ProtocollCheck(urls[setidx].DatasetID, true, messages); err != nil {
+		if err := conn.ProtocollCheck(urls[0].DatasetID, true, messages); err != nil {
 			return fmt.Errorf("ProtocollCheck: database error at id %v: %s", urls[setidx].DatasetID, err)
 		}
 	}
