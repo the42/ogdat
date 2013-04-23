@@ -96,7 +96,7 @@ func heartbeat(interval int) {
 	}
 }
 
-func dataurlslicetoiface(dus []DataUrl) []interface{} {
+func dataurlslicetoiface(dus [][]DataUrl) []interface{} {
 	slice := make([]interface{}, len(dus))
 	for i, v := range dus {
 		slice[i] = v
@@ -104,10 +104,10 @@ func dataurlslicetoiface(dus []DataUrl) []interface{} {
 	return slice
 }
 
-func ifaceslicetodataurl(ifs []interface{}) []DataUrl {
-	slice := make([]DataUrl, len(ifs))
+func ifaceslicetodataurl(ifs []interface{}) [][]DataUrl {
+	slice := make([][]DataUrl, len(ifs))
 	for i, v := range ifs {
-		s, ok := v.(DataUrl)
+		s, ok := v.([]DataUrl)
 		if !ok {
 			panic("Interface value not of DataUrl type")
 		}
@@ -171,24 +171,28 @@ func processmetadataids(conn *DBConn, processids []string) error {
 	return nil
 }
 
-func processdataseturls(conn *DBConn, urls []DataUrl) error {
+func processdataseturls(conn *DBConn, nestedurls [][]DataUrl) error {
 
-	nums := len(urls)
-	message := make([]ogdat.CheckMessage, 1)
-	for idx, url := range urls {
+	var anz int
+	for setidx, urls := range nestedurls {
+		logger.Printf("%4d / %4d", setidx+1, len(nestedurls))
+		messages := make([]ogdat.CheckMessage, len(urls))
+		for idx, url := range urls {
+			logger.Printf("%4d / %4d: processing %s", idx+1, len(urls), url.Url)
 
-		logger.Printf("%4d / %4d : processing %v\n", idx+1, nums, url.Url)
+			_, checkresult := ogdat.FetchHead(url.Url)
 
-		_, checkresult := ogdat.FetchHead(url.Url)
+			messages[idx].Type = checkresult.Status
+			messages[idx].Text = url.Url
+			messages[idx].OGDID = url.Field_id
 
-		message[0].Type = checkresult.Status
-		message[0].Text = url.Url
-		message[0].OGDID = url.Field_id
-		if err := conn.ProtocollCheck(url.DatasetID, true, message); err != nil {
-			return fmt.Errorf("ProtocollCheck: database error at id %v: %s", url.DatasetID, err)
+			anz++
+		}
+		if err := conn.ProtocollCheck(urls[setidx].DatasetID, true, messages); err != nil {
+			return fmt.Errorf("ProtocollCheck: database error at id %v: %s", urls[setidx].DatasetID, err)
 		}
 	}
-	logger.Printf("Worker finished processing %d entries\n", nums)
+	logger.Printf("Worker finished processing %d entries\n", anz)
 	return nil
 }
 
@@ -390,7 +394,7 @@ func mymain() int {
 				datacheckchan = time.After(whendatacheck.Sub(time.Now().In(loc)))
 			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
 			}
-			logger.Println("Nothing to do")
+			logger.Printf("%v: Nothing to do\n", time.Now().In(loc))
 			logger.Printf("Next Data check in %v\n", whendatacheck.Sub(time.Now().In(loc)))
 			logger.Printf("Next Url check in %v\n", whenurlcheck.Sub(time.Now().In(loc)))
 		}

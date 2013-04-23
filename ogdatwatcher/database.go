@@ -81,25 +81,35 @@ FROM status AS t
 WHERE t.hittime = (SELECT MAX(hittime)
 FROM status
 WHERE datasetid = t.datasetid)
-AND fieldstatus = %d`, ogdat.Info|ogdat.FetchableUrl)
+AND fieldstatus = %d
+ORDER BY t.datasetid`, ogdat.Info|ogdat.FetchableUrl)
 
-func (conn *DBConn) GetDataUrls() ([]DataUrl, error) {
-	var dataurls []DataUrl
+func (conn *DBConn) GetDataUrls() ([][]DataUrl, error) {
+	var dataurls [][]DataUrl
+	var dataurl []DataUrl
 	rows, err := conn.Query(getdataurlselect)
 	if err != nil {
 		return nil, err
 	}
-	for rows.Next() {
 
-		var url string
-		var field_id int
-		var fieldstatus int
-		var dbid DBID
+	var url string
+	var field_id int
+	var fieldstatus int
+	var dbid DBID
+	var olddbid DBID = -1
+
+	for rows.Next() {
 
 		if err := rows.Scan(&dbid, &field_id, &fieldstatus, &url); err != nil {
 			return nil, err
 		}
-		dataurls = append(dataurls, DataUrl{DatasetID: dbid, Url: url, Field_id: field_id, FieldStatus: fieldstatus})
+
+		if olddbid != dbid {
+			dataurls = append(dataurls, dataurl)
+			dataurl = nil
+		}
+		dataurl = append(dataurl, DataUrl{DatasetID: dbid, Url: url, Field_id: field_id, FieldStatus: fieldstatus})
+		olddbid = dbid
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
