@@ -10,7 +10,6 @@ import (
 	"github.com/the42/ogdat/schedule"
 	"log"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -336,20 +335,6 @@ func mymain() int {
 		flag.PrintDefaults()
 		logger.Panicln("Fatal: No command line flags given")
 	}
-
-	lockfile := NewLockfile(lockfilename)
-	defer lockfile.Delete()
-	lockfile.WriteInfo()
-
-	// When the process gets killed, try to delete the lock file
-	interrupt := make(chan os.Signal)
-	signal.Notify(interrupt, os.Interrupt)
-	go func() {
-		<-interrupt
-		logger.Println("Terminate requested")
-		lockfile.Delete()
-		os.Exit(10)
-	}()
 
 	dbconnection := GetDatabaseConnection()
 	db = &DBConn{dbconnection, AppID}
