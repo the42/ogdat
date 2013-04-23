@@ -105,7 +105,9 @@ func (conn *DBConn) GetDataUrls() ([][]DataUrl, error) {
 		}
 
 		if olddbid != dbid {
-			dataurls = append(dataurls, dataurl)
+			if dataurl != nil {
+				dataurls = append(dataurls, dataurl)
+			}
 			dataurl = nil
 		}
 		dataurl = append(dataurl, DataUrl{DatasetID: dbid, Url: url, Field_id: field_id, FieldStatus: fieldstatus})
