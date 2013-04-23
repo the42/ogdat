@@ -239,7 +239,7 @@ func (id *Identifier) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	id.Raw = string(raw)
+	id.Raw = raw
 	if uuid := uuid.Parse(raw); uuid != nil {
 		id.UUID = &uuid
 	}
