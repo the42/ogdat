@@ -319,7 +319,7 @@ func nextHour(t time.Time, d time.Duration, loc *time.Location) time.Time {
 // An Url check happens every sunday at 22 o'clock
 func urlchecktime(loc *time.Location) time.Time {
 	t := time.Now().In(loc)
-	return nextWeekday(t, time.Monday, 22*time.Hour, loc)
+	return nextWeekday(t, time.Sunday, 22*time.Hour, loc)
 }
 
 // A data check happens every day at 23 o'clock
