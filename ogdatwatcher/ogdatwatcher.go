@@ -302,11 +302,11 @@ func date(t time.Time, loc *time.Location) time.Time {
 func nextWeekday(t time.Time, w time.Weekday, d time.Duration, loc *time.Location) time.Time {
 	s := date(t.Add(-d), loc)
 	u := int(w - s.Weekday())
-	if u < 0 {
+	if u <= 0 {
 		u += 7
 	}
 	s = s.AddDate(0, 0, u)
-	s = s.Add(d + 24*time.Hour)
+	s = s.Add(d)
 	return s
 }
 
