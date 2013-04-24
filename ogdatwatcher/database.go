@@ -76,13 +76,17 @@ type DataUrl struct {
 	DatasetID   DBID
 }
 
-var getdataurlselect = fmt.Sprintf(`SELECT t.datasetid, t.field_id, t.fieldstatus, t.reason_text
+var getdataurlselect = fmt.Sprintf(`
+SELECT DISTINCT t.datasetid, t.field_id, t.fieldstatus, t.reason_text
 FROM status AS t
-WHERE t.hittime = (SELECT MAX(hittime)
-FROM status
-WHERE datasetid = t.datasetid)
+WHERE t.hittime = (
+  SELECT MAX(hittime)
+  FROM status
+  WHERE datasetid = t.datasetid
+  AND fieldstatus = %d
+)
 AND fieldstatus = %d
-ORDER BY t.datasetid`, ogdat.Info|ogdat.FetchableUrl)
+ORDER BY t.datasetid`, ogdat.Info|ogdat.FetchableUrl, ogdat.Info|ogdat.FetchableUrl)
 
 func (conn *DBConn) GetDataUrls() ([][]DataUrl, error) {
 	var dataurls [][]DataUrl
