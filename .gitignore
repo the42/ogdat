@@ -1,6 +1,5 @@
 .lock.pid
-Procfile.local
-.env
+*.local
 *.pdf
 *.html*
 .kateproject*
