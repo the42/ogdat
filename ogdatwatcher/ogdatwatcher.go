@@ -83,17 +83,23 @@ func resetdb() {
 	}
 }
 
-func heartbeat(interval int) {
-	for {
-		dbconn := GetDatabaseConnection()
-		db := &DBConn{dbconn, AppID}
-		if err := db.HeartBeat(); err != nil {
-			logger.Panicln(err)
+func heartbeat(interval int) chan bool {
+	retchan := make(chan bool)
+	f := func() {
+		for {
+			dbconn := GetDatabaseConnection()
+			db := &DBConn{dbconn, AppID}
+			if err := db.HeartBeat(); err != nil {
+				logger.Panicln(err)
+			}
+			dbconn.Close()
+			logger.Printf("Watchdog beating every %d minute\n", interval)
+			retchan <- true
+			time.Sleep(time.Duration(interval) * time.Minute)
 		}
-		dbconn.Close()
-		logger.Printf("Watchdog beating every %d minute\n", interval)
-		time.Sleep(time.Duration(interval) * time.Minute)
 	}
+	go f()
+	return retchan
 }
 
 func dataurlslicetoiface(dus [][]DataUrl) []interface{} {
@@ -348,14 +354,14 @@ func mymain() int {
 	if *resettdb {
 		resetdb()
 		logger.Println("Info: Earyl exit due to maintainance switches")
-		return 2
+		return 1
 	}
 
 	if *servetdb {
 
 		portal = ckan.NewDataPortalAPIEndpoint(getckanurl(), "2/")
 		heartbeatinterval := getheartbeatinterval()
-		go heartbeat(heartbeatinterval)
+		firstbeat := heartbeat(heartbeatinterval)
 
 		loc, err := time.LoadLocation(getlocation())
 		if err != nil {
@@ -365,7 +371,7 @@ func mymain() int {
 		whenurlcheck := urlchecktime(loc)
 		whendatacheck := datachecktime(loc)
 
-		datacheckchan := time.After(0 * time.Second) // assign a ticker of 0 to immediately trigger a data check
+		datacheckchan := time.After(0) // assign a ticker of 0 to immediately trigger a data check
 		urlcheckchan := time.After(whenurlcheck.Sub(time.Now().In(loc)))
 
 		for {
@@ -384,17 +390,24 @@ func mymain() int {
 				datacheckchan = time.After(whendatacheck.Sub(time.Now().In(loc)))
 			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
 			}
-			logger.Printf("%v: Nothing to do\n", time.Now().In(loc))
 
-			datacheckdiff := whendatacheck.Sub(time.Now().In(loc))
-			urlcheckdiff := whenurlcheck.Sub(time.Now().In(loc))
+			now := time.Now().In(loc)
+			logger.Printf("%v: Nothing to do\n", now)
+
+			datacheckdiff := whendatacheck.Sub(now)
+			urlcheckdiff := whenurlcheck.Sub(now)
 
 			logger.Printf("Next Data check in %v\n", datacheckdiff)
 			logger.Printf("Next Url check in %v\n", urlcheckdiff)
+
 			if sdidle != nil && *sdidle > 0 {
 				if datacheckdiff > *sdidle && urlcheckdiff > *sdidle {
+
+					// Wait for the first heartbeat. It will write a status message to the database
+					<-firstbeat
 					logger.Printf("Next activity is more than %v ahead, terminating\n", *sdidle)
-					return 3
+
+					return 0
 				}
 			}
 		}
