@@ -26,6 +26,7 @@ var portal *ckan.Portal
 
 var resettdb = flag.Bool("resetdb", false, "Delete the tracking database. You will be prompted before actual deletion. Process will terminate afterwards.")
 var servetdb = flag.Bool("serve", false, "Start in watchdog mode. Process will continue to run until it receives a (clean shutdown) or gets killed")
+var sdidle = flag.Duration("sdidle", -1, "Shutdown the process when the next action is longer than x minutes ahead")
 
 func gotyesonprompt() bool {
 	var prompt string
@@ -90,7 +91,7 @@ func heartbeat(interval int) {
 			logger.Panicln(err)
 		}
 		dbconn.Close()
-		logger.Println("Watchdog alive")
+		logger.Printf("Watchdog beating every %d minute\n", interval)
 		time.Sleep(time.Duration(interval) * time.Minute)
 	}
 }
@@ -384,8 +385,18 @@ func mymain() int {
 			case <-time.After(time.Duration(heartbeatinterval) * time.Minute):
 			}
 			logger.Printf("%v: Nothing to do\n", time.Now().In(loc))
-			logger.Printf("Next Data check in %v\n", whendatacheck.Sub(time.Now().In(loc)))
-			logger.Printf("Next Url check in %v\n", whenurlcheck.Sub(time.Now().In(loc)))
+
+			datacheckdiff := whendatacheck.Sub(time.Now().In(loc))
+			urlcheckdiff := whenurlcheck.Sub(time.Now().In(loc))
+
+			logger.Printf("Next Data check in %v\n", datacheckdiff)
+			logger.Printf("Next Url check in %v\n", urlcheckdiff)
+			if sdidle != nil && *sdidle > 0 {
+				if datacheckdiff > *sdidle && urlcheckdiff > *sdidle {
+					logger.Printf("Next activity is more than %v ahead, terminating\n", *sdidle)
+					return 3
+				}
+			}
 		}
 	}
 	return 0
