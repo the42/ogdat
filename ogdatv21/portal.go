@@ -14,6 +14,9 @@ func MetadatafromJSONStream(jsondata io.Reader) (*MetaData, error) {
 
 	data := &MetaData{}
 	if err := json.Unmarshal(bytedata, data); err != nil {
+		if len(bytedata) > 0 && bytedata[0] == '"' {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return data, nil
