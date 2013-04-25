@@ -18,8 +18,6 @@ import (
 
 const AppID = "a6545f8f-e0c9-4917-83c7-3e47bd1e0247"
 
-const location = "Europe/Vienna"
-
 var logger *log.Logger
 var db *DBConn
 var portal *ckan.Portal
@@ -38,8 +36,8 @@ func gotyesonprompt() bool {
 	return false
 }
 
-func getlocation() string {
-	return location
+func gettimezone() string {
+	return os.Getenv("TZ")
 }
 
 func getheartbeatinterval() int {
@@ -363,10 +361,12 @@ func mymain() int {
 		heartbeatinterval := getheartbeatinterval()
 		firstbeat := heartbeat(heartbeatinterval)
 
-		loc, err := time.LoadLocation(getlocation())
+		loc, err := time.LoadLocation(gettimezone())
 		if err != nil {
 			logger.Panicln(err)
 		}
+
+		logger.Printf("Processing relative to timezone %s\n", loc)
 
 		whenurlcheck := urlchecktime(loc)
 		whendatacheck := datachecktime(loc)
@@ -406,7 +406,6 @@ func mymain() int {
 					// Wait for the first heartbeat. It will write a status message to the database
 					<-firstbeat
 					logger.Printf("Next activity is more than %v ahead, terminating\n", *sdidle)
-
 					return 0
 				}
 			}
