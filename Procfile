@@ -1,1 +1,1 @@
-ogdatwatcher: sh -c 'cd ./ogdatwatcher/ && exec ogdatwatcher -serve'
+ogdatwatcher: sh -c 'cd ./ogdatwatcher/ && exec ogdatwatcher -serve -sdidle=15m'
