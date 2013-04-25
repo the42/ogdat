@@ -57,7 +57,8 @@ func GetDatabaseConnection() *sql.DB {
 }
 
 func (conn *DBConn) GetLastHit() (*time.Time, error) {
-	row := conn.QueryRow("SELECT MAX(hittime) FROM status WHERE status != 'deleted'")
+	// a field_id of NULL is about an inserted or updated metadata set (any may, or may have no further status records)
+	row := conn.QueryRow("SELECT MAX(hittime) FROM status WHERE status != 'deleted' AND field_id IS NULL")
 
 	var t pq.NullTime
 	if err := row.Scan(&t); err != nil {
