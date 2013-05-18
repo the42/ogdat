@@ -1,3 +1,9 @@
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
 CREATE TYPE odstatus AS ENUM (
     'updated',
     'inserted',
@@ -11,12 +17,13 @@ CREATE TYPE odstatus AS ENUM (
 
 CREATE TABLE dataset (
     sysid integer NOT NULL,
-    id character varying(255) NOT NULL,
+    id character varying(255),
     publisher character varying(255),
-    contact character varying(255) NOT NULL,
+    contact character varying(255),
     description text,
     vers character varying(255) NOT NULL,
-    category json
+    category json,
+    ckanid character varying(255)
 );
 
 CREATE SEQUENCE dataset_sysid_seq
@@ -37,12 +44,14 @@ CREATE TABLE heartbeat (
     who uuid NOT NULL
 );
 
+
 CREATE SEQUENCE heartbeat_sysid_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
+
 
 ALTER SEQUENCE heartbeat_sysid_seq OWNED BY heartbeat.sysid;
 
@@ -56,6 +65,7 @@ CREATE TABLE status (
     fieldstatus integer
 );
 
+
 CREATE SEQUENCE status_sysid_seq
     START WITH 1
     INCREMENT BY 1
@@ -64,6 +74,7 @@ CREATE SEQUENCE status_sysid_seq
     CACHE 1;
 
 ALTER SEQUENCE status_sysid_seq OWNED BY status.sysid;
+
 
 ALTER TABLE ONLY dataset ALTER COLUMN sysid SET DEFAULT nextval('dataset_sysid_seq'::regclass);
 
@@ -80,13 +91,17 @@ ALTER TABLE ONLY dataset
 ALTER TABLE ONLY status
     ADD CONSTRAINT status_pkey PRIMARY KEY (sysid);
 
+CREATE INDEX dataset_ckanid ON dataset USING btree (ckanid);
+
 CREATE INDEX dataset_publisher ON dataset USING btree (publisher);
+
+CREATE INDEX status_datasetid ON status USING btree (datasetid);
+
+CREATE INDEX status_fieldstatus ON status USING btree (fieldstatus);
 
 CREATE INDEX status_hittime ON status USING btree (hittime);
 
 CREATE INDEX status_status ON status USING btree (status);
-
-CREATE INDEX status_fieldstatus ON status USING btree (fieldstatus);
 
 ALTER TABLE ONLY status
     ADD CONSTRAINT status_datasetid_fkey FOREIGN KEY (datasetid) REFERENCES dataset(sysid);

@@ -1,10 +1,11 @@
-CREATE FUNCTION insertorupdatemetadatainfo(inid character varying, pub character varying, cont character varying, descr text, invers character varying, incategory json, stime timestamp with time zone, OUT datasetsysid integer, OUT isnew boolean) RETURNS record
+
+CREATE FUNCTION insertorupdatemetadatainfo(inckanid character varying, inid character varying, pub character varying, cont character varying, descr text, invers character varying, incategory json, stime timestamp with time zone, OUT datasetsysid integer, OUT isnew boolean) RETURNS record
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM dataset WHERE id=inid LIMIT 1) THEN
-    INSERT INTO dataset(id, publisher, contact, description, vers, category)
-    VALUES (inid, pub, cont, descr, invers, incategory)
+  IF NOT EXISTS (SELECT 1 FROM dataset WHERE ckanid=inckanid LIMIT 1) THEN
+    INSERT INTO dataset(ckanid, id, publisher, contact, description, vers, category)
+    VALUES (inckanid, inid, pub, cont, descr, invers, incategory)
     RETURNING sysid INTO datasetsysid;
 
     -- Write status line about newly inserted metadata 
@@ -19,7 +20,7 @@ BEGIN
       description=descr,
       vers=invers,
       category=incategory
-    WHERE id=inid
+    WHERE ckanid=inckanid
     RETURNING sysid INTO datasetsysid;
 
     -- The status is insert only; possibly revise at a later time
