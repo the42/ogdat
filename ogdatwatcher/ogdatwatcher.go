@@ -157,7 +157,7 @@ func processmetadataids(conn *DBConn, processids []string) error {
 			return fmt.Errorf("Cannot access metadata for ID %v: %s", id, err)
 		}
 		if md == nil {
-			fmt.Printf("Metadata for ID %v could not be parsed, byte stream starts with \" (error returned?)\n")
+			fmt.Printf("Metadata for ID %v could not be parsed, error returned?\n", id)
 			continue
 		}
 
