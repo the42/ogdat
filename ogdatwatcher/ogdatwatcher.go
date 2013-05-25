@@ -8,6 +8,7 @@ import (
 	"github.com/the42/ogdat/ckan"
 	"github.com/the42/ogdat/ogdatv21"
 	"github.com/the42/ogdat/schedule"
+	"github.com/the42/ogdat/database"	
 	"log"
 	"os"
 	"path/filepath"
@@ -19,7 +20,8 @@ import (
 const AppID = "a6545f8f-e0c9-4917-83c7-3e47bd1e0247"
 
 var logger *log.Logger
-var db *DBConn
+var db *database.DBConn
+var watcherdatabase *watcherdb
 var portal *ckan.Portal
 
 var resettdb = flag.Bool("resetdb", false, "Delete the tracking database. You will be prompted before actual deletion. Process will terminate afterwards.")
@@ -73,7 +75,7 @@ func resetdb() {
 		fmt.Print("\nABORTING\n\n")
 		logger.Println("Info: Database reset canceled")
 	} else {
-		if err := db.ResetDatabase(); err != nil {
+		if err := watcherdatabase.ResetDatabase(); err != nil {
 			s := fmt.Sprintf("Database reset failed: %s", err)
 			fmt.Println(s)
 			logger.Panic(s)
@@ -85,8 +87,11 @@ func heartbeat(interval int) chan bool {
 	retchan := make(chan bool)
 	f := func() {
 		for {
-			dbconn := GetDatabaseConnection()
-			db := &DBConn{dbconn, AppID}
+			dbconn, err := database.GetDatabaseConnection()
+			if err != nil {
+				logger.Panicln(err)
+			}
+			db := &database.DBConn{dbconn, AppID}
 			if err := db.HeartBeat(); err != nil {
 				logger.Panicln(err)
 			}
@@ -140,7 +145,7 @@ func ifaceslicetostring(ifs []interface{}) []string {
 	return slice
 }
 
-func processmetadataids(conn *DBConn, processids []string) error {
+func processmetadataids(conn *watcherdb, processids []string) error {
 
 	nums := len(processids)
 	for idx, id := range processids {
@@ -179,7 +184,7 @@ func processmetadataids(conn *DBConn, processids []string) error {
 	return nil
 }
 
-func processdataseturls(conn *DBConn, nestedurls [][]DataUrl) error {
+func processdataseturls(conn *watcherdb, nestedurls [][]DataUrl) error {
 
 	var anz int
 	for setidx, urls := range nestedurls {
@@ -206,7 +211,7 @@ func processdataseturls(conn *DBConn, nestedurls [][]DataUrl) error {
 
 func checkdata(dbconnection *sql.DB) error {
 
-	hit, err := db.GetLastHit()
+	hit, err := watcherdatabase.GetLastHit()
 	if err != nil {
 		return fmt.Errorf("Cannot read last DBHit: %s", err)
 	}
@@ -232,7 +237,7 @@ func checkdata(dbconnection *sql.DB) error {
 		}
 		scheduler := schedule.New(getnumworkers())
 		logger.Printf("Doing %d jobs in parallel\n", scheduler.GetWorkers())
-		conn := &DBConn{DBer: tx, appid: AppID}
+		conn := &watcherdb{DBer: tx, Appid: AppID}
 		f := func(slice []interface{}) error {
 			if err := processmetadataids(conn, ifaceslicetostring(slice)); err != nil {
 				return err
@@ -240,7 +245,7 @@ func checkdata(dbconnection *sql.DB) error {
 			return nil
 		}
 
-		db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), StateOk, true)
+		db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), database.StateOk, true)
 		workchannel := scheduler.Schedule(f, stringslicetoiface(processids))
 		select {
 		case workreply := <-workchannel:
@@ -248,21 +253,17 @@ func checkdata(dbconnection *sql.DB) error {
 				return fmt.Errorf("Scheduler didn't return success: %s", err)
 			} else if workreply.Code == schedule.StateFinish {
 				tx.Commit()
-				db.LogMessage("Idle", StateOk, true)
+				db.LogMessage("Idle", database.StateOk, true)
 				logger.Printf("Finished processing %d datasets\n", anzids)
 			}
 		}
-
 	}
 	return nil
 }
 
 func checkurls(dbconnection *sql.DB) error {
 
-	// TODO: unclear: if last URL check was within x minutes, do not check?
-	// Actually it's program enforeced, but may be worth adding as an additional safety
-	// in order not to grow the database to hefty
-	urls, err := db.GetDataUrls()
+	urls, err := watcherdatabase.GetDataUrls()
 	if err != nil {
 		return err
 	}
@@ -277,7 +278,7 @@ func checkurls(dbconnection *sql.DB) error {
 		scheduler := schedule.New(getnumworkers())
 		logger.Printf("Doing %d jobs in parallel\n", scheduler.GetWorkers())
 
-		conn := &DBConn{DBer: tx, appid: AppID}
+		conn := &watcherdb{DBer: tx, Appid: AppID}
 
 		f := func(slice []interface{}) error {
 			if err := processdataseturls(conn, ifaceslicetodataurl(slice)); err != nil {
@@ -286,7 +287,7 @@ func checkurls(dbconnection *sql.DB) error {
 			return nil
 		}
 
-		db.LogMessage(fmt.Sprintf("%d Urls werden gecheckt", anzurls), StateOk, true)
+		db.LogMessage(fmt.Sprintf("%d Urls werden gecheckt", anzurls), database.StateOk, true)
 		workchannel := scheduler.Schedule(f, dataurlslicetoiface(urls))
 
 		select {
@@ -295,7 +296,7 @@ func checkurls(dbconnection *sql.DB) error {
 				return fmt.Errorf("Scheduler didn't return success: %s", err)
 			} else if workreply.Code == schedule.StateFinish {
 				tx.Commit()
-				db.LogMessage("Idle", StateOk, true)
+				db.LogMessage("Idle", database.StateOk, true)
 				logger.Printf("Finished checking %d Urls\n", anzurls)
 			}
 		}
@@ -345,8 +346,12 @@ func mymain() int {
 		logger.Panicln("Fatal: No command line flags given")
 	}
 
-	dbconnection := GetDatabaseConnection()
-	db = &DBConn{dbconnection, AppID}
+	dbconnection,err := database.GetDatabaseConnection()
+	if err != nil {
+		logger.Panicln(err)
+	}
+	db = &database.DBConn{dbconnection, AppID}
+	watcherdatabase = &watcherdb{dbconnection, AppID}
 	defer dbconnection.Close()
 
 	if *resettdb {
