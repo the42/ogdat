@@ -3,8 +3,11 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"github.com/garyburd/redigo/redis"
 	"github.com/lib/pq"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -49,6 +52,46 @@ func GetDatabaseConnection() (*sql.DB, error) {
 		return nil, err
 	}
 	return db, nil
+}
+
+// taken from https://github.com/soveran/redisurl/blob/master/redisurl.go
+func GetRedisConnection(s string) (c redis.Conn, err error) {
+
+	redisURL, err := url.Parse(s)
+
+	if err != nil {
+		return
+	}
+
+	auth := ""
+
+	if redisURL.User != nil {
+		if password, ok := redisURL.User.Password(); ok {
+			auth = password
+		}
+	}
+
+	c, err = redis.Dial("tcp", redisURL.Host)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if len(auth) > 0 {
+		_, err = c.Do("AUTH", auth)
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	if dbs := strings.Split(redisURL.Path, "/"); len(dbs) > 1 && dbs[1] != "" {
+		c.Do("SELECT", dbs[1])
+	}
+
+	return
 }
 
 func (conn *DBConn) HeartBeat() error {
