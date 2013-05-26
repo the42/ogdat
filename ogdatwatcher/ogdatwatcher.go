@@ -363,7 +363,7 @@ func mymain() int {
 
 		portal = ckan.NewDataPortalAPIEndpoint(getckanurl(), "2/")
 		heartbeatinterval := getheartbeatinterval()
-		firstbeat := heartbeat(heartbeatinterval)
+		heartbeatchannel := heartbeat(heartbeatinterval)
 
 		loc, err := time.LoadLocation(gettimezone())
 		if err != nil {
@@ -404,11 +404,13 @@ func mymain() int {
 			logger.Printf("Next Data check in %v\n", datacheckdiff)
 			logger.Printf("Next Url check in %v\n", urlcheckdiff)
 
+			// drain the heartbeat channel; without draining, the heartbeat won't get written to the database
+			select {
+			case <-heartbeatchannel:
+			}
+
 			if sdidle != nil && *sdidle > 0 {
 				if datacheckdiff > *sdidle && urlcheckdiff > *sdidle {
-
-					// Wait for the first heartbeat. It will write a status message to the database
-					<-firstbeat
 					logger.Printf("Next activity is more than %v ahead, terminating\n", *sdidle)
 					return 0
 				}
