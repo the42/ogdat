@@ -11,7 +11,9 @@ import (
 	"time"
 )
 
-type watcherdb database.DBConn
+type watcherdb struct {
+	database.DBConn
+}
 
 func (conn *watcherdb) GetLastHit() (*time.Time, error) {
 	// a field_id of NULL is about an inserted or updated metadata set (any may, or may have no further status records)

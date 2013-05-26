@@ -20,7 +20,6 @@ import (
 const AppID = "a6545f8f-e0c9-4917-83c7-3e47bd1e0247"
 
 var logger *log.Logger
-var db *database.DBConn
 var watcherdatabase *watcherdb
 var portal *ckan.Portal
 
@@ -237,7 +236,7 @@ func checkdata(dbconnection *sql.DB) error {
 		}
 		scheduler := schedule.New(getnumworkers())
 		logger.Printf("Doing %d jobs in parallel\n", scheduler.GetWorkers())
-		conn := &watcherdb{DBer: tx, Appid: AppID}
+		conn := &watcherdb{database.DBConn{DBer: tx, Appid: AppID}}
 		f := func(slice []interface{}) error {
 			if err := processmetadataids(conn, ifaceslicetostring(slice)); err != nil {
 				return err
@@ -245,7 +244,7 @@ func checkdata(dbconnection *sql.DB) error {
 			return nil
 		}
 
-		db.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), database.StateOk, true)
+		watcherdatabase.LogMessage(fmt.Sprintf("%d Medadaten werden verarbeitet", anzids), database.StateOk, true)
 		workchannel := scheduler.Schedule(f, stringslicetoiface(processids))
 		select {
 		case workreply := <-workchannel:
@@ -253,7 +252,7 @@ func checkdata(dbconnection *sql.DB) error {
 				return fmt.Errorf("Scheduler didn't return success: %s", err)
 			} else if workreply.Code == schedule.StateFinish {
 				tx.Commit()
-				db.LogMessage("Idle", database.StateOk, true)
+				watcherdatabase.LogMessage("Idle", database.StateOk, true)
 				logger.Printf("Finished processing %d datasets\n", anzids)
 			}
 		}
@@ -278,7 +277,7 @@ func checkurls(dbconnection *sql.DB) error {
 		scheduler := schedule.New(getnumworkers())
 		logger.Printf("Doing %d jobs in parallel\n", scheduler.GetWorkers())
 
-		conn := &watcherdb{DBer: tx, Appid: AppID}
+		conn := &watcherdb{database.DBConn{DBer: tx, Appid: AppID}}
 
 		f := func(slice []interface{}) error {
 			if err := processdataseturls(conn, ifaceslicetodataurl(slice)); err != nil {
@@ -287,7 +286,7 @@ func checkurls(dbconnection *sql.DB) error {
 			return nil
 		}
 
-		db.LogMessage(fmt.Sprintf("%d Urls werden gecheckt", anzurls), database.StateOk, true)
+		watcherdatabase.LogMessage(fmt.Sprintf("%d Urls werden gecheckt", anzurls), database.StateOk, true)
 		workchannel := scheduler.Schedule(f, dataurlslicetoiface(urls))
 
 		select {
@@ -296,7 +295,7 @@ func checkurls(dbconnection *sql.DB) error {
 				return fmt.Errorf("Scheduler didn't return success: %s", err)
 			} else if workreply.Code == schedule.StateFinish {
 				tx.Commit()
-				db.LogMessage("Idle", database.StateOk, true)
+				watcherdatabase.LogMessage("Idle", database.StateOk, true)
 				logger.Printf("Finished checking %d Urls\n", anzurls)
 			}
 		}
@@ -350,8 +349,8 @@ func mymain() int {
 	if err != nil {
 		logger.Panicln(err)
 	}
-	db = &database.DBConn{dbconnection, AppID}
-	watcherdatabase = &watcherdb{dbconnection, AppID}
+	// db = &database.DBConn{dbconnection, AppID}
+	watcherdatabase = &watcherdb{database.DBConn{dbconnection, AppID}}
 	defer dbconnection.Close()
 
 	if *resettdb {
