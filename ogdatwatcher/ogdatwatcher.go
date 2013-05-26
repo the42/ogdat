@@ -90,7 +90,7 @@ func heartbeat(interval int) chan bool {
 			if err != nil {
 				logger.Panicln(err)
 			}
-			db := &database.DBConn{dbconn, AppID}
+			db := &database.DBConn{DBer: dbconn, Appid: AppID}
 			if err := db.HeartBeat(); err != nil {
 				logger.Panicln(err)
 			}
@@ -350,7 +350,7 @@ func mymain() int {
 		logger.Panicln(err)
 	}
 	// db = &database.DBConn{dbconnection, AppID}
-	watcherdatabase = &watcherdb{database.DBConn{dbconnection, AppID}}
+	watcherdatabase = &watcherdb{DBConn: database.DBConn{DBer: dbconnection, Appid: AppID}}
 	defer dbconnection.Close()
 
 	if *resettdb {
