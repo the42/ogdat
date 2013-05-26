@@ -1,10 +1,10 @@
-package database 
+package database
 
 import (
 	"database/sql"
-	"os"
-	"github.com/lib/pq"
 	"fmt"
+	"github.com/lib/pq"
+	"os"
 	"time"
 )
 

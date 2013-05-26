@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"github.com/the42/ogdat"
 	"github.com/the42/ogdat/ckan"
+	"github.com/the42/ogdat/database"
 	"github.com/the42/ogdat/ogdatv21"
 	"github.com/the42/ogdat/schedule"
-	"github.com/the42/ogdat/database"	
 	"log"
 	"os"
 	"path/filepath"
@@ -346,7 +346,7 @@ func mymain() int {
 		logger.Panicln("Fatal: No command line flags given")
 	}
 
-	dbconnection,err := database.GetDatabaseConnection()
+	dbconnection, err := database.GetDatabaseConnection()
 	if err != nil {
 		logger.Panicln(err)
 	}

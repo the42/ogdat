@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/the42/ogdat/database"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/the42/ogdat"
+	"github.com/the42/ogdat/database"
 	"github.com/the42/ogdat/ogdatv21"
 	"time"
 )
