@@ -1,4 +1,5 @@
 .*
+!/.gitignore
 *.local
 *.pdf
 *.html*
