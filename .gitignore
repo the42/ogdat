@@ -1,5 +1,5 @@
-.*
-!/.gitignore
+.directory
+.env
 *.local
 *.pdf
 *.html*
