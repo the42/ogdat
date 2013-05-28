@@ -1,86 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/the42/ogdat/database"
 )
 
 type analyserdb struct {
 	database.DBConn
-}
-
-func (conn *analyserdb) GetUnitDSNums() ([]UnitDSNums, error) {
-	const sqlentityanz = `
-SELECT publisher, COUNT (publisher) AS anz
-FROM dataset
-GROUP BY publisher
-ORDER BY anz desc`
-
-	rows, err := conn.Query(sqlentityanz)
-	if err != nil {
-		return nil, err
-	}
-
-	var unitsanz []UnitDSNums
-	var entity string
-	var anz int
-
-	for rows.Next() {
-		if err := rows.Scan(&entity, &anz); err != nil {
-			return nil, err
-		}
-		unitsanz = append(unitsanz, UnitDSNums{Entity: entity, Numsets: anz})
-	}
-
-	return unitsanz, nil
-}
-
-func (conn *analyserdb) GetMDVersNums() ([]MDVersNums, error) {
-	const sqlmdversanz = `
-SELECT vers, count(vers)
-FROM dataset
-GROUP BY vers
-ORDER BY vers`
-
-	rows, err := conn.Query(sqlmdversanz)
-	if err != nil {
-		return nil, err
-	}
-
-	var mdversanz []MDVersNums
-	var mdvers string
-	var anz int
-
-	for rows.Next() {
-		if err := rows.Scan(&mdvers, &anz); err != nil {
-			return nil, err
-		}
-		mdversanz = append(mdversanz, MDVersNums{MetadataVersion: mdvers, Numsets: anz})
-	}
-
-	return mdversanz, nil
-}
-
-func (conn *analyserdb) GetCategories() ([]string, error) {
-	const sqlcategories = `
-SELECT category
-FROM dataset`
-
-	rows, err := conn.Query(sqlcategories)
-	if err != nil {
-		return nil, err
-	}
-
-	var categories []string
-	var cat string
-
-	for rows.Next() {
-		if err := rows.Scan(&cat); err != nil {
-			return nil, err
-		}
-		categories = append(categories, cat)
-	}
-
-	return categories, nil
 }
 
 func (conn *analyserdb) GetDatasets() ([]Dataset, error) {
@@ -94,14 +20,85 @@ FROM dataset`
 	}
 
 	var datasets []Dataset
-	var id, ckanid, publisher, contact, description, version, scategory string
+	var id, ckanid, publisher, contact, description, version, scategory *string
 
 	for rows.Next() {
 		if err := rows.Scan(&id, &ckanid, &publisher, &contact, &description, &version, &scategory); err != nil {
 			return nil, err
 		}
-		datasets = append(datasets, Dataset{ID: id, CKANID: ckanid, Publisher: publisher, Contact: contact, Description: description, Version: version, Category: []string{}})
+
+		ds := Dataset{}
+		if id != nil {
+			ds.ID = *id
+		}
+		if ckanid != nil {
+			ds.CKANID = *ckanid
+		}
+		if publisher != nil {
+			ds.Publisher = *publisher
+		}
+		if contact != nil {
+			ds.Contact = *contact
+		}
+		if description != nil {
+			ds.Description = *description
+		}
+		if version != nil {
+			ds.Version = *version
+		}
+		if scategory != nil {
+			var strcats []string
+			if err := json.Unmarshal([]byte(*scategory), &strcats); err != nil {
+				return nil, err
+			}
+			ds.Category = strcats
+		}
+		datasets = append(datasets, ds)
+	}
+	return datasets, nil
+}
+
+func (conn *analyserdb) GetAN001Data() ([]AN001Data, error) {
+	const sqlquery = `
+SELECT ckanid, reason_text
+FROM status, dataset
+WHERE reason_text IN (
+  SELECT t.reason_text
+  FROM status AS t
+  WHERE t.hittime = (SELECT MAX(hittime)
+                     FROM status
+                     WHERE datasetid = t.datasetid
+                     AND fieldstatus = (1 | x'2000'::int)
+                    )
+  AND fieldstatus = (1 | x'2000'::int)
+  AND field_id = 14
+  GROUP BY t.reason_text
+  HAVING COUNT(*) > 1)
+AND status.datasetid = dataset.sysid
+AND status.fieldstatus = (1 | x'2000'::int)
+ORDER BY reason_text`
+
+	rows, err := conn.Query(sqlquery)
+	if err != nil {
+		return nil, err
 	}
 
+	var datasets []AN001Data
+	var ckanid, url *string
+
+	for rows.Next() {
+		if err := rows.Scan(&ckanid, &url); err != nil {
+			return nil, err
+		}
+
+		ds := AN001Data{}
+		if ckanid != nil {
+			ds.CKANID = *ckanid
+		}
+		if url != nil {
+			ds.Url = *url
+		}
+		datasets = append(datasets, ds)
+	}
 	return datasets, nil
 }

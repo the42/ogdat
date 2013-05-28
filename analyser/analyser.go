@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/garyburd/redigo/redis"
 	"github.com/the42/ogdat/database"
 	"log"
@@ -57,69 +56,106 @@ func heartbeat(interval int) chan bool {
 	return retchan
 }
 
-func (a analyser) populateunitsanz() error {
-	const key = "entities"
-	units, err := a.dbcon.GetUnitDSNums()
+func (a analyser) populatedatasets() error {
+	const (
+		dskey   = "datasets"
+		catkey  = "categories"
+		verskey = "versions"
+		entkey  = "entities"
+	)
+
+	logger.Println("SQL: Retrieving datasets")
+	sets, err := a.dbcon.GetDatasets()
 	if err != nil {
 		return err
 	}
-	a.rcon.Do("DEL", key)
-	for _, entanz := range units {
-		if _, err = a.rcon.Do("ZADD", key, entanz.Numsets, entanz.Entity); err != nil {
+
+	logger.Println("Deleting base dataset info keys from Redis")
+	a.rcon.Do("DEL", dskey+"*", catkey, verskey, entkey, "dataset:*")
+
+	if err := a.rcon.Send("MULTI"); err != nil {
+		return nil
+	}
+
+	logger.Println("Looping over datasets, populating information to Redis (this may take some time)")
+	for _, set := range sets {
+
+		// populate metadata version count
+		if err = a.rcon.Send("ZINCRBY", verskey, 1, set.Version); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func (a analyser) populateversanz() error {
-	const key = "versions"
-	vers, err := a.dbcon.GetMDVersNums()
-	if err != nil {
-		return err
-	}
-	a.rcon.Do("DEL", key)
-	for _, versanz := range vers {
-		if _, err = a.rcon.Do("ZADD", key, versanz.Numsets, versanz.MetadataVersion); err != nil {
+		// associate metadata version with ckanid
+		if err = a.rcon.Send("SADD", dskey+":"+set.Version, set.CKANID); err != nil {
 			return err
 		}
-	}
-	return nil
-}
 
-func (a analyser) populatecategories() error {
-	const key = "categories"
-	cats, err := a.dbcon.GetCategories()
-	if err != nil {
-		return err
-	}
-	a.rcon.Do("DEL", key)
-
-	for _, cat := range cats {
-		var strcats []string
-		if err := json.Unmarshal([]byte(cat), &strcats); err != nil {
+		// populate entity count
+		if err = a.rcon.Send("ZINCRBY", entkey, 1, set.Publisher); err != nil {
 			return err
 		}
-		for _, strcat := range strcats {
-			if _, err = a.rcon.Do("ZINCRBY", key, 1, strcat); err != nil {
+		// associate entity with ckanid
+		if err = a.rcon.Send("SADD", dskey+":"+set.Publisher, set.CKANID); err != nil {
+			return err
+		}
+
+		// populate category count
+		for _, cat := range set.Category {
+			if err = a.rcon.Send("ZINCRBY", catkey, 1, cat); err != nil {
+				return err
+			}
+			// associate category with ckanid
+			if err = a.rcon.Send("SADD", dskey+":"+cat, set.CKANID); err != nil {
 				return err
 			}
 		}
+
+		// populate the dataset
+		if err = a.rcon.Send("HMSET", redis.Args{}.Add("dataset:"+set.CKANID).AddFlat(&set)...); err != nil {
+			return err
+		}
+	}
+	logger.Println("Committing data to Redis")
+	if _, err := a.rcon.Do("EXEC"); err != nil {
+		return err
 	}
 	return nil
 }
 
 func (a analyser) populatedatasetbaseinfo() error {
+	logger.Println("Starting populating datasets base info")
+	if err := a.populatedatasets(); err != nil {
+		return err
+	}
+	logger.Println("Done populating datasets base info")
+	return nil
+}
 
-	if err := a.populateunitsanz(); err != nil {
+func (a analyser) populatean001() error {
+	const an001 = "an001"
+
+	logger.Println("AN001: What publishers have multiple metadata sets, but within distinct sets point to the same data")
+
+	logger.Println("AN001: SQL: Retrieving data")
+	sets, err := a.dbcon.GetAN001Data()
+	if err != nil {
 		return err
 	}
-	if err := a.populateversanz(); err != nil {
+
+	logger.Println("AN001: Deleting keys from Redis")
+	a.rcon.Do("DEL", an001+"*")
+
+	_ = sets // TODO: continue here
+	return nil
+}
+
+func (a analyser) populatedatasetanalysis() error {
+	logger.Println("Starting dataset analysis")
+
+	if err := a.populatean001(); err != nil {
 		return err
 	}
-	if err := a.populatecategories(); err != nil {
-		return err
-	}
+
+	logger.Println("Done dataset analysis")
 	return nil
 }
 
@@ -141,13 +177,17 @@ func main() {
 	hertbeatinterval := getheartbeatinterval()
 	heartbeatchannel := heartbeat(hertbeatinterval)
 
-	if err = analyser.populatedatasetbaseinfo(); err != nil {
-		logger.Panicln(err)
-	}
 	for {
 		select {
 		case <-heartbeatchannel:
+			if err = analyser.populatedatasetbaseinfo(); err != nil {
+				logger.Panicln(err)
+			}
 
+			if err = analyser.populatedatasetanalysis(); err != nil {
+				logger.Panicln(err)
+			}
+			logger.Println("Idle")
 		}
 	}
 }

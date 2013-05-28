@@ -21,3 +21,8 @@ type Dataset struct {
 	Version     string
 	Category    []string
 }
+
+type AN001Data struct {
+	CKANID string
+	Url    string
+}
