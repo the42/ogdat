@@ -23,6 +23,10 @@ type DBConn struct {
 	Appid string
 }
 
+type RedisConn struct {
+	redis.Conn
+}
+
 type State int16
 
 const (
@@ -94,7 +98,38 @@ func GetRedisConnection(s string) (c redis.Conn, err error) {
 	return
 }
 
-func (conn *DBConn) HeartBeat() error {
+func (c RedisConn) DeleteKeyPattern(s ...string) error {
+	for _, pattern := range s {
+
+		reply, err := redis.Values(c.Do("KEYS", pattern))
+		if err != nil {
+			return err
+		}
+
+		var key string
+		if len(reply) > 0 {
+			if err := c.Send("MULTI"); err != nil {
+				return nil
+			}
+			for len(reply) > 0 {
+				reply, err = redis.Scan(reply, &key)
+				if err != nil {
+					return err
+				}
+				if err := c.Send("DEL", key); err != nil {
+					return nil
+				}
+
+			}
+			if _, err := c.Do("EXEC"); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (conn DBConn) HeartBeat() error {
 	const (
 		updatestmt = "UPDATE heartbeat SET ts=$1 WHERE who=$2 AND sysid=$3"
 		insertstmt = "INSERT INTO heartbeat(ts, statuscode, statustext, who) VALUES($1, 0, 'Alive', $2)"
@@ -124,7 +159,7 @@ func (conn *DBConn) HeartBeat() error {
 }
 
 // Deliberately use no stored procedures
-func (conn *DBConn) LogMessage(message string, code State, replacelatest bool) error {
+func (conn DBConn) LogMessage(message string, code State, replacelatest bool) error {
 
 	const (
 		updatestmt = "UPDATE heartbeat SET ts=$1, statuscode=$2, statustext=$3 WHERE who=$4 AND sysid=$5"

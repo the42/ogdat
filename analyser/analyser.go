@@ -16,7 +16,7 @@ var logger *log.Logger
 
 type analyser struct {
 	dbcon analyserdb
-	rcon  redis.Conn
+	rcon  database.RedisConn
 }
 
 func getredisconnect() string {
@@ -71,7 +71,8 @@ func (a analyser) populatedatasets() error {
 	}
 
 	logger.Println("Deleting base dataset info keys from Redis")
-	a.rcon.Do("DEL", dskey+"*", catkey, verskey, entkey, "dataset:*")
+	a.rcon.Do("DEL", catkey, verskey, entkey)
+	a.rcon.DeleteKeyPattern(dskey+"*", "dataset:*")
 
 	if err := a.rcon.Send("MULTI"); err != nil {
 		return nil
@@ -142,9 +143,22 @@ func (a analyser) populatean001() error {
 	}
 
 	logger.Println("AN001: Deleting keys from Redis")
-	a.rcon.Do("DEL", an001+"*")
+	a.rcon.DeleteKeyPattern(an001+"*")
 
-	_ = sets // TODO: continue here
+	if err := a.rcon.Send("MULTI"); err != nil {
+		return nil
+	}
+
+	for _, set := range sets {
+
+		if err = a.rcon.Send("ZINCRBY", an001+":"+set.CKANID, 1, set.Url); err != nil {
+			return err
+		}
+	}
+	logger.Println("AN001: Committing data to Redis")
+	if _, err := a.rcon.Do("EXEC"); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -171,8 +185,7 @@ func main() {
 		logger.Panicln(err)
 	}
 	defer dbcon.Close()
-	conn := analyserdb{DBConn: database.DBConn{Appid: AppID, DBer: dbcon}}
-	analyser := &analyser{dbcon: conn, rcon: rcon}
+	analyser := &analyser{dbcon: analyserdb{DBConn: database.DBConn{Appid: AppID, DBer: dbcon}}, rcon: database.RedisConn{rcon}}
 
 	hertbeatinterval := getheartbeatinterval()
 	heartbeatchannel := heartbeat(hertbeatinterval)
