@@ -195,7 +195,7 @@ func processdataseturls(conn *watcherdb, nestedurls [][]DataUrl) error {
 			_, checkresult := ogdat.FetchHead(url.Url)
 
 			messages[idx].Type = checkresult.Status
-			messages[idx].Text = url.Url
+			messages[idx].Text = checkresult.Context
 			messages[idx].OGDID = url.Field_id
 
 			anz++

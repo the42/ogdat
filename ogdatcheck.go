@@ -217,11 +217,11 @@ func FetchHead(url string) (bool, CheckInfo) {
 
 	resp, err := http.Head(url)
 	if err != nil {
-		info = CheckInfo{Error | FetchableUrl | NoDataatUrlError, -1, fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)}
+		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("URL kann nicht aufgelöst werden: '%s'", err)}
 	} else if sc := resp.StatusCode; sc != 200 {
-		info = CheckInfo{Error | FetchableUrl | NoDataatUrlError, -1, fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)}
+		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("HEAD request liefert nicht-OK Statuscode '%d'", sc)}
 	} else {
-		info = CheckInfo{Info | FetchableUrl | FetchSuccess, -1, url}
+		info = CheckInfo{Status: Info | FetchableUrl | FetchSuccess, Position: -1, Context: url}
 	}
 
 	return (info.Status & (Info | FetchSuccess)) == (Info | FetchSuccess), info
@@ -247,11 +247,11 @@ func CheckUrl(url string, followhttplink bool) (bool, []CheckInfo) {
 	}
 
 	if len(url) == 0 {
-		checkmessages = append(checkmessages, CheckInfo{Error, -1, "kein Wert für Link angegeben (Länge 0)"})
+		checkmessages = append(checkmessages, CheckInfo{Status: Error, Position: -1, Context: "kein Wert für Link angegeben (Länge 0)"})
 		return false, checkmessages
 	}
 
-	checkmessages = append(checkmessages, CheckInfo{Warning, -1, fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])})
+	checkmessages = append(checkmessages, CheckInfo{Status: Warning, Position: -1, Context: fmt.Sprintf("vermutlich keine gültige Web- oder E-Mail Adresse: '%s' (Auszug)", url[:min(20, len(url))])})
 
 	return false, checkmessages
 }
