@@ -22,7 +22,7 @@ type Dataset struct {
 	Category    []string
 }
 
-type AN001Data struct {
+type CKANIDUrl struct {
 	CKANID string
 	Url    string
 }

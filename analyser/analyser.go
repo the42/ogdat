@@ -143,7 +143,38 @@ func (a analyser) populatean001() error {
 	}
 
 	logger.Println("AN001: Deleting keys from Redis")
-	a.rcon.DeleteKeyPattern(an001+"*")
+	a.rcon.DeleteKeyPattern(an001 + "*")
+
+	if err := a.rcon.Send("MULTI"); err != nil {
+		return nil
+	}
+
+	for _, set := range sets {
+
+		if err = a.rcon.Send("ZINCRBY", an001+":"+set.CKANID, 1, set.Url); err != nil {
+			return err
+		}
+	}
+	logger.Println("AN001: Committing data to Redis")
+	if _, err := a.rcon.Do("EXEC"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a analyser) populatean002() error {
+	const an001 = "an002"
+
+	logger.Println("AN002: What publishers have multiple metadata sets, but within distinct sets point to the same data")
+
+	logger.Println("AN001: SQL: Retrieving data")
+	sets, err := a.dbcon.GetAN001Data()
+	if err != nil {
+		return err
+	}
+
+	logger.Println("AN001: Deleting keys from Redis")
+	a.rcon.DeleteKeyPattern(an001 + "*")
 
 	if err := a.rcon.Send("MULTI"); err != nil {
 		return nil
