@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/the42/ogdat/database"
+	"time"
 )
 
 type analyserdb struct {
@@ -125,4 +127,37 @@ WHERE d.sysid = t.datasetid`
 
 	return conn.getckanidurl(sqlquery)
 
+}
+
+func (conn *analyserdb) GetBS001Data(num int) ([]CKANIDTime, error) {
+	sqlquery := fmt.Sprintf(`
+SELECT ckanid, hittime
+FROM dataset
+INNER JOIN status
+ON status.datasetid = dataset.sysid
+AND status = 'updated'
+ORDER BY hittime DESC
+LIMIT %d`, num)
+
+	rows, err := conn.Query(sqlquery)
+	if err != nil {
+		return nil, err
+	}
+
+	var datasets []CKANIDTime
+	var ckanid *string
+	var t time.Time
+
+	for rows.Next() {
+		if err := rows.Scan(&ckanid, &t); err != nil {
+			return nil, err
+		}
+
+		ds := CKANIDTime{Time: t}
+		if ckanid != nil {
+			ds.CKANID = *ckanid
+		}
+		datasets = append(datasets, ds)
+	}
+	return datasets, nil
 }

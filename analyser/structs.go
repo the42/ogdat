@@ -1,5 +1,9 @@
 package main
 
+import (
+	"time"
+)
+
 // ===================================================
 // Structurs for database retrieval & redis storage
 // ===================================================
@@ -25,4 +29,9 @@ type Dataset struct {
 type CKANIDUrl struct {
 	CKANID string
 	Url    string
+}
+
+type CKANIDTime struct {
+	CKANID string
+	time.Time
 }
