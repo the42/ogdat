@@ -23,7 +23,9 @@ CREATE TABLE dataset (
     description text,
     vers character varying(255) NOT NULL,
     category json,
-    ckanid character varying(255)
+    ckanid character varying(255),
+    geobbox character varying(255),
+    geotoponym character varying(255)
 );
 
 CREATE SEQUENCE dataset_sysid_seq
