@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -62,6 +63,7 @@ func (a analyser) populatedatasets() error {
 		catkey  = "categories"
 		verskey = "versions"
 		entkey  = "entities"
+		topokey = "toponyms"
 	)
 
 	logger.Println("SQL: Retrieving datasets")
@@ -71,7 +73,7 @@ func (a analyser) populatedatasets() error {
 	}
 
 	logger.Println("Deleting base dataset info keys from Redis")
-	a.rcon.Do("DEL", catkey, verskey, entkey)
+	a.rcon.Do("DEL", catkey, verskey, entkey, topokey)
 	a.rcon.DeleteKeyPattern(dskey+"*", "dataset:*")
 
 	if err := a.rcon.Send("MULTI"); err != nil {
@@ -97,6 +99,18 @@ func (a analyser) populatedatasets() error {
 		// associate entity with ckanid
 		if err = a.rcon.Send("SADD", dskey+":"+set.Publisher, set.CKANID); err != nil {
 			return err
+		}
+
+		// populate geographic toponym count
+		if toponym := strings.TrimSpace(set.GeoToponym); len(toponym) > 0 {
+			if err = a.rcon.Send("ZINCRBY", topokey, 1, toponym); err != nil {
+				return err
+			}
+			// associate geographic toponym ckanid
+			if err = a.rcon.Send("SADD", dskey+":"+toponym, set.CKANID); err != nil {
+				return err
+			}
+
 		}
 
 		// populate category count

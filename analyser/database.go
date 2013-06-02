@@ -13,7 +13,7 @@ type analyserdb struct {
 
 func (conn *analyserdb) GetDatasets() ([]Dataset, error) {
 	const sqldatasets = `
-SELECT id, ckanid, publisher, contact, description, vers, category
+SELECT id, ckanid, publisher, contact, description, vers, category, geobbox, geotoponym
 FROM dataset`
 
 	rows, err := conn.Query(sqldatasets)
@@ -22,10 +22,10 @@ FROM dataset`
 	}
 
 	var datasets []Dataset
-	var id, ckanid, publisher, contact, description, version, scategory *string
+	var id, ckanid, publisher, contact, description, version, scategory, geobbox, geotoponym *string
 
 	for rows.Next() {
-		if err := rows.Scan(&id, &ckanid, &publisher, &contact, &description, &version, &scategory); err != nil {
+		if err := rows.Scan(&id, &ckanid, &publisher, &contact, &description, &version, &scategory, &geobbox, &geotoponym); err != nil {
 			return nil, err
 		}
 
@@ -47,6 +47,12 @@ FROM dataset`
 		}
 		if version != nil {
 			ds.Version = *version
+		}
+		if geobbox != nil {
+			ds.GeoBBox = *geobbox
+		}
+		if geotoponym != nil {
+			ds.GeoToponym = *geotoponym
 		}
 		if scategory != nil {
 			var strcats []string

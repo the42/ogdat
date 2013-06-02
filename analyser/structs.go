@@ -24,6 +24,8 @@ type Dataset struct {
 	Description string
 	Version     string
 	Category    []string
+	GeoBBox     string
+	GeoToponym  string
 }
 
 type CKANIDUrl struct {
