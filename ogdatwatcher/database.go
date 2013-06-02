@@ -107,7 +107,7 @@ func DBStringLen(in string, length int) string {
 
 func (conn *watcherdb) InsertOrUpdateMetadataInfo(ckanid string, md *ogdatv21.MetaData) (database.DBID, bool, error) {
 	// insertorupdatemetadatainfo(id character varying, pub character varying, cont character varying, descr text, vers character varying, category json, stime timestamp with time zone)
-	const stmt = "SELECT * FROM insertorupdatemetadatainfo($1, $2, $3, $4, $5, $6, $7, $8)"
+	const stmt = "SELECT * FROM insertorupdatemetadatainfo($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
 
 	if md == nil {
 		return -1, false, fmt.Errorf("No input to process")
@@ -140,6 +140,16 @@ func (conn *watcherdb) InsertOrUpdateMetadataInfo(ckanid string, md *ogdatv21.Me
 		*vers = DBStringLen(*vers, 255)
 	}
 
+	geobbox := md.Geographic_BBox
+	if geobbox != nil {
+		*geobbox = DBStringLen(*geobbox, 255)
+	}
+
+	geotoponym := md.Geographich_Toponym
+	if geotoponym != nil {
+		*geotoponym = DBStringLen(*geotoponym, 255)
+	}
+
 	var cats []string
 	if cat := md.Categorization; cat != nil {
 		for _, cat := range cat.Kategorie {
@@ -152,7 +162,7 @@ func (conn *watcherdb) InsertOrUpdateMetadataInfo(ckanid string, md *ogdatv21.Me
 
 	var sysid database.DBID
 	var isnew bool
-	err = dbs.QueryRow(ckanid, id, pub, maint, desc, vers, string(cat), t).Scan(&sysid, &isnew)
+	err = dbs.QueryRow(ckanid, id, pub, maint, desc, vers, string(cat), t, geobbox, geotoponym).Scan(&sysid, &isnew)
 
 	if err != nil {
 		return -1, false, err
