@@ -129,6 +129,13 @@ func (c RedisConn) DeleteKeyPattern(s ...string) error {
 	return nil
 }
 
+func (c RedisConn) Publish(key, value string) error {
+	if err := c.Send("PUBLISH", key, value); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (conn DBConn) HeartBeat() error {
 	const (
 		updatestmt = "UPDATE heartbeat SET ts=$1 WHERE who=$2 AND sysid=$3"
