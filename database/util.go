@@ -109,7 +109,7 @@ func (c RedisConn) DeleteKeyPattern(s ...string) error {
 		var key string
 		if len(reply) > 0 {
 			if err := c.Send("MULTI"); err != nil {
-				return nil
+				return err
 			}
 			for len(reply) > 0 {
 				reply, err = redis.Scan(reply, &key)
@@ -117,7 +117,7 @@ func (c RedisConn) DeleteKeyPattern(s ...string) error {
 					return err
 				}
 				if err := c.Send("DEL", key); err != nil {
-					return nil
+					return err
 				}
 
 			}
