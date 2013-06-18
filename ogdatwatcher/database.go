@@ -200,3 +200,14 @@ func (conn *watcherdb) ProtocollCheck(id database.DBID, isnew bool, messages []o
 	}
 	return nil
 }
+
+func redispublish(key string, num int) error {
+	c, err := database.GetRedisConnection(getredisconnect())
+	if err != nil {
+		rcon := database.RedisConn{Conn: c}
+		rcon.Publish(AppID+":"+key, fmt.Sprintf("%s", num))
+		rcon.Flush()
+		rcon.Close()
+	}
+	return err
+}

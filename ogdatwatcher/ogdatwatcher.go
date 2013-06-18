@@ -67,6 +67,12 @@ func getckanurl() (url string) {
 	return
 }
 
+func getredisconnect() string {
+	const redisurl = "REDISCLOUD_URL"
+
+	return os.Getenv(redisurl)
+}
+
 func resetdb() {
 	logger.Println("Warning: Requesting database reset")
 	fmt.Print("\n\nALL RECORDED DATA IN DATABASE  WILL BE DELETED.\nDO YOU REALLY WANT TO PROCEED? [N,y]\n")
@@ -208,11 +214,11 @@ func processdataseturls(conn *watcherdb, nestedurls [][]DataUrl) error {
 	return nil
 }
 
-func checkdata(dbconnection *sql.DB) error {
+func checkdata(dbconnection *sql.DB) (int, error) {
 
 	hit, err := watcherdatabase.GetLastHit()
 	if err != nil {
-		return fmt.Errorf("Cannot read last DBHit: %s", err)
+		return 0, fmt.Errorf("Cannot read last DBHit: %s", err)
 	}
 
 	var processids []string
@@ -225,14 +231,15 @@ func checkdata(dbconnection *sql.DB) error {
 	}
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	if anzids := len(processids); anzids > 0 {
+	anzids := len(processids)
+	if anzids > 0 {
 
 		tx, err := dbconnection.Begin()
 		if err != nil {
-			return fmt.Errorf("Cannot create database transaction: %s", err)
+			return 0, fmt.Errorf("Cannot create database transaction: %s", err)
 		}
 		scheduler := schedule.New(getnumworkers())
 		logger.Printf("Doing %d jobs in parallel\n", scheduler.GetWorkers())
@@ -249,7 +256,7 @@ func checkdata(dbconnection *sql.DB) error {
 		select {
 		case workreply := <-workchannel:
 			if err := workreply.Err; err != nil {
-				return fmt.Errorf("Scheduler didn't return success: %s", err)
+				return 0, fmt.Errorf("Scheduler didn't return success: %s", err)
 			} else if workreply.Code == schedule.StateFinish {
 				tx.Commit()
 				watcherdatabase.LogMessage("Idle", database.StateOk, true)
@@ -257,21 +264,22 @@ func checkdata(dbconnection *sql.DB) error {
 			}
 		}
 	}
-	return nil
+	return anzids, nil
 }
 
-func checkurls(dbconnection *sql.DB) error {
+func checkurls(dbconnection *sql.DB) (int, error) {
 
 	urls, err := watcherdatabase.GetDataUrls()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	if anzurls := len(urls); anzurls > 0 {
+	anzurls := len(urls)
+	if anzurls > 0 {
 
 		tx, err := dbconnection.Begin()
 		if err != nil {
-			return fmt.Errorf("Cannot create database transaction: %s", err)
+			return 0, fmt.Errorf("Cannot create database transaction: %s", err)
 		}
 
 		scheduler := schedule.New(getnumworkers())
@@ -292,7 +300,7 @@ func checkurls(dbconnection *sql.DB) error {
 		select {
 		case workreply := <-workchannel:
 			if err := workreply.Err; err != nil {
-				return fmt.Errorf("Scheduler didn't return success: %s", err)
+				return 0, fmt.Errorf("Scheduler didn't return success: %s", err)
 			} else if workreply.Code == schedule.StateFinish {
 				tx.Commit()
 				watcherdatabase.LogMessage("Idle", database.StateOk, true)
@@ -300,7 +308,7 @@ func checkurls(dbconnection *sql.DB) error {
 			}
 		}
 	}
-	return nil
+	return anzurls, nil
 }
 
 func date(t time.Time, loc *time.Location) time.Time {
@@ -349,7 +357,7 @@ func mymain() int {
 	if err != nil {
 		logger.Panicln(err)
 	}
-	// db = &database.DBConn{dbconnection, AppID}
+
 	watcherdatabase = &watcherdb{DBConn: database.DBConn{DBer: dbconnection, Appid: AppID}}
 	defer dbconnection.Close()
 
@@ -381,14 +389,26 @@ func mymain() int {
 		for {
 			select {
 			case <-urlcheckchan:
-				if err := checkurls(dbconnection); err != nil {
+				anz, err := checkurls(dbconnection)
+				if err != nil {
 					logger.Panicln(err)
+				}
+				if anz > 0 {
+					if err := redispublish("UrlChange", anz); err != nil {
+						logger.Printf("Cannot publish url change to redis: %s\n", err)
+					}
 				}
 				whenurlcheck = urlchecktime(loc)
 				urlcheckchan = time.After(whenurlcheck.Sub(time.Now().In(loc)))
 			case <-datacheckchan:
-				if err := checkdata(dbconnection); err != nil {
+				anz, err := checkdata(dbconnection)
+				if err != nil {
 					logger.Panicln(err)
+				}
+				if anz > 0 {
+					if err := redispublish("DataChange", anz); err != nil {
+						logger.Printf("Cannot publish data change to redis: %s\n", err)
+					}
 				}
 				whendatacheck = datachecktime(loc)
 				datacheckchan = time.After(whendatacheck.Sub(time.Now().In(loc)))
