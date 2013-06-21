@@ -73,6 +73,17 @@ func getredisconnect() string {
 	return os.Getenv(redisurl)
 }
 
+func redispublishint(key string, num int) error {
+	c, err := database.GetRedisConnection(getredisconnect())
+	if err != nil {
+		rcon := database.RedisConn{Conn: c}
+		rcon.Publish(AppID+":"+key, fmt.Sprintf("%s", num))
+		rcon.Flush()
+		rcon.Close()
+	}
+	return err
+}
+
 func resetdb() {
 	logger.Println("Warning: Requesting database reset")
 	fmt.Print("\n\nALL RECORDED DATA IN DATABASE  WILL BE DELETED.\nDO YOU REALLY WANT TO PROCEED? [N,y]\n")
@@ -394,7 +405,7 @@ func mymain() int {
 					logger.Panicln(err)
 				}
 				if anz > 0 {
-					if err := redispublish("UrlChange", anz); err != nil {
+					if err := redispublishint("UrlChange", anz); err != nil {
 						logger.Printf("Cannot publish url change to redis: %s\n", err)
 					}
 				}
@@ -406,7 +417,7 @@ func mymain() int {
 					logger.Panicln(err)
 				}
 				if anz > 0 {
-					if err := redispublish("DataChange", anz); err != nil {
+					if err := redispublishint("DataChange", anz); err != nil {
 						logger.Printf("Cannot publish data change to redis: %s\n", err)
 					}
 				}
