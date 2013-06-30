@@ -1,9 +1,12 @@
 package main
 
 import (
+	restful "github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/swagger"
 	"github.com/garyburd/redigo/redis"
 	"github.com/the42/ogdat/database"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -12,12 +15,14 @@ import (
 )
 
 const AppID = "5bcbfc24-8e7e-4105-99c4-dd47e7e5094a"
+const watcherappid = "a6545f8f-e0c9-4917-83c7-3e47bd1e0247"
 
 var logger *log.Logger
 
 type analyser struct {
 	dbcon analyserdb
 	rcon  database.RedisConn
+	rcom  redis.PubSubConn
 }
 
 func getredisconnect() string {
@@ -55,6 +60,24 @@ func heartbeat(interval int) chan bool {
 	}
 	go f()
 	return retchan
+}
+
+func (a analyser) listenredischannel(which string) chan []byte {
+	a.rcom.Subscribe(which)
+	retval := make(chan []byte)
+
+	go func() {
+		for {
+			switch n := a.rcom.Receive().(type) {
+			case redis.Message:
+				println(n.Channel, n.Data)
+				if n.Channel == which {
+					retval <- n.Data
+				}
+			}
+		}
+	}()
+	return retval
 }
 
 func (a analyser) populatedatasets() error {
@@ -266,6 +289,20 @@ func (a analyser) populatedatasetanalysis() error {
 	return nil
 }
 
+func (a analyser) populatedatasetinfo() error {
+	if err := a.populatedatasetbaseinfo(); err != nil {
+		return err
+	}
+	if err := a.populatedatasetbaseanalysis(); err != nil {
+		return err
+	}
+
+	if err := a.populatedatasetanalysis(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func main() {
 	rcon, err := database.GetRedisConnection(getredisconnect())
 	if err != nil {
@@ -278,25 +315,40 @@ func main() {
 		logger.Panicln(err)
 	}
 	defer dbcon.Close()
-	analyser := &analyser{dbcon: analyserdb{DBConn: database.DBConn{Appid: AppID, DBer: dbcon}}, rcon: database.RedisConn{rcon}}
+	analyser := NewAnalyser(dbcon, rcon)
 
-	hertbeatinterval := getheartbeatinterval()
-	heartbeatchannel := heartbeat(hertbeatinterval)
+	heartbeatinterval := getheartbeatinterval()
+	heartbeatchannel := heartbeat(heartbeatinterval)
+
+	<-heartbeatchannel // Wait for the first heartbeat, so the logging in the database is properly set up
+	if err := analyser.populatedatasetinfo(); err != nil {
+		logger.Panicln(err)
+	}
+
+	datachange := analyser.listenredischannel(watcherappid + ":DataChange")
+	urlchange := analyser.listenredischannel(watcherappid + ":UrlChange")
+
+	restful.DefaultResponseMimeType = restful.MIME_JSON
+	restful.Add(NewAnalyseOGDATRESTService(analyser))
+
+	config := swagger.Config{
+		WebServicesUrl:  "http://localhost:8080",
+		ApiPath:         "/apidoc",
+		SwaggerPath:     "/doc/v1/",
+		SwaggerFilePath: "swagger-ui/dist/",
+		WebServices:     restful.RegisteredWebServices()} // you control what services are visible
+	swagger.InstallSwaggerService(config)
+
+	go logger.Fatal(http.ListenAndServe(":8080", nil))
 
 	for {
 		select {
+		case <-urlchange:
+		case <-datachange:
+			if err := analyser.populatedatasetinfo(); err != nil {
+				logger.Panicln(err)
+			}
 		case <-heartbeatchannel:
-			if err = analyser.populatedatasetbaseinfo(); err != nil {
-				logger.Panicln(err)
-			}
-
-			if err = analyser.populatedatasetbaseanalysis(); err != nil {
-				logger.Panicln(err)
-			}
-
-			if err = analyser.populatedatasetanalysis(); err != nil {
-				logger.Panicln(err)
-			}
 			logger.Println("Idle")
 		}
 	}

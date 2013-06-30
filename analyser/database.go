@@ -1,14 +1,21 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/garyburd/redigo/redis"
 	"github.com/the42/ogdat/database"
 	"time"
 )
 
 type analyserdb struct {
 	database.DBConn
+}
+
+func NewAnalyser(dbcon *sql.DB, rcon redis.Conn) *analyser {
+	analyser := &analyser{dbcon: analyserdb{DBConn: database.DBConn{Appid: AppID, DBer: dbcon}}, rcon: database.RedisConn{rcon}, rcom: redis.PubSubConn{rcon}}
+	return analyser
 }
 
 func (conn *analyserdb) GetDatasets() ([]Dataset, error) {
@@ -66,7 +73,7 @@ FROM dataset`
 	return datasets, nil
 }
 
-func (conn *analyserdb) getckanidurl(query string) ([]CKANIDUrl, error) {
+func (conn *analyserdb) Getckanidurl(query string) ([]CKANIDUrl, error) {
 	rows, err := conn.Query(query)
 	if err != nil {
 		return nil, err
@@ -112,7 +119,7 @@ AND status.datasetid = dataset.sysid
 AND status.fieldstatus = (1 | x'2000'::int)
 ORDER BY reason_text`
 
-	return conn.getckanidurl(sqlquery)
+	return conn.Getckanidurl(sqlquery)
 
 }
 
@@ -131,7 +138,7 @@ FROM (SELECT t.datasetid, t.reason_text
       HAVING COUNT(t.datasetid) > 1) AS t, dataset AS d
 WHERE d.sysid = t.datasetid`
 
-	return conn.getckanidurl(sqlquery)
+	return conn.Getckanidurl(sqlquery)
 
 }
 
