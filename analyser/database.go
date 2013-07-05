@@ -1,21 +1,14 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"github.com/the42/ogdat/database"
 	"time"
 )
 
 type analyserdb struct {
 	database.DBConn
-}
-
-func NewAnalyser(dbcon *sql.DB, rcon redis.Conn) *analyser {
-	analyser := &analyser{dbcon: analyserdb{DBConn: database.DBConn{Appid: AppID, DBer: dbcon}}, rcon: database.RedisConn{rcon}, rcom: redis.PubSubConn{rcon}}
-	return analyser
 }
 
 func (conn *analyserdb) GetDatasets() ([]Dataset, error) {
