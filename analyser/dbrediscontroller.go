@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/garyburd/redigo/redis"
+	"github.com/the42/ogdat/database"
 	"strings"
 )
 
@@ -20,11 +21,15 @@ func (a analyser) populatedatasets() error {
 		return err
 	}
 
-	logger.Println("Deleting base dataset info keys from Redis")
-	a.rcon.Do("DEL", catkey, verskey, entkey, topokey)
-	a.rcon.DeleteKeyPattern(dskey+"*", "dataset:*")
+	rcon := a.pool.Get()
+	defer rcon.Close()
 
-	if err := a.rcon.Send("MULTI"); err != nil {
+	logger.Println("Deleting base dataset info keys from Redis")
+
+	rcon.Do("DEL", catkey, verskey, entkey, topokey)
+	database.RedisConn{rcon}.DeleteKeyPattern(dskey+"*", "dataset:*")
+
+	if err := rcon.Send("MULTI"); err != nil {
 		return nil
 	}
 
@@ -32,30 +37,30 @@ func (a analyser) populatedatasets() error {
 	for _, set := range sets {
 
 		// populate metadata version count
-		if err = a.rcon.Send("ZINCRBY", verskey, 1, set.Version); err != nil {
+		if err = rcon.Send("ZINCRBY", verskey, 1, set.Version); err != nil {
 			return err
 		}
 		// associate metadata version with ckanid
-		if err = a.rcon.Send("SADD", dskey+":"+set.Version, set.CKANID); err != nil {
+		if err = rcon.Send("SADD", dskey+":"+set.Version, set.CKANID); err != nil {
 			return err
 		}
 
 		// populate entity count
-		if err = a.rcon.Send("ZINCRBY", entkey, 1, set.Publisher); err != nil {
+		if err = rcon.Send("ZINCRBY", entkey, 1, set.Publisher); err != nil {
 			return err
 		}
 		// associate entity with ckanid
-		if err = a.rcon.Send("SADD", dskey+":"+set.Publisher, set.CKANID); err != nil {
+		if err = rcon.Send("SADD", dskey+":"+set.Publisher, set.CKANID); err != nil {
 			return err
 		}
 
 		// populate geographic toponym count
 		if toponym := strings.TrimSpace(set.GeoToponym); len(toponym) > 0 {
-			if err = a.rcon.Send("ZINCRBY", topokey, 1, toponym); err != nil {
+			if err = rcon.Send("ZINCRBY", topokey, 1, toponym); err != nil {
 				return err
 			}
 			// associate geographic toponym ckanid
-			if err = a.rcon.Send("SADD", dskey+":"+toponym, set.CKANID); err != nil {
+			if err = rcon.Send("SADD", dskey+":"+toponym, set.CKANID); err != nil {
 				return err
 			}
 
@@ -63,22 +68,22 @@ func (a analyser) populatedatasets() error {
 
 		// populate category count
 		for _, cat := range set.Category {
-			if err = a.rcon.Send("ZINCRBY", catkey, 1, cat); err != nil {
+			if err = rcon.Send("ZINCRBY", catkey, 1, cat); err != nil {
 				return err
 			}
 			// associate category with ckanid
-			if err = a.rcon.Send("SADD", dskey+":"+cat, set.CKANID); err != nil {
+			if err = rcon.Send("SADD", dskey+":"+cat, set.CKANID); err != nil {
 				return err
 			}
 		}
 
 		// populate the dataset
-		if err = a.rcon.Send("HMSET", redis.Args{}.Add("dataset:"+set.CKANID).AddFlat(&set)...); err != nil {
+		if err = rcon.Send("HMSET", redis.Args{}.Add("dataset:"+set.CKANID).AddFlat(&set)...); err != nil {
 			return err
 		}
 	}
 	logger.Println("Committing data to Redis")
-	if _, err := a.rcon.Do("EXEC"); err != nil {
+	if _, err := rcon.Do("EXEC"); err != nil {
 		return err
 	}
 	return nil
@@ -104,21 +109,24 @@ func (a analyser) populatean001() error {
 		return err
 	}
 
-	logger.Println("AN001: Deleting keys from Redis")
-	a.rcon.DeleteKeyPattern(an001 + "*")
+	rcon := a.pool.Get()
+	defer rcon.Close()
 
-	if err := a.rcon.Send("MULTI"); err != nil {
+	logger.Println("AN001: Deleting keys from Redis")
+	database.RedisConn{rcon}.DeleteKeyPattern(an001 + "*")
+
+	if err := rcon.Send("MULTI"); err != nil {
 		return nil
 	}
 
 	for _, set := range sets {
 
-		if err = a.rcon.Send("ZINCRBY", an001+":"+set.CKANID, 1, set.Url); err != nil {
+		if err = rcon.Send("ZINCRBY", an001+":"+set.CKANID, 1, set.Url); err != nil {
 			return err
 		}
 	}
 	logger.Println("AN001: Committing data to Redis")
-	if _, err := a.rcon.Do("EXEC"); err != nil {
+	if _, err := rcon.Do("EXEC"); err != nil {
 		return err
 	}
 	return nil
@@ -135,21 +143,24 @@ func (a analyser) populatean002() error {
 		return err
 	}
 
-	logger.Println("AN002: Deleting keys from Redis")
-	a.rcon.DeleteKeyPattern(an002 + "*")
+	rcon := a.pool.Get()
+	defer rcon.Close()
 
-	if err := a.rcon.Send("MULTI"); err != nil {
+	logger.Println("AN002: Deleting keys from Redis")
+	database.RedisConn{rcon}.DeleteKeyPattern(an002 + "*")
+
+	if err := rcon.Send("MULTI"); err != nil {
 		return nil
 	}
 
 	for _, set := range sets {
 
-		if err = a.rcon.Send("ZINCRBY", an002+":"+set.CKANID, 1, set.Url); err != nil {
+		if err = rcon.Send("ZINCRBY", an002+":"+set.CKANID, 1, set.Url); err != nil {
 			return err
 		}
 	}
 	logger.Println("AN002: Committing data to Redis")
-	if _, err := a.rcon.Do("EXEC"); err != nil {
+	if _, err := rcon.Do("EXEC"); err != nil {
 		return err
 	}
 	return nil
@@ -169,20 +180,23 @@ func (a analyser) populatebs001() error {
 		return err
 	}
 
-	logger.Println("BS001: Deleting keys from Redis")
-	a.rcon.DeleteKeyPattern(bs001 + "*")
+	rcon := a.pool.Get()
+	defer rcon.Close()
 
-	if err := a.rcon.Send("MULTI"); err != nil {
+	logger.Println("BS001: Deleting keys from Redis")
+	database.RedisConn{rcon}.DeleteKeyPattern(bs001 + "*")
+
+	if err := rcon.Send("MULTI"); err != nil {
 		return nil
 	}
 
 	for _, set := range sets {
-		if err = a.rcon.Send("SET", bs001+":"+set.CKANID, set.Time); err != nil {
+		if err = rcon.Send("SET", bs001+":"+set.CKANID, set.Time); err != nil {
 			return err
 		}
 	}
 	logger.Println("BS001: Committing data to Redis")
-	if _, err := a.rcon.Do("EXEC"); err != nil {
+	if _, err := rcon.Do("EXEC"); err != nil {
 		return err
 	}
 	return nil

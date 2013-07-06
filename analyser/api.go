@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func (an *analyser) GetRESTEntities(request *restful.Request, response *restful.Response) {
+func (a *analyser) GetRESTEntities(request *restful.Request, response *restful.Response) {
 
 	getentity := request.QueryParameter("entity")
 	sortorder := request.QueryParameter("sortorder")
@@ -18,9 +18,12 @@ func (an *analyser) GetRESTEntities(request *restful.Request, response *restful.
 	var err error
 
 	resultset := make([]UnitDSNums, 0)
+	
+	rcon := a.pool.Get()
+	defer rcon.Close()
 
 	if len(getentity) > 0 {
-		snums, err := redis.String(an.rcon.Do("ZSCORE", "entities", getentity))
+		snums, err := redis.String(rcon.Do("ZSCORE", "entities", getentity))
 		if err != nil {
 			panic(err)
 		}
@@ -31,9 +34,9 @@ func (an *analyser) GetRESTEntities(request *restful.Request, response *restful.
 		}
 	} else {
 		if sortorder == "asc" {
-			reply, err = redis.Values(an.rcon.Do("ZRANGE", "entities", 0, -1, "WITHSCORES"))
+			reply, err = redis.Values(rcon.Do("ZRANGE", "entities", 0, -1, "WITHSCORES"))
 		} else {
-			reply, err = redis.Values(an.rcon.Do("ZREVRANGE", "entities", 0, -1, "WITHSCORES"))
+			reply, err = redis.Values(rcon.Do("ZREVRANGE", "entities", 0, -1, "WITHSCORES"))
 		}
 		if err != nil {
 			panic(err)

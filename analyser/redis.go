@@ -5,13 +5,15 @@ import (
 )
 
 func (a analyser) listenredischannel(which string) chan []byte {
-	a.rcom.Subscribe(which)
+	pubsubcon := redis.PubSubConn{a.pool.Get()}
+	pubsubcon.Subscribe(which)
 	retval := make(chan []byte)
 
 	go func() {
 		for {
-			switch n := a.rcom.Receive().(type) {
+			switch n := pubsubcon.Receive().(type) {
 			case redis.Message:
+				// TODO: remove after debugging
 				println(n.Channel, n.Data)
 				if n.Channel == which {
 					retval <- n.Data

@@ -21,12 +21,11 @@ var logger *log.Logger
 
 type analyser struct {
 	dbcon analyserdb
-	rcon  database.RedisConn
-	rcom  redis.PubSubConn
+	pool  *redis.Pool
 }
 
-func NewAnalyser(dbcon *sql.DB, rcon redis.Conn) *analyser {
-	analyser := &analyser{dbcon: analyserdb{DBConn: database.DBConn{Appid: AppID, DBer: dbcon}}, rcon: database.RedisConn{rcon}, rcom: redis.PubSubConn{rcon}}
+func NewAnalyser(dbcon *sql.DB, pool *redis.Pool) *analyser {
+	analyser := &analyser{dbcon: analyserdb{DBConn: database.DBConn{Appid: AppID, DBer: dbcon}}, pool: pool}
 	return analyser
 }
 
@@ -55,7 +54,7 @@ func getheartbeatinterval() int {
 
 func heartbeat(interval int) chan bool {
 	retchan := make(chan bool)
-	f := func() {
+	go func() {
 		for {
 			dbconn, err := database.GetDatabaseConnection()
 			if err != nil {
@@ -70,24 +69,17 @@ func heartbeat(interval int) chan bool {
 			retchan <- true
 			time.Sleep(time.Duration(interval) * time.Minute)
 		}
-	}
-	go f()
+	}()
 	return retchan
 }
 
 func main() {
-	rcon, err := database.GetRedisConnection(getredisconnect())
-	if err != nil {
-		logger.Panicln(err)
-	}
-	defer rcon.Close()
-
 	dbcon, err := database.GetDatabaseConnection()
 	if err != nil {
 		logger.Panicln(err)
 	}
 	defer dbcon.Close()
-	analyser := NewAnalyser(dbcon, rcon)
+	analyser := NewAnalyser(dbcon, redis.NewPool(func() (redis.Conn, error) { return database.GetRedisConnection(getredisconnect()) }, 10))
 
 	var datachange, urlchange chan []byte
 	var heartbeatchannel chan bool
