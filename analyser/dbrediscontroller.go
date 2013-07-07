@@ -41,7 +41,7 @@ func (a analyser) populatedatasets() error {
 			return err
 		}
 		// associate metadata version with ckanid
-		if err = rcon.Send("SADD", dskey+":"+set.Version, set.CKANID); err != nil {
+		if err = rcon.Send("SADD", dskey+":"+verskey+":"+set.Version, set.CKANID); err != nil {
 			return err
 		}
 
@@ -50,7 +50,7 @@ func (a analyser) populatedatasets() error {
 			return err
 		}
 		// associate entity with ckanid
-		if err = rcon.Send("SADD", dskey+":"+set.Publisher, set.CKANID); err != nil {
+		if err = rcon.Send("SADD", dskey+":"+entkey+":"+set.Publisher, set.CKANID); err != nil {
 			return err
 		}
 
@@ -60,7 +60,7 @@ func (a analyser) populatedatasets() error {
 				return err
 			}
 			// associate geographic toponym ckanid
-			if err = rcon.Send("SADD", dskey+":"+toponym, set.CKANID); err != nil {
+			if err = rcon.Send("SADD", dskey+":"+topokey+":"+toponym, set.CKANID); err != nil {
 				return err
 			}
 
@@ -72,7 +72,7 @@ func (a analyser) populatedatasets() error {
 				return err
 			}
 			// associate category with ckanid
-			if err = rcon.Send("SADD", dskey+":"+cat, set.CKANID); err != nil {
+			if err = rcon.Send("SADD", dskey+":"+catkey+":"+cat, set.CKANID); err != nil {
 				return err
 			}
 		}
