@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -18,6 +19,9 @@ func (a analyser) listenredischannel(which string) chan []byte {
 				if n.Channel == which {
 					retval <- n.Data
 				}
+			case error:
+				fmt.Printf("Listining on redis channel %s failed: %v", which, n)
+				return
 			}
 		}
 	}()
