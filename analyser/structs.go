@@ -7,14 +7,10 @@ import (
 // ===================================================
 // Structurs for database retrieval & redis storage
 // ===================================================
-type UnitDSNums struct {
-	Entity  string
-	Numsets int
-}
 
-type MDVersNums struct {
-	MetadataVersion string
-	Numsets         int
+type IDNums struct {
+	ID      string
+	Numsets int
 }
 
 type Dataset struct {

@@ -9,7 +9,7 @@ import (
 func (a *analyser) GetSortedSet(key string) func(request *restful.Request, response *restful.Response) {
 
 	return func(request *restful.Request, response *restful.Response) {
-		getentity := request.QueryParameter("entity")
+		getentity := request.QueryParameter("id")
 		sortorder := request.QueryParameter("sortorder")
 
 		var entity string
@@ -18,7 +18,7 @@ func (a *analyser) GetSortedSet(key string) func(request *restful.Request, respo
 		var reply []interface{}
 		var err error
 
-		resultset := make([]UnitDSNums, 0)
+		resultset := make([]IDNums, 0)
 
 		rcon := a.pool.Get()
 		defer rcon.Close()
@@ -30,7 +30,7 @@ func (a *analyser) GetSortedSet(key string) func(request *restful.Request, respo
 			}
 			if len(snums) > 0 {
 				if i, err := strconv.ParseInt(snums, 10, 0); err == nil {
-					resultset = append(resultset, UnitDSNums{Entity: getentity, Numsets: int(i)})
+					resultset = append(resultset, IDNums{ID: getentity, Numsets: int(i)})
 				}
 			}
 		} else {
@@ -48,7 +48,7 @@ func (a *analyser) GetSortedSet(key string) func(request *restful.Request, respo
 				if err != nil {
 					panic(err)
 				}
-				resultset = append(resultset, UnitDSNums{Entity: entity, Numsets: nums})
+				resultset = append(resultset, IDNums{ID: entity, Numsets: nums})
 			}
 		}
 
@@ -63,11 +63,28 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Produces(restful.MIME_JSON)
 
 	ws.Route(ws.GET("/entities").To(an.GetSortedSet("entities")).
-		// for documentation
-		Doc("Liefert Verwaltungseinheit und deren Anzahl an Datensätze").
-		Param(ws.QueryParameter("entity", "Verwaltungseinheit, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
+		Doc("Retouriert Open Data anbietende Verwaltungseinheiten und deren Anzahl an Datensätze").
+		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
-		Writes(struct{ Entities []UnitDSNums }{})) // to the response
+		Writes(struct{ Entities []IDNums }{}))
+
+	ws.Route(ws.GET("/versions").To(an.GetSortedSet("versions")).
+		Doc("Retourniert welche Version der Metadatenbeschreibung für OGD verwendet wird").
+		Param(ws.QueryParameter("id", "Version der Metadatenbeschreibung, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
+		Param(ws.QueryParameter("sortorder", "Sortierung der Version der Metadatenbeschreibung nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
+		Writes(struct{ Entities []IDNums }{}))
+
+	ws.Route(ws.GET("/toponyms").To(an.GetSortedSet("toponyms")).
+		Doc("Retourniert welche geographischen Abdeckungen in den OGD-Datensätzen spezifiziert sind").
+		Param(ws.QueryParameter("id", "Geographische Abdeckung, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
+		Param(ws.QueryParameter("sortorder", "Sortierung der geographischen Abdeckung nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
+		Writes(struct{ Entities []IDNums }{}))
+
+	ws.Route(ws.GET("/categories").To(an.GetSortedSet("categories")).
+		Doc("Retourniert welche Kategorien in den OGD-Datensätzen spezifiziert sind").
+		Param(ws.QueryParameter("id", "Kategorie, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
+		Param(ws.QueryParameter("sortorder", "Sortierung der Kategorien nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
+		Writes(struct{ Entities []IDNums }{}))
 
 	// 	ws.Route(ws.POST("/").To(saveApplication).
 	// 		// for documentation
