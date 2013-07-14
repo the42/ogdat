@@ -3,6 +3,7 @@ package main
 import (
 	restful "github.com/emicklei/go-restful"
 	"github.com/garyburd/redigo/redis"
+	"net/http"
 	"strconv"
 )
 
@@ -26,7 +27,8 @@ func (a *analyser) GetSortedSet(key string) func(request *restful.Request, respo
 		if len(getentity) > 0 {
 			snums, err := redis.String(rcon.Do("ZSCORE", key, getentity))
 			if err != nil {
-				panic(err)
+				response.WriteError(http.StatusInternalServerError, err)
+				return
 			}
 			if len(snums) > 0 {
 				if i, err := strconv.ParseInt(snums, 10, 0); err == nil {
@@ -40,18 +42,17 @@ func (a *analyser) GetSortedSet(key string) func(request *restful.Request, respo
 				reply, err = redis.Values(rcon.Do("ZREVRANGE", key, 0, -1, "WITHSCORES"))
 			}
 			if err != nil {
-				panic(err)
+				response.WriteError(http.StatusInternalServerError, err)
 			}
 
 			for len(reply) > 0 {
 				reply, err = redis.Scan(reply, &entity, &nums)
 				if err != nil {
-					panic(err)
+					response.WriteError(http.StatusInternalServerError, err)
 				}
 				resultset = append(resultset, IDNums{ID: entity, Numsets: nums})
 			}
 		}
-
 		response.WriteEntity(resultset)
 	}
 }
