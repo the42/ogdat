@@ -5,7 +5,7 @@ function CollapseDemoCtrl($scope) {
 
 function GridControll($scope, $http) {
 	// TODO: set this hostname dynamically
-	$http.get('http://localhost:5000/api/v1/entities/').success(function(data) {
+	$http.get('http://localhost:5000/api/entities/').success(function(data) {
 		$scope.myData = data;
 	});
 	$scope.gridOptions = { data: 'myData' };

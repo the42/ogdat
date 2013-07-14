@@ -115,8 +115,8 @@ func main() {
 
 	config := swagger.Config{
 		WebServicesUrl:  hostname(),
-		ApiPath:         "/swaggerdoc/v1",
-		SwaggerPath:     "/doc/api/v1/",
+		ApiPath:         "/swaggerdoc",
+		SwaggerPath:     "/doc/",
 		SwaggerFilePath: "swagger-ui/dist/",
 		WebServices:     restful.RegisteredWebServices()} // you control what services are visible
 	swagger.InstallSwaggerService(config)

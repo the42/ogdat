@@ -69,7 +69,7 @@ func enableCORS(req *restful.Request, resp *restful.Response, chain *restful.Fil
 
 func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 	ws := new(restful.WebService)
-	ws.Path("/api/v1").
+	ws.Path("/api").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
