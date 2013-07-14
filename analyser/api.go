@@ -57,11 +57,23 @@ func (a *analyser) GetSortedSet(key string) func(request *restful.Request, respo
 	}
 }
 
+func enableCORS(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	if origin := req.Request.Header.Get("Origin"); origin != "" {
+		resp.AddHeader("Access-Control-Allow-Origin", origin)
+	} else {
+		// TODO: revise later. Realy allow all / unknown origins?
+		resp.AddHeader("Access-Control-Allow-Origin", "*")
+	}
+	chain.ProcessFilter(req, resp)
+}
+
 func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 	ws := new(restful.WebService)
 	ws.Path("/api").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
+
+	ws.Filter(enableCORS)
 
 	ws.Route(ws.GET("/entities").To(an.GetSortedSet("entities")).
 		Doc("Retouriert Open Data anbietende Verwaltungseinheiten und deren Anzahl an Datensätze").
