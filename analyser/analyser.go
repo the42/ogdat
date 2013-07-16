@@ -109,13 +109,17 @@ func main() {
 	go logger.Fatal(http.ListenAndServe(":8080", nil))
 
 	if !onlyweb() {
+		populatedatasetinfo := func() {
+			if err := analyser.populatedatasetinfo(); err != nil {
+				logger.Panicln(err)
+			}
+		}
 		for {
 			select {
 			case <-urlchange:
+				populatedatasetinfo()
 			case <-datachange:
-				if err := analyser.populatedatasetinfo(); err != nil {
-					logger.Panicln(err)
-				}
+				populatedatasetinfo()
 			case <-heartbeatchannel:
 				logger.Println("Idle")
 			}
