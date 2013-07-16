@@ -29,7 +29,7 @@ func NewAnalyser(dbcon *sql.DB, pool *redis.Pool) *analyser {
 	return analyser
 }
 
-func onlyweb() bool {
+func isonlyweb() bool {
 	boolval, err := strconv.ParseBool(os.Getenv("ONLYWEB"))
 	if err != nil {
 		return false
@@ -42,6 +42,20 @@ func getredisconnect() string {
 	const redisdb = "ANALYSER_REDISDB"
 
 	return os.Getenv(redisurl) + "/" + os.Getenv(redisdb)
+}
+
+func portbinding() string {
+	if port := os.Getenv("ANALYSER_PORT"); port != "" {
+		return port
+	}
+	if port := os.Getenv("PORT"); port != "" {
+		return port
+	}
+	return "8080"
+}
+
+func hostname() string {
+	return "http://localhost" + ":" + portbinding()
 }
 
 func getheartbeatinterval() int {
@@ -84,7 +98,7 @@ func main() {
 	var datachange, urlchange chan []byte
 	var heartbeatchannel chan bool
 
-	if !onlyweb() {
+	if !isonlyweb() {
 		heartbeatchannel = heartbeat(getheartbeatinterval())
 
 		<-heartbeatchannel // Wait for the first heartbeat, so the logging in the database is properly set up
@@ -96,19 +110,21 @@ func main() {
 	}
 
 	restful.DefaultResponseMimeType = restful.MIME_JSON
+	restful.EnableContentEncoding = true
 	restful.Add(NewAnalyseOGDATRESTService(analyser))
 
 	config := swagger.Config{
-		WebServicesUrl:  "http://localhost:8080",
-		ApiPath:         "/apidoc",
-		SwaggerPath:     "/doc/v1/",
+		WebServicesUrl:  hostname(),
+		ApiPath:         "/swaggerdoc/v1",
+		SwaggerPath:     "/doc/api/v1/",
 		SwaggerFilePath: "swagger-ui/dist/",
 		WebServices:     restful.RegisteredWebServices()} // you control what services are visible
 	swagger.InstallSwaggerService(config)
 
-	go logger.Fatal(http.ListenAndServe(":8080", nil))
+	logger.Printf("analyser (%s) listening on port %s\n", AppID, portbinding())
+	go logger.Fatal(http.ListenAndServe(":"+portbinding(), nil))
 
-	if !onlyweb() {
+	if !isonlyweb() {
 		populatedatasetinfo := func() {
 			if err := analyser.populatedatasetinfo(); err != nil {
 				logger.Panicln(err)
