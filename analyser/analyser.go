@@ -45,9 +45,6 @@ func getredisconnect() string {
 }
 
 func portbinding() string {
-	if port := os.Getenv("ANALYSER_PORT"); port != "" {
-		return port
-	}
 	if port := os.Getenv("PORT"); port != "" {
 		return port
 	}
