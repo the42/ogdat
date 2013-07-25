@@ -92,6 +92,57 @@ func (conn *analyserdb) Getckanidurl(query string) ([]CKANIDUrl, error) {
 	return datasets, nil
 }
 
+func (conn *analyserdb) GetLastCheckResults() ([]CheckRecord, error) {
+	const sqlquery = `
+SELECT ckanid, t.field_id, t.hittime, t.fieldstatus, t.reason_text, t.status
+FROM dataset
+INNER JOIN status t
+ON dataset.sysid = t.datasetid
+AND t.hittime = (
+  SELECT MAX(hittime)
+  FROM status s
+  WHERE s.datasetid = t.datasetid
+  AND EXISTS (
+    SELECT 1
+    FROM status
+    WHERE fieldstatus & x'2000'::int = 0
+    AND s.datasetid = datasetid
+    AND s.hittime = hittime
+    )
+)
+ORDER BY t.hittime DESC`
+
+	rows, err := conn.Query(sqlquery)
+	if err != nil {
+		return nil, err
+	}
+
+	var checkrecord []CheckRecord
+
+	var ckanid *string
+	var oldckaind string
+	var field_id *int
+	var t time.Time
+	var fieldstatus *int
+	var reason_text *string
+	var status *string
+
+	for rows.Next() {
+		if err := rows.Scan(&ckanid, &field_id, &t, &fieldstatus, &reason_text, &status); err != nil {
+			return nil, err
+		}
+		if oldckaind != *ckanid {
+			checkrecord = append(checkrecord, CheckRecord{CKANID: *ckanid, Hittime: t})
+			oldckaind = *ckanid
+		}
+
+		ds := CheckStatus{Reason_Text: *reason_text, FieldID: *field_id, Status: *status, Fieldstatus: *fieldstatus}
+		checkrecord[len(checkrecord)-1].CheckStatus = append(checkrecord[len(checkrecord)-1].CheckStatus, ds)
+	}
+	return checkrecord, nil
+}
+
+// AN001: Welche Publisher haben unterschiedliche Metadaten, die auf gleiche Daten verweisen?
 func (conn *analyserdb) GetAN001Data() ([]CKANIDUrl, error) {
 	const sqlquery = `
 SELECT ckanid, reason_text
@@ -116,6 +167,7 @@ ORDER BY reason_text`
 
 }
 
+// AN002: Welche Publisher haben Metadaten, die mehrere Ressourceeinträge haben und dabei auf gleiche Daten verweisen?
 func (conn *analyserdb) GetAN002Data() ([]CKANIDUrl, error) {
 	const sqlquery = `
 SELECT d.ckanid, t.reason_text
@@ -135,6 +187,7 @@ WHERE d.sysid = t.datasetid`
 
 }
 
+// BS001: Die letzten num Änderungen mit CKANID und Datum
 func (conn *analyserdb) GetBS001Data(num int) ([]CKANIDTime, error) {
 	sqlquery := fmt.Sprintf(`
 SELECT ckanid, hittime

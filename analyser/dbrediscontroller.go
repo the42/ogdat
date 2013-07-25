@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/garyburd/redigo/redis"
 	"github.com/the42/ogdat/database"
 	"strings"
@@ -89,12 +90,100 @@ func (a analyser) populatedatasets() error {
 	return nil
 }
 
+func (a analyser) populatelastcheckresults() error {
+	const (
+		checkkey = "check"
+	)
+
+	logger.Println("SQL: Retrieving last check results (this may take some time)")
+	checkresults, err := a.dbcon.GetLastCheckResults()
+	if err != nil {
+		return err
+	}
+
+	rcon := a.pool.Get()
+	defer rcon.Close()
+
+	logger.Println("Deleting check results info keys from Redis")
+
+	// rcon.Do("DEL", catkey, verskey, entkey, topokey)
+	database.RedisConn{rcon}.DeleteKeyPattern(checkkey + "*")
+
+	if err := rcon.Send("MULTI"); err != nil {
+		return nil
+	}
+
+	logger.Println("Looping over check results, populating information to Redis (this may take some time)")
+	for _, checkresult := range checkresults {
+
+		// 		// populate metadata version count
+		// 		if err = rcon.Send("ZINCRBY", verskey, 1, set.Version); err != nil {
+		// 			return err
+		// 		}
+		// 		// associate metadata version with ckanid
+		// 		if err = rcon.Send("SADD", dskey+":"+verskey+":"+set.Version, set.CKANID); err != nil {
+		// 			return err
+		// 		}
+		//
+		// 		// populate entity count
+		// 		if err = rcon.Send("ZINCRBY", entkey, 1, set.Publisher); err != nil {
+		// 			return err
+		// 		}
+		// 		// associate entity with ckanid
+		// 		if err = rcon.Send("SADD", dskey+":"+entkey+":"+set.Publisher, set.CKANID); err != nil {
+		// 			return err
+		// 		}
+		//
+		// 		// populate geographic toponym count
+		// 		if toponym := strings.TrimSpace(set.GeoToponym); len(toponym) > 0 {
+		// 			if err = rcon.Send("ZINCRBY", topokey, 1, toponym); err != nil {
+		// 				return err
+		// 			}
+		// 			// associate geographic toponym ckanid
+		// 			if err = rcon.Send("SADD", dskey+":"+topokey+":"+toponym, set.CKANID); err != nil {
+		// 				return err
+		// 			}
+		//
+		// 		}
+		//
+		// 		// populate category count
+		// 		for _, cat := range set.Category {
+		// 			if err = rcon.Send("ZINCRBY", catkey, 1, cat); err != nil {
+		// 				return err
+		// 			}
+		// 			// associate category with ckanid
+		// 			if err = rcon.Send("SADD", dskey+":"+catkey+":"+cat, set.CKANID); err != nil {
+		// 				return err
+		// 			}
+		// 		}
+
+		// populate the dataset
+		record, err := json.Marshal(checkresult.CheckStatus)
+		if err != nil {
+			return err
+		}
+		if err = rcon.Send("HMSET", checkkey+":"+checkresult.CKANID, "CKANID", checkresult.CKANID, "Hittime", checkresult.Hittime, "Record", record); err != nil {
+			return err
+		}
+	}
+
+	logger.Println("Committing data to Redis")
+	if _, err = rcon.Do("EXEC"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a analyser) populatedatasetbaseinfo() error {
 	logger.Println("Starting populating datasets base info")
 	if err := a.populatedatasets(); err != nil {
 		return err
 	}
-	logger.Println("Done populating datasets base info")
+	if err := a.populatelastcheckresults(); err != nil {
+		return err
+	}
+	logger.Println("Done populating dataset base info")
 	return nil
 }
 

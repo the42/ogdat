@@ -33,3 +33,16 @@ type CKANIDTime struct {
 	CKANID string
 	time.Time
 }
+
+type CheckStatus struct {
+	Reason_Text string
+	FieldID     int
+	Status      string
+	Fieldstatus int
+}
+
+type CheckRecord struct {
+	CKANID      string
+	Hittime     time.Time
+	CheckStatus []CheckStatus
+}
