@@ -15,8 +15,9 @@ func (a analyser) listenredischannel(which string) chan []byte {
 			switch n := pubsubcon.Receive().(type) {
 			case redis.Message:
 				// TODO: remove after debugging
-				println(n.Channel, n.Data)
+				println(n.Channel, which, n.Data)
 				if n.Channel == which {
+					println("Same channel, signaling")
 					retval <- n.Data
 				}
 			case error:
