@@ -52,7 +52,7 @@ func portbinding() string {
 }
 
 func hostname() string {
-	if host := os.Getenv("HOST"); host != "" {
+	if host := os.Getenv("DISCOVERYURL"); host != "" {
 		return host
 	}
 	return "http://localhost"
