@@ -59,10 +59,7 @@ func discoveryhost() string {
 }
 
 func apibasepath() string {
-	if basepath := os.Getenv("APIBASEPATH"); basepath != "" {
-		return basepath
-	}
-	return "/api"
+	return os.Getenv("APIBASEPATH")
 }
 
 func getheartbeatinterval() int {
