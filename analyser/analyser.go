@@ -102,13 +102,18 @@ func main() {
 	var datachange, urlchange chan []byte
 	var heartbeatchannel chan bool
 
-	if !isonlyweb() {
-		heartbeatchannel = heartbeat(getheartbeatinterval())
-
-		<-heartbeatchannel // Wait for the first heartbeat, so the logging in the database is properly set up
+	populatedatasetinfo := func() {
 		if err := analyser.populatedatasetinfo(); err != nil {
 			logger.Panicln(err)
 		}
+	}
+
+	if !isonlyweb() {
+		heartbeatchannel = heartbeat(getheartbeatinterval())
+		<-heartbeatchannel // Wait for the first heartbeat, so the logging in the database is properly set up
+
+		populatedatasetinfo()
+
 		datachange = analyser.listenredischannel(watcherappid + ":DataChange")
 		urlchange = analyser.listenredischannel(watcherappid + ":UrlChange")
 	}
@@ -126,19 +131,18 @@ func main() {
 	swagger.InstallSwaggerService(config)
 
 	logger.Printf("analyser (%s) listening on port %s\n", AppID, portbinding())
-	go logger.Fatal(http.ListenAndServe(":"+portbinding(), nil))
+	go func() {
+		logger.Fatal(http.ListenAndServe(":"+portbinding(), nil))
+	}()
 
 	if !isonlyweb() {
-		populatedatasetinfo := func() {
-			if err := analyser.populatedatasetinfo(); err != nil {
-				logger.Panicln(err)
-			}
-		}
 		for {
 			select {
 			case <-urlchange:
+				logger.Println("Received URL change notice, re-generating database analysis")
 				populatedatasetinfo()
 			case <-datachange:
+				logger.Println("Received Data change notice, re-generating database analysis")
 				populatedatasetinfo()
 			case <-heartbeatchannel:
 				logger.Println("Idle")
