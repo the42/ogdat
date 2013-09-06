@@ -52,7 +52,10 @@ func portbinding() string {
 }
 
 func hostname() string {
-	return "http://localhost" + ":" + portbinding()
+	if host := os.Getenv("HOST"); host != "" {
+		return host
+	}
+	return "http://localhost"
 }
 
 func getheartbeatinterval() int {
@@ -111,7 +114,7 @@ func main() {
 	restful.Add(NewAnalyseOGDATRESTService(analyser))
 
 	config := swagger.Config{
-		WebServicesUrl:  hostname(),
+		WebServicesUrl:  hostname() + ":" + portbinding(),
 		ApiPath:         "/swaggerdoc",
 		SwaggerPath:     "/doc/",
 		SwaggerFilePath: "swagger-ui/dist/",
