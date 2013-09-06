@@ -51,11 +51,18 @@ func portbinding() string {
 	return "8080"
 }
 
-func hostname() string {
+func discoveryhost() string {
 	if host := os.Getenv("DISCOVERYURL"); host != "" {
 		return host
 	}
 	return "http://localhost"
+}
+
+func apibasepath() string {
+	if basepath := os.Getenv("APIBASEPATH"); basepath != "" {
+		return basepath
+	}
+	return "/api"
 }
 
 func getheartbeatinterval() int {
@@ -114,7 +121,7 @@ func main() {
 	restful.Add(NewAnalyseOGDATRESTService(analyser))
 
 	config := swagger.Config{
-		WebServicesUrl:  hostname(),
+		WebServicesUrl:  discoveryhost(),
 		ApiPath:         "/swaggerdoc",
 		SwaggerPath:     "/doc/",
 		SwaggerFilePath: "swagger-ui/dist/",

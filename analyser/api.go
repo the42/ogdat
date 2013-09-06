@@ -59,7 +59,7 @@ func (a *analyser) GetSortedSet(key string) func(request *restful.Request, respo
 
 func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 	ws := new(restful.WebService)
-	ws.Path("/api").
+	ws.Path(apibasepath()).
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
