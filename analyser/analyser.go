@@ -114,7 +114,7 @@ func main() {
 	restful.Add(NewAnalyseOGDATRESTService(analyser))
 
 	config := swagger.Config{
-		WebServicesUrl:  hostname() + ":" + portbinding(),
+		WebServicesUrl:  hostname(),
 		ApiPath:         "/swaggerdoc",
 		SwaggerPath:     "/doc/",
 		SwaggerFilePath: "swagger-ui/dist/",
