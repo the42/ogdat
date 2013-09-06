@@ -63,7 +63,9 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
+	ws.Filter(restful.OPTIONSFilter())
 	cors := restful.CrossOriginResourceSharing{CookiesAllowed: false, Container: restful.DefaultContainer}
+
 	ws.Filter(cors.Filter)
 
 	ws.Route(ws.GET("/entities").To(an.GetSortedSet("entities")).
