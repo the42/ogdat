@@ -9,7 +9,10 @@ import (
 
 func (a analyser) populatedatasets() error {
 	const (
-		dskey   = "datasets"
+		dskey = "datasets"
+
+		taxonomyprefix = "taxonomy"
+
 		catkey  = "categories"
 		verskey = "versions"
 		entkey  = "entities"
@@ -27,7 +30,7 @@ func (a analyser) populatedatasets() error {
 
 	logger.Println("Deleting base dataset info keys from Redis")
 
-	rcon.Do("DEL", catkey, verskey, entkey, topokey)
+	rcon.Do("DEL", taxonomyprefix+":"+catkey, taxonomyprefix+":"+verskey, taxonomyprefix+":"+entkey, taxonomyprefix+":"+topokey)
 	database.RedisConn{rcon}.DeleteKeyPattern(dskey+"*", "dataset:*")
 
 	if err := rcon.Send("MULTI"); err != nil {
@@ -38,7 +41,7 @@ func (a analyser) populatedatasets() error {
 	for _, set := range sets {
 
 		// populate metadata version count
-		if err = rcon.Send("ZINCRBY", verskey, 1, set.Version); err != nil {
+		if err = rcon.Send("ZINCRBY", taxonomyprefix+":"+verskey, 1, set.Version); err != nil {
 			return err
 		}
 		// associate metadata version with ckanid
@@ -47,7 +50,7 @@ func (a analyser) populatedatasets() error {
 		}
 
 		// populate entity count
-		if err = rcon.Send("ZINCRBY", entkey, 1, set.Publisher); err != nil {
+		if err = rcon.Send("ZINCRBY", taxonomyprefix+":"+entkey, 1, set.Publisher); err != nil {
 			return err
 		}
 		// associate entity with ckanid
@@ -57,7 +60,7 @@ func (a analyser) populatedatasets() error {
 
 		// populate geographic toponym count
 		if toponym := strings.TrimSpace(set.GeoToponym); len(toponym) > 0 {
-			if err = rcon.Send("ZINCRBY", topokey, 1, toponym); err != nil {
+			if err = rcon.Send("ZINCRBY", taxonomyprefix+":"+topokey, 1, toponym); err != nil {
 				return err
 			}
 			// associate geographic toponym ckanid
@@ -69,7 +72,7 @@ func (a analyser) populatedatasets() error {
 
 		// populate category count
 		for _, cat := range set.Category {
-			if err = rcon.Send("ZINCRBY", catkey, 1, cat); err != nil {
+			if err = rcon.Send("ZINCRBY", taxonomyprefix+":"+catkey, 1, cat); err != nil {
 				return err
 			}
 			// associate category with ckanid

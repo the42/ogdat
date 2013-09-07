@@ -64,29 +64,29 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Produces(restful.MIME_JSON)
 
 	ws.Filter(restful.OPTIONSFilter())
-	cors := restful.CrossOriginResourceSharing{CookiesAllowed: false, Container: restful.DefaultContainer}
 
+	cors := restful.CrossOriginResourceSharing{CookiesAllowed: false, Container: restful.DefaultContainer}
 	ws.Filter(cors.Filter)
 
-	ws.Route(ws.GET("/entities").To(an.GetSortedSet("entities")).
+	ws.Route(ws.GET("/taxonomy/entities").To(an.GetSortedSet("taxonomy:entities")).
 		Doc("Retouriert Open Data anbietende Verwaltungseinheiten und deren Anzahl an Datensätze").
 		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
-	ws.Route(ws.GET("/versions").To(an.GetSortedSet("versions")).
+	ws.Route(ws.GET("/taxonomy/versions").To(an.GetSortedSet("taxonomy:versions")).
 		Doc("Retourniert welche Version der Metadatenbeschreibung für OGD verwendet wird").
 		Param(ws.QueryParameter("id", "Version der Metadatenbeschreibung, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Version der Metadatenbeschreibung nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
-	ws.Route(ws.GET("/toponyms").To(an.GetSortedSet("toponyms")).
+	ws.Route(ws.GET("/taxonomy/toponyms").To(an.GetSortedSet("taxonomy:toponyms")).
 		Doc("Retourniert welche geographischen Abdeckungen in den OGD-Datensätzen spezifiziert sind").
 		Param(ws.QueryParameter("id", "Geographische Abdeckung, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der geographischen Abdeckung nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
-	ws.Route(ws.GET("/categories").To(an.GetSortedSet("categories")).
+	ws.Route(ws.GET("/taxonomy/categories").To(an.GetSortedSet("taxonomy:categories")).
 		Doc("Retourniert welche Kategorien in den OGD-Datensätzen spezifiziert sind").
 		Param(ws.QueryParameter("id", "Kategorie, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Kategorien nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
