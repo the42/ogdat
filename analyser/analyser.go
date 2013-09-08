@@ -135,23 +135,21 @@ func main() {
 		logger.Fatal(http.ListenAndServe(":"+portbinding(), nil))
 	}()
 
-	if !isonlyweb() {
-		for {
-			select {
-			case <-urlchange:
-				// TODO:naive approach here. If a URLChange or DataChange event is triggered,
-				// the whole analytic database will be recreated. It would be better to trace
-				// only the affected datasets and only create the relevant statistic.
-				// In future, urlchange/datachange might contain a JSON-encoded []byte which contains
-				// the affected IDs
-				logger.Println("Received URL change notice, re-generating database analysis")
-				populatedatasetinfo()
-			case <-datachange:
-				logger.Println("Received Data change notice, re-generating database analysis")
-				populatedatasetinfo()
-			case <-heartbeatchannel:
-				logger.Println("Idle")
-			}
+	for {
+		select {
+		case <-urlchange:
+			// TODO:naive approach here. If a URLChange or DataChange event is triggered,
+			// the whole analytic database will be recreated. It would be better to trace
+			// only the affected datasets and only create the relevant statistic.
+			// In future, urlchange/datachange might contain a JSON-encoded []byte which contains
+			// the affected IDs
+			logger.Println("Received URL change notice, re-generating database analysis")
+			populatedatasetinfo()
+		case <-datachange:
+			logger.Println("Received Data change notice, re-generating database analysis")
+			populatedatasetinfo()
+		case <-heartbeatchannel:
+			logger.Println("Idle")
 		}
 	}
 }
