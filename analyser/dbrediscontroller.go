@@ -82,7 +82,13 @@ func (a analyser) populatedatasets() error {
 		}
 
 		// populate the dataset
-		if err = rcon.Send("HMSET", redis.Args{}.Add("dataset:"+set.CKANID).AddFlat(&set)...); err != nil {
+		// use the flat, internal representation as .AddFlat will use Print(#v)
+		// to fomat the slice of Category, which can not be meaningful parsed back
+		is := internalDataset{ID: set.ID, CKANID: set.CKANID, Publisher: set.Publisher, Contact: set.Contact, Description: set.Description, Version: set.Version, GeoBBox: set.GeoBBox, GeoToponym: set.GeoToponym}
+
+		rv, err := json.Marshal(set.Category)
+		is.Category = string(rv)
+		if err = rcon.Send("HMSET", redis.Args{}.Add("dataset:"+set.CKANID).AddFlat(&is)...); err != nil {
 			return err
 		}
 	}
