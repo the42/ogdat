@@ -1,10 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	restful "github.com/emicklei/go-restful"
 	"github.com/garyburd/redigo/redis"
 	"net/http"
 	"strconv"
+)
+
+const (
+	datasetskey = "datasets"
+	datasetkey  = "dataset"
 )
 
 func (a *analyser) GetSortedSet(key string) func(request *restful.Request, response *restful.Response) {
@@ -43,18 +49,71 @@ func (a *analyser) GetSortedSet(key string) func(request *restful.Request, respo
 			}
 			if err != nil {
 				response.WriteError(http.StatusInternalServerError, err)
+				return
 			}
 
 			for len(reply) > 0 {
 				reply, err = redis.Scan(reply, &entity, &nums)
 				if err != nil {
 					response.WriteError(http.StatusInternalServerError, err)
+					return
 				}
 				resultset = append(resultset, IDNums{ID: entity, Numsets: nums})
 			}
 		}
 		response.WriteEntity(resultset)
 	}
+}
+
+func (a *analyser) GetTaxonomyDatasets(request *restful.Request, response *restful.Response) {
+
+	taxonomy := request.PathParameter("which")
+	subset := request.PathParameter("subset")
+
+	var reply []interface{}
+	var err error
+
+	//		resultset := make([]Dataset, 0)
+
+	rcon := a.pool.Get()
+	defer rcon.Close()
+
+	var internalsets []internalDataset
+	reply, err = redis.Values(rcon.Do("SORT", datasetskey+":"+taxonomy+":"+subset,
+		"BY", "nosort",
+		"GET", datasetkey+":*->ID",
+		"GET", datasetkey+":*->CKANID",
+		"GET", datasetkey+":*->Publisher",
+		"GET", datasetkey+":*->Contact",
+		"GET", datasetkey+":*->Description",
+		"GET", datasetkey+":*->Version",
+		"GET", datasetkey+":*->Category",
+		"GET", datasetkey+":*->GeoBBox",
+		"GET", datasetkey+":*->GeoToponym"))
+	if err != nil {
+		response.WriteError(http.StatusInternalServerError, err)
+	}
+	if err = redis.ScanSlice(reply, &internalsets); err != nil {
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var responseset []Dataset
+	for _, is := range internalsets {
+		ds := Dataset{ID: is.ID, CKANID: is.CKANID, Publisher: is.Publisher, Contact: is.Contact, Description: is.Description, Version: is.Version, GeoBBox: is.GeoBBox, GeoToponym: is.GeoToponym}
+
+		var strcats []string
+		if len(is.Category) > 0 {
+			if err := json.Unmarshal([]byte(is.Category), &strcats); err != nil {
+				response.WriteError(http.StatusInternalServerError, err)
+				return
+			}
+		}
+		ds.Category = strcats
+		responseset = append(responseset, ds)
+	}
+
+	response.WriteEntity(responseset)
 }
 
 func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
@@ -91,6 +150,12 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Param(ws.QueryParameter("id", "Kategorie, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Kategorien nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
+
+	ws.Route(ws.GET("/datasets/taxonomy/{which}/{subset}").To(an.GetTaxonomyDatasets).
+		Doc("Retourniert innerhalb der Taxonomie which die Datensätze nach subset").
+		Param(ws.PathParameter("which", "Taxonomie nach der die Datensätze retourniert werden sollen")).
+		Param(ws.PathParameter("subset", "Subset der Datensätze innerhalb der Taxonomie")).
+		Writes(struct{ Datasets []Dataset }{}))
 
 	// 	ws.Route(ws.POST("/").To(saveApplication).
 	// 		// for documentation
