@@ -119,7 +119,7 @@ func main() {
 	}
 
 	restful.DefaultResponseMimeType = restful.MIME_JSON
-	restful.EnableContentEncoding = true
+	restful.DefaultContainer.EnableContentEncoding(true)
 	restful.Add(NewAnalyseOGDATRESTService(analyser))
 
 	config := swagger.Config{
