@@ -8,11 +8,6 @@ import (
 	"strconv"
 )
 
-const (
-	datasetskey = "datasets"
-	datasetkey  = "dataset"
-)
-
 func (a *analyser) GetSortedSet(key string) func(request *restful.Request, response *restful.Response) {
 
 	return func(request *restful.Request, response *restful.Response) {

@@ -7,17 +7,21 @@ import (
 	"strings"
 )
 
+const (
+	datasetskey = "datasets"
+	datasetkey  = "dataset"
+
+	checkkey = "check"
+
+	taxonomyprefix = "taxonomy"
+
+	catkey  = "categories"
+	verskey = "versions"
+	entkey  = "entities"
+	topokey = "toponyms"
+)
+
 func (a analyser) populatedatasets() error {
-	const (
-		dskey = "datasets"
-
-		taxonomyprefix = "taxonomy"
-
-		catkey  = "categories"
-		verskey = "versions"
-		entkey  = "entities"
-		topokey = "toponyms"
-	)
 
 	logger.Println("SQL: Retrieving datasets")
 	sets, err := a.dbcon.GetDatasets()
@@ -31,7 +35,7 @@ func (a analyser) populatedatasets() error {
 	logger.Println("Deleting base dataset info keys from Redis")
 
 	rcon.Do("DEL", taxonomyprefix+":"+catkey, taxonomyprefix+":"+verskey, taxonomyprefix+":"+entkey, taxonomyprefix+":"+topokey)
-	database.RedisConn{rcon}.DeleteKeyPattern(dskey+"*", "dataset:*")
+	database.RedisConn{rcon}.DeleteKeyPattern(datasetskey+"*", datasetkey+"*")
 
 	if err := rcon.Send("MULTI"); err != nil {
 		return nil
@@ -45,7 +49,7 @@ func (a analyser) populatedatasets() error {
 			return err
 		}
 		// associate metadata version with ckanid
-		if err = rcon.Send("SADD", dskey+":"+verskey+":"+set.Version, set.CKANID); err != nil {
+		if err = rcon.Send("SADD", datasetskey+":"+verskey+":"+set.Version, set.CKANID); err != nil {
 			return err
 		}
 
@@ -54,7 +58,7 @@ func (a analyser) populatedatasets() error {
 			return err
 		}
 		// associate entity with ckanid
-		if err = rcon.Send("SADD", dskey+":"+entkey+":"+set.Publisher, set.CKANID); err != nil {
+		if err = rcon.Send("SADD", datasetskey+":"+entkey+":"+set.Publisher, set.CKANID); err != nil {
 			return err
 		}
 
@@ -64,7 +68,7 @@ func (a analyser) populatedatasets() error {
 				return err
 			}
 			// associate geographic toponym ckanid
-			if err = rcon.Send("SADD", dskey+":"+topokey+":"+toponym, set.CKANID); err != nil {
+			if err = rcon.Send("SADD", datasetskey+":"+topokey+":"+toponym, set.CKANID); err != nil {
 				return err
 			}
 
@@ -76,7 +80,7 @@ func (a analyser) populatedatasets() error {
 				return err
 			}
 			// associate category with ckanid
-			if err = rcon.Send("SADD", dskey+":"+catkey+":"+cat, set.CKANID); err != nil {
+			if err = rcon.Send("SADD", datasetskey+":"+catkey+":"+cat, set.CKANID); err != nil {
 				return err
 			}
 		}
@@ -100,9 +104,6 @@ func (a analyser) populatedatasets() error {
 }
 
 func (a analyser) populatelastcheckresults() error {
-	const (
-		checkkey = "check"
-	)
 
 	logger.Println("SQL: Retrieving last check results (this may take some time)")
 	checkresults, err := a.dbcon.GetLastCheckResults()
@@ -115,7 +116,6 @@ func (a analyser) populatelastcheckresults() error {
 
 	logger.Println("Deleting check results info keys from Redis")
 
-	// rcon.Do("DEL", catkey, verskey, entkey, topokey)
 	database.RedisConn{rcon}.DeleteKeyPattern(checkkey + "*")
 
 	if err := rcon.Send("MULTI"); err != nil {
