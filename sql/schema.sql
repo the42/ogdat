@@ -21,7 +21,7 @@ CREATE TABLE dataset (
     publisher character varying(255),
     contact character varying(255),
     description text,
-    vers character varying(255) NOT NULL,
+    vers character varying(255),
     category json,
     ckanid character varying(255),
     geobbox character varying(255),
