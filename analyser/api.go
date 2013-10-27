@@ -152,6 +152,11 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Param(ws.PathParameter("subset", "Subset der Datensätze innerhalb der Taxonomie")).
 		Writes(struct{ Datasets []Dataset }{}))
 
+	ws.Route(ws.GET("/datasets/taxonomy/{which}").To(an.GetTaxonomyDatasets).
+		Doc("Retourniert innerhalb der Taxonomie which jene Datensätze, die als Zeichenlänge 0 haben").
+		Param(ws.PathParameter("which", "Taxonomie nach der die Datensätze retourniert werden sollen")).
+		Writes(struct{ Datasets []Dataset }{}))
+
 	// 	ws.Route(ws.POST("/").To(saveApplication).
 	// 		// for documentation
 	// 		Doc("Create or update the Application node").
