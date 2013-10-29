@@ -115,7 +115,7 @@ const builtintpl = `
 </style>
 </head>
 <body>
-<h1>Open Government Data Österreich Metadatenspezifiaktion</h1>
+<h1>Open Government Data Österreich Metadatenspezifikation</h1>
 <div id=ogdatspecarea>{{range .Beschreibung}}
 <p>
 <table class="ogdatspectable" ogdrequired='{{.IsRequired}}'>
@@ -136,6 +136,7 @@ const builtintpl = `
       <td id="OGD_Kurzname.item.{{.ID}}">{{.OGD_Kurzname}}</td>
       <td id="CKAN_Feld.item.{{.ID}}">{{.CKAN_Feld}}</td>
       <td id="Anzahl.item.{{.ID}}">{{.Anzahl}}</td>
+    </tr>
   </tbody>
   <tbody>
     <tr>
