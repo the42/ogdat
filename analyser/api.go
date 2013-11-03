@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	restful "github.com/emicklei/go-restful"
 	"github.com/garyburd/redigo/redis"
 	"net/http"
@@ -68,8 +69,6 @@ func (a *analyser) GetTaxonomyDatasets(request *restful.Request, response *restf
 	var reply []interface{}
 	var err error
 
-	//		resultset := make([]Dataset, 0)
-
 	rcon := a.pool.Get()
 	defer rcon.Close()
 
@@ -87,6 +86,7 @@ func (a *analyser) GetTaxonomyDatasets(request *restful.Request, response *restf
 		"GET", datasetkey+":*->GeoToponym"))
 	if err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
+		return
 	}
 	if err = redis.ScanSlice(reply, &internalsets); err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
@@ -109,6 +109,46 @@ func (a *analyser) GetTaxonomyDatasets(request *restful.Request, response *restf
 	}
 
 	response.WriteEntity(responseset)
+}
+
+func (a *analyser) GetDataset(request *restful.Request, response *restful.Response) {
+
+	id := request.PathParameter("id")
+
+	var reply []interface{}
+	var err error
+
+	rcon := a.pool.Get()
+	defer rcon.Close()
+
+	reply, err = redis.Values(rcon.Do("HGETALL", datasetkey+":"+id))
+	if err != nil {
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+	if len(reply) == 0 {
+		response.WriteError(http.StatusInternalServerError, fmt.Errorf("Record not found"))
+		return
+	}
+
+	var is internalDataset
+	if err = redis.ScanStruct(reply, &is); err != nil {
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	ds := Dataset{ID: is.ID, CKANID: is.CKANID, Publisher: is.Publisher, Contact: is.Contact, Description: is.Description, Version: is.Version, GeoBBox: is.GeoBBox, GeoToponym: is.GeoToponym}
+
+	if len(is.Category) > 0 {
+		var strcats []string
+		if err := json.Unmarshal([]byte(is.Category), &strcats); err != nil {
+			response.WriteError(http.StatusInternalServerError, err)
+			return
+		}
+		ds.Category = strcats
+	}
+
+	response.WriteEntity(ds)
 }
 
 func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
@@ -155,6 +195,11 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 	ws.Route(ws.GET("/datasets/taxonomy/{which}").To(an.GetTaxonomyDatasets).
 		Doc("Retourniert innerhalb der Taxonomie which jene Datensätze, die als Zeichenlänge 0 haben").
 		Param(ws.PathParameter("which", "Taxonomie nach der die Datensätze retourniert werden sollen")).
+		Writes(struct{ Datasets []Dataset }{}))
+
+	ws.Route(ws.GET("/dataset/{id}").To(an.GetDataset).
+		Doc("retourniert Metadateninformationen zum Datensatz mit id").
+		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
 		Writes(struct{ Datasets []Dataset }{}))
 
 	// 	ws.Route(ws.POST("/").To(saveApplication).
