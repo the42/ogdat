@@ -94,23 +94,23 @@ func (conn *analyserdb) Getckanidurl(query string) ([]CKANIDUrl, error) {
 
 func (conn *analyserdb) GetLastCheckResults() ([]CheckRecord, error) {
 	const sqlquery = `
-SELECT ckanid, t.field_id, t.hittime, t.fieldstatus, t.reason_text, t.status
-FROM dataset
-INNER JOIN status t
-ON dataset.sysid = t.datasetid
-AND t.hittime = (
-  SELECT MAX(hittime)
-  FROM status s
-  WHERE s.datasetid = t.datasetid
-  AND EXISTS (
-    SELECT 1
-    FROM status
-    WHERE fieldstatus & x'2000'::int = 0
-    AND s.datasetid = datasetid
-    AND s.hittime = hittime
-    )
-)
-ORDER BY t.hittime DESC`
+SELECT ckanid, status.datasetid, status.field_id, status.reason_text, status.hittime
+FROM status
+INNER JOIN (select datasetid, MAX(hittime) AS hittime
+  FROM status
+  WHERE (fieldstatus & x'2000'::int) != x'2000'::int
+  GROUP BY datasetid) as lastd
+ON status.datasetid = lastd.datasetid
+  AND status.hittime = lastd.hittime
+INNER JOIN dataset
+  ON dataset.sysid = status.datasetid
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM status AS s
+  WHERE s.datasetid = status.datasetid
+  AND s.status = 'deleted'
+  AND s.hittime >= status.hittime)
+ORDER BY hittime DESC`
 
 	rows, err := conn.Query(sqlquery)
 	if err != nil {
