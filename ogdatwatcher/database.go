@@ -46,6 +46,13 @@ WHERE t.hittime = (
   AND fieldstatus = %d
 )
 AND fieldstatus = %d
+-- dieser Datensatz darf aktuell oder auch später nicht als gelöscht markiert worden sein
+AND NOT EXISTS (
+  SELECT 1
+  FROM status AS s
+  WHERE s.datasetid = t.datasetid
+  AND s.status = 'deleted'
+  AND s.hittime >= t.hittime)
 ORDER BY t.datasetid`, ogdat.Info|ogdat.FetchableUrl, ogdat.Info|ogdat.FetchableUrl)
 
 func (conn *watcherdb) GetDataUrls() ([][]DataUrl, error) {
