@@ -145,22 +145,35 @@ ORDER BY hittime DESC`
 // AN001: Welche Publisher haben unterschiedliche Metadaten, die auf gleiche Daten verweisen?
 func (conn *analyserdb) GetAN001Data() ([]CKANIDUrl, error) {
 	const sqlquery = `
-SELECT ckanid, reason_text
-FROM status, dataset
+SELECT ckanid, o.reason_text
+FROM status o
+INNER JOIN dataset
+ON dataset.sysid = o.datasetid
 WHERE reason_text IN (
-  SELECT t.reason_text
-  FROM status AS t
-  WHERE t.hittime = (SELECT MAX(hittime)
-                     FROM status
-                     WHERE datasetid = t.datasetid
-                     AND fieldstatus = (1 | x'2000'::int)
-                    )
-  AND fieldstatus = (1 | x'2000'::int)
-  AND field_id = 14
-  GROUP BY t.reason_text
-  HAVING COUNT(*) > 1)
-AND status.datasetid = dataset.sysid
-AND status.fieldstatus = (1 | x'2000'::int)
+	SELECT reason_text
+	FROM status o
+	WHERE o.field_id = 14
+	AND o.fieldstatus = x'2001'::int
+	AND hittime = (
+	  SELECT  max(hittime)
+	  FROM status
+	  WHERE datasetid = o.datasetid
+	  AND fieldstatus = x'2001'::int)
+	AND NOT EXISTS (
+	  SELECT 1
+	  FROM status
+	  WHERE status.status = 'deleted'
+	  AND o.datasetid = datasetid
+	  AND hittime >= o.hittime)
+	GROUP BY reason_text
+	HAVING COUNT(*) > 1)
+AND hittime = (
+  SELECT max(hittime)
+  FROM status
+  WHERE o.datasetid = datasetid
+  AND fieldstatus = x'2001'::int)
+AND field_id = 14
+AND fieldstatus = x'2001'::int
 ORDER BY reason_text`
 
 	return conn.Getckanidurl(sqlquery)
@@ -170,18 +183,27 @@ ORDER BY reason_text`
 // AN002: Welche Publisher haben Metadaten, die mehrere Ressourceeinträge haben und dabei auf gleiche Daten verweisen?
 func (conn *analyserdb) GetAN002Data() ([]CKANIDUrl, error) {
 	const sqlquery = `
-SELECT d.ckanid, t.reason_text
-FROM (SELECT t.datasetid, t.reason_text
-      FROM status AS t
-      WHERE t.hittime = (SELECT MAX(hittime)
-         FROM status
-         WHERE datasetid = t.datasetid
-         AND fieldstatus = (1 | x'2000'::int))
-      AND t.fieldstatus = (1 | x'2000'::int)
-      AND t.field_id = 14
-      GROUP BY  t.reason_text, t.datasetid
-      HAVING COUNT(t.datasetid) > 1) AS t, dataset AS d
-WHERE d.sysid = t.datasetid`
+SELECT ckanid, reason_text
+FROM dataset
+INNER JOIN (
+  SELECT datasetid, reason_text
+  FROM status AS t
+  WHERE hittime = (
+    SELECT MAX(hittime)
+    FROM status
+    WHERE datasetid = t.datasetid
+    AND fieldstatus = (1 | x'2000'::int))
+  AND NOT EXISTS (
+    SELECT 1
+    FROM status
+    WHERE status.status = 'deleted'
+    AND status.datasetid = t.datasetid
+    AND status.hittime >= t.hittime)
+  AND t.fieldstatus = (1 | x'2000'::int)
+  AND t.field_id = 14
+  GROUP BY t.datasetid, t.reason_text
+  HAVING COUNT(t.reason_text) > 1) AS t
+ON t.datasetid = dataset.sysid`
 
 	return conn.Getckanidurl(sqlquery)
 
