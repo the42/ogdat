@@ -214,8 +214,22 @@ var regexpEMail = regexp.MustCompile(`(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4
 func FetchHead(url string) (bool, CheckInfo) {
 
 	var info CheckInfo
+	var err error
+	var resp *http.Response
 
-	resp, err := http.Head(url)
+	for i := 0; i < 2; i++ {
+		if i == 0 {
+			resp, err = http.Head(url)
+		} else {
+			resp, err = http.Get(url)
+		}
+		if err != nil || resp.StatusCode != 200 {
+			continue
+		} else {
+			break
+		}
+	}
+
 	if err != nil {
 		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("'%s': URL kann nicht aufgelöst werden: '%s'", url, err)}
 	} else if sc := resp.StatusCode; sc != 200 {
