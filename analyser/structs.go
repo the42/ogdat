@@ -57,3 +57,11 @@ type CheckRecord struct {
 	Hittime     time.Time
 	CheckStatus []CheckStatus
 }
+
+type URLCheckRecord struct {
+	Publisher   string
+	CKANID      string
+	Reason_Text string
+	FieldID     int
+	Hittime     time.Time
+}

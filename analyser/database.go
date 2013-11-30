@@ -209,6 +209,62 @@ ON t.datasetid = dataset.sysid`
 
 }
 
+// AN003: Jene URLs, die nicht aufgelöst werden können mit Publisher und Fehlergrund
+func (conn *analyserdb) GetAN003Data() ([]URLCheckRecord, error) {
+	const sqlquery = `
+SELECT publisher, ckanid, outers.reason_text, outers.field_id, outers.hittime
+FROM status as outers
+INNER JOIN dataset
+  ON dataset.sysid = outers.datasetid
+WHERE outers.fieldstatus = x'6004'::int
+AND outers.hittime = (
+  SELECT MAX(hittime)
+  FROM status
+  WHERE datasetid = outers.datasetid)
+AND NOT EXISTS (
+  SELECT 1
+  FROM status
+  WHERE status.status = 'deleted'
+  AND status.datasetid = outers.datasetid
+  AND status.hittime >= outers.hittime)
+ORDER BY publisher, datasetid, field_id, outers.reason_text, hittime`
+
+	rows, err := conn.Query(sqlquery)
+	if err != nil {
+		return nil, err
+	}
+
+	var datasets []URLCheckRecord
+
+	var publisher *string
+	var ckanid *string
+	var reason_text *string
+	var field_id *int
+	var hittime time.Time
+
+	for rows.Next() {
+		if err := rows.Scan(&publisher, &ckanid, &reason_text, &field_id, &hittime); err != nil {
+			return nil, err
+		}
+
+		ds := URLCheckRecord{Hittime: hittime}
+		if publisher != nil {
+			ds.Publisher = *publisher
+		}
+		if ckanid != nil {
+			ds.CKANID = *ckanid
+		}
+		if reason_text != nil {
+			ds.Reason_Text = *reason_text
+		}
+		if field_id != nil {
+			ds.FieldID = *field_id
+		}
+		datasets = append(datasets, ds)
+	}
+	return datasets, nil
+}
+
 // BS001: Die letzten num Änderungen mit CKANID und Datum
 func (conn *analyserdb) GetBS001Data(num int) ([]CKANIDTime, error) {
 	sqlquery := fmt.Sprintf(`
