@@ -264,42 +264,6 @@ func (a analyser) populatean002() error {
 	return nil
 }
 
-func (a analyser) populatean003() error {
-	const an003 = "an003"
-
-	logger.Println("AN003: Which Datasets could not be retrieved by the URL and why")
-
-	logger.Println("AN003: SQL: Retrieving data")
-	sets, err := a.dbcon.GetAN003Data()
-	if err != nil {
-		return err
-	}
-
-	rcon := a.pool.Get()
-	defer rcon.Close()
-
-	logger.Println("AN003: Deleting keys from Redis")
-	database.RedisConn{rcon}.DeleteKeyPattern(an003 + "*")
-
-	/* TODO: Expand logic here
-	if err := rcon.Send("MULTI"); err != nil {
-		return nil
-	}
-
-	for _, set := range sets {
-
-		if err = rcon.Send("ZINCRBY", an003+":"+set.CKANID, 1, set.Url); err != nil {
-			return err
-		}
-	}
-	logger.Println("AN002: Committing data to Redis")
-	if _, err := rcon.Do("EXEC"); err != nil {
-		return err
-	}
-	*/
-	return nil
-}
-
 func (a analyser) populatebs001() error {
 	// TODO: How many "last changed datasets" shall be retrieved?
 	const num = 10
