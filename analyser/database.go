@@ -215,6 +215,57 @@ ORDER BY publisher`
 
 }
 
+// AN003: Welche Links konnten nicht überprüft werden und warum? Mit Info zu Publisher und Check-Zeitpunkt
+func (conn *analyserdb) GetAN003Data() ([]URLCheckRecord, error) {
+	const sqlquery = `
+SELECT publisher, ckanid, outers.field_id, outers.reason_text, outers.hittime
+FROM status as outers
+INNER JOIN dataset
+  ON dataset.sysid = outers.datasetid
+WHERE outers.fieldstatus = x'6004'::int
+-- und nicht gelöscht
+AND outers.hittime = (
+  SELECT MAX(hittime)
+  FROM status
+  WHERE datasetid = outers.datasetid)
+AND NOT EXISTS (
+  SELECT 1
+  FROM status
+  WHERE status.status = 'deleted'
+  AND status.datasetid = outers.datasetid
+  AND status.hittime >= outers.hittime)
+ORDER BY publisher, datasetid, field_id`
+
+	rows, err := conn.Query(sqlquery)
+	if err != nil {
+		return nil, err
+	}
+
+	var urlcheckrecord []URLCheckRecord
+	var (
+		publisher   *string
+		ckanid      *string
+		oldckanid   string
+		field_id    *int
+		oldfield_id int
+		reason_text *string
+		hittime     time.Time
+	)
+
+	for rows.Next() {
+		if err := rows.Scan(&publisher, &ckanid, &field_id, &reason_text, &hittime); err != nil {
+			return nil, err
+		}
+		if ckanid != nil && field_id != nil && (oldckanid != *ckanid || oldfield_id != *field_id) {
+			urlcheckrecord = append(urlcheckrecord, URLCheckRecord{Publisher: *publisher, CKANID: *ckanid, Hittime: hittime, FieldID: *field_id})
+			oldckanid = *ckanid
+			oldfield_id = *field_id
+		}
+		urlcheckrecord[len(urlcheckrecord)-1].Reason_Text = append(urlcheckrecord[len(urlcheckrecord)-1].Reason_Text, *reason_text)
+	}
+	return urlcheckrecord, nil
+}
+
 // BS001: Die letzten num Änderungen mit CKANID und Datum
 func (conn *analyserdb) GetBS001Data(num int) ([]CKANIDTime, error) {
 	sqlquery := fmt.Sprintf(`
