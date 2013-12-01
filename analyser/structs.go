@@ -36,8 +36,9 @@ type internalDataset struct {
 }
 
 type CKANIDUrl struct {
-	CKANID string
-	Url    string
+	Publisher string
+	CKANID    string
+	Url       string
 }
 
 type CKANIDTime struct {
@@ -53,6 +54,7 @@ type CheckStatus struct {
 }
 
 type CheckRecord struct {
+	Publisher   string
 	CKANID      string
 	Hittime     time.Time
 	CheckStatus []CheckStatus

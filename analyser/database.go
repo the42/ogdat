@@ -73,14 +73,17 @@ func (conn *analyserdb) Getckanidurl(query string) ([]CKANIDUrl, error) {
 	}
 
 	var datasets []CKANIDUrl
-	var ckanid, url *string
+	var publisher, ckanid, url *string
 
 	for rows.Next() {
-		if err := rows.Scan(&ckanid, &url); err != nil {
+		if err := rows.Scan(&publisher, &ckanid, &url); err != nil {
 			return nil, err
 		}
 
 		ds := CKANIDUrl{}
+		if publisher != nil {
+			ds.Publisher = *publisher
+		}
 		if ckanid != nil {
 			ds.CKANID = *ckanid
 		}
@@ -94,7 +97,7 @@ func (conn *analyserdb) Getckanidurl(query string) ([]CKANIDUrl, error) {
 
 func (conn *analyserdb) GetLastCheckResults() ([]CheckRecord, error) {
 	const sqlquery = `
-SELECT ckanid, outers.field_id, outers.hittime, outers.fieldstatus, outers.reason_text, outers.status
+SELECT publisher, ckanid, outers.field_id, outers.hittime, outers.fieldstatus, outers.reason_text, outers.status
 FROM status outers
 INNER JOIN (select datasetid, MAX(hittime) AS hittime
   FROM status
@@ -118,21 +121,23 @@ ORDER BY hittime DESC`
 	}
 
 	var checkrecord []CheckRecord
-
-	var ckanid *string
-	var oldckaind string
-	var field_id *int
-	var t time.Time
-	var fieldstatus *int
-	var reason_text *string
-	var status *string
+	var (
+		publisher   *string
+		ckanid      *string
+		oldckaind   string
+		field_id    *int
+		t           time.Time
+		fieldstatus *int
+		reason_text *string
+		status      *string
+	)
 
 	for rows.Next() {
-		if err := rows.Scan(&ckanid, &field_id, &t, &fieldstatus, &reason_text, &status); err != nil {
+		if err := rows.Scan(&publisher, &ckanid, &field_id, &t, &fieldstatus, &reason_text, &status); err != nil {
 			return nil, err
 		}
-		if oldckaind != *ckanid {
-			checkrecord = append(checkrecord, CheckRecord{CKANID: *ckanid, Hittime: t})
+		if ckanid != nil && oldckaind != *ckanid {
+			checkrecord = append(checkrecord, CheckRecord{Publisher: *publisher, CKANID: *ckanid, Hittime: t})
 			oldckaind = *ckanid
 		}
 
@@ -145,21 +150,21 @@ ORDER BY hittime DESC`
 // AN001: Welche Publisher haben unterschiedliche Metadaten, die auf gleiche Daten verweisen?
 func (conn *analyserdb) GetAN001Data() ([]CKANIDUrl, error) {
 	const sqlquery = `
-SELECT ckanid, o.reason_text
+SELECT publisher, ckanid, o.reason_text
 FROM status o
 INNER JOIN dataset
 ON dataset.sysid = o.datasetid
 WHERE reason_text IN (
-	SELECT reason_text
+	SELECT reason_text -- gültige, nicht gelöschte Datensätze, die gleiche Links haben
 	FROM status o
-	WHERE o.field_id = 14
-	AND o.fieldstatus = x'2001'::int
-	AND hittime = (
+	WHERE o.field_id = 14 -- nur die felder mit resource_url
+	AND o.fieldstatus = x'2001'::int -- datensätze, die von einem check importiert wurden
+	AND hittime = ( -- letzer gültiger Datesatz nach einen check
 	  SELECT  max(hittime)
 	  FROM status
 	  WHERE datasetid = o.datasetid
 	  AND fieldstatus = x'2001'::int)
-	AND NOT EXISTS (
+	AND NOT EXISTS ( -- Datensatz wurde nicht gelöscht
 	  SELECT 1
 	  FROM status
 	  WHERE status.status = 'deleted'
@@ -174,7 +179,7 @@ AND hittime = (
   AND fieldstatus = x'2001'::int)
 AND field_id = 14
 AND fieldstatus = x'2001'::int
-ORDER BY reason_text`
+ORDER BY publisher`
 
 	return conn.Getckanidurl(sqlquery)
 
@@ -183,27 +188,28 @@ ORDER BY reason_text`
 // AN002: Welche Publisher haben Metadaten, die mehrere Ressourceeinträge haben und dabei auf gleiche Daten verweisen?
 func (conn *analyserdb) GetAN002Data() ([]CKANIDUrl, error) {
 	const sqlquery = `
-SELECT ckanid, reason_text
+SELECT publisher, ckanid, reason_text
 FROM dataset
 INNER JOIN (
   SELECT datasetid, reason_text
   FROM status AS t
-  WHERE hittime = (
+  WHERE hittime = ( -- letzter aktueller Datensatz
     SELECT MAX(hittime)
     FROM status
     WHERE datasetid = t.datasetid
     AND fieldstatus = (1 | x'2000'::int))
-  AND NOT EXISTS (
+  AND NOT EXISTS ( -- Datensatz wurde noch nicht gelöscht
     SELECT 1
     FROM status
     WHERE status.status = 'deleted'
     AND status.datasetid = t.datasetid
     AND status.hittime >= t.hittime)
-  AND t.fieldstatus = (1 | x'2000'::int)
-  AND t.field_id = 14
+  AND t.fieldstatus = (1 | x'2000'::int) -- nur das URL-Infofeld
+  AND t.field_id = 14 -- nur das Metadatenfeld #14 (resource_url)
   GROUP BY t.datasetid, t.reason_text
   HAVING COUNT(t.reason_text) > 1) AS t
-ON t.datasetid = dataset.sysid`
+ON t.datasetid = dataset.sysid
+ORDER BY publisher`
 
 	return conn.Getckanidurl(sqlquery)
 
