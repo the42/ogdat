@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/the42/ogdat/database"
 	"strings"
@@ -125,53 +126,17 @@ func (a analyser) populatelastcheckresults() error {
 	logger.Println("Looping over check results, populating information to Redis (this may take some time)")
 	for _, checkresult := range checkresults {
 
-		// 		// populate metadata version count
-		// 		if err = rcon.Send("ZINCRBY", verskey, 1, set.Version); err != nil {
-		// 			return err
-		// 		}
-		// 		// associate metadata version with ckanid
-		// 		if err = rcon.Send("SADD", dskey+":"+verskey+":"+set.Version, set.CKANID); err != nil {
-		// 			return err
-		// 		}
-		//
-		// 		// populate entity count
-		// 		if err = rcon.Send("ZINCRBY", entkey, 1, set.Publisher); err != nil {
-		// 			return err
-		// 		}
-		// 		// associate entity with ckanid
-		// 		if err = rcon.Send("SADD", dskey+":"+entkey+":"+set.Publisher, set.CKANID); err != nil {
-		// 			return err
-		// 		}
-		//
-		// 		// populate geographic toponym count
-		// 		if toponym := strings.TrimSpace(set.GeoToponym); len(toponym) > 0 {
-		// 			if err = rcon.Send("ZINCRBY", topokey, 1, toponym); err != nil {
-		// 				return err
-		// 			}
-		// 			// associate geographic toponym ckanid
-		// 			if err = rcon.Send("SADD", dskey+":"+topokey+":"+toponym, set.CKANID); err != nil {
-		// 				return err
-		// 			}
-		//
-		// 		}
-		//
-		// 		// populate category count
-		// 		for _, cat := range set.Category {
-		// 			if err = rcon.Send("ZINCRBY", catkey, 1, cat); err != nil {
-		// 				return err
-		// 			}
-		// 			// associate category with ckanid
-		// 			if err = rcon.Send("SADD", dskey+":"+catkey+":"+cat, set.CKANID); err != nil {
-		// 				return err
-		// 			}
-		// 		}
-
 		// populate the dataset
 		record, err := json.Marshal(checkresult.CheckStatus)
 		if err != nil {
 			return err
 		}
 		if err = rcon.Send("HMSET", checkkey+":"+checkresult.CKANID, "CKANID", checkresult.CKANID, "Hittime", checkresult.Hittime, "Record", record); err != nil {
+			return err
+		}
+
+		// associate entity with ckanid
+		if err = rcon.Send("SADD", checkkey+":"+entkey+":"+checkresult.Publisher, checkresult.CKANID); err != nil {
 			return err
 		}
 	}
@@ -181,18 +146,6 @@ func (a analyser) populatelastcheckresults() error {
 		return err
 	}
 
-	return nil
-}
-
-func (a analyser) populatedatasetbaseinfo() error {
-	logger.Println("Starting populating datasets base info")
-	if err := a.populatedatasets(); err != nil {
-		return err
-	}
-	if err := a.populatelastcheckresults(); err != nil {
-		return err
-	}
-	logger.Println("Done populating dataset base info")
 	return nil
 }
 
@@ -219,7 +172,10 @@ func (a analyser) populatean001() error {
 
 	for _, set := range sets {
 
-		if err = rcon.Send("ZINCRBY", an001+":"+set.CKANID, 1, set.Url); err != nil {
+		if err = rcon.Send("SADD", an001+":"+set.CKANID, set.Url); err != nil {
+			return err
+		}
+		if err = rcon.Send("ZINCRBY", an001+":"+entkey+":"+set.Publisher, 1, set.CKANID); err != nil {
 			return err
 		}
 	}
@@ -253,11 +209,52 @@ func (a analyser) populatean002() error {
 
 	for _, set := range sets {
 
-		if err = rcon.Send("ZINCRBY", an002+":"+set.CKANID, 1, set.Url); err != nil {
+		if err = rcon.Send("SADD", an002+":"+set.CKANID, set.Url); err != nil {
+			return err
+		}
+		if err = rcon.Send("ZINCRBY", an002+":"+entkey+":"+set.Publisher, 1, set.CKANID); err != nil {
 			return err
 		}
 	}
 	logger.Println("AN002: Committing data to Redis")
+	if _, err := rcon.Do("EXEC"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a analyser) populatean003() error {
+	const an003 = "an003"
+
+	logger.Println("AN003: Which Links could not be checked and why? Also returns publisher information and check-time")
+	logger.Println("AN003: SQL: Retrieving data")
+	sets, err := a.dbcon.GetAN003Data()
+	if err != nil {
+		return err
+	}
+
+	rcon := a.pool.Get()
+	defer rcon.Close()
+
+	logger.Println("AN003: Deleting keys from Redis")
+	database.RedisConn{rcon}.DeleteKeyPattern(an003 + "*")
+
+	if err := rcon.Send("MULTI"); err != nil {
+		return nil
+	}
+
+	for _, set := range sets {
+		urlcheckerrors, _ := json.Marshal(set.Reason_Text)
+		fieldkey := fmt.Sprintf("FieldID:%d", set.FieldID)
+		if err = rcon.Send("HSET", an003+":"+set.CKANID, fieldkey, urlcheckerrors); err != nil {
+			return err
+		}
+		if err = rcon.Send("ZINCRBY", an003+":"+entkey+":"+set.Publisher, len(set.Reason_Text), set.CKANID); err != nil {
+			return err
+		}
+	}
+
+	logger.Println("AN003: Committing data to Redis")
 	if _, err := rcon.Do("EXEC"); err != nil {
 		return err
 	}
@@ -300,42 +297,38 @@ func (a analyser) populatebs001() error {
 	return nil
 }
 
-func (a analyser) populatedatasetbaseanalysis() error {
-	logger.Println("Starting dataset base analysis")
+func (a analyser) populatedatasetinfo() error {
+	// BEGIN BASE INFO
+	logger.Println("Starting populating datasets base info")
+	if err := a.populatedatasets(); err != nil {
+		return err
+	}
+	if err := a.populatelastcheckresults(); err != nil {
+		return err
+	}
+	logger.Println("Done populating dataset base info")
+	// END BASE INFO
 
+	// BEGIN BASE ANALYSIS
+	logger.Println("Starting dataset base analysis")
 	if err := a.populatebs001(); err != nil {
 		return err
 	}
-
 	logger.Println("Done dataset base analysis")
-	return nil
-}
+	// END BASE ANALYSIS
 
-func (a analyser) populatedatasetanalysis() error {
+	// BEGIN DATASET ANALYSIS
 	logger.Println("Starting dataset analysis")
-
 	if err := a.populatean001(); err != nil {
 		return err
 	}
-
 	if err := a.populatean002(); err != nil {
 		return err
 	}
-
+	if err := a.populatean003(); err != nil {
+		return err
+	}
 	logger.Println("Done dataset analysis")
-	return nil
-}
-
-func (a analyser) populatedatasetinfo() error {
-	if err := a.populatedatasetbaseinfo(); err != nil {
-		return err
-	}
-	if err := a.populatedatasetbaseanalysis(); err != nil {
-		return err
-	}
-
-	if err := a.populatedatasetanalysis(); err != nil {
-		return err
-	}
+	// END DATASET ANALYSIS
 	return nil
 }
