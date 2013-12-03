@@ -66,7 +66,7 @@ func main() {
 		// Do not overwrite an exisiting file but fail
 		ofile, err = os.OpenFile(*outputfile, os.O_RDWR|os.O_CREATE|os.O_EXCL, os.FileMode(0666))
 		if err != nil {
-			log.Panicf("Can't open file %s for writing, the error was: %s\n", inputfile, err)
+			log.Panicf("Can't open file %s for writing, the error was: %s\n", *inputfile, err)
 		}
 		defer ofile.Close()
 	}

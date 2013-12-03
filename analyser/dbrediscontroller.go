@@ -36,7 +36,7 @@ func (a analyser) populatedatasets() error {
 	logger.Println("Deleting base dataset info keys from Redis")
 
 	rcon.Do("DEL", taxonomyprefix+":"+catkey, taxonomyprefix+":"+verskey, taxonomyprefix+":"+entkey, taxonomyprefix+":"+topokey)
-	database.RedisConn{rcon}.DeleteKeyPattern(datasetskey+"*", datasetkey+"*")
+	database.RedisConn{Conn:rcon}.DeleteKeyPattern(datasetskey+"*", datasetkey+"*")
 
 	if err := rcon.Send("MULTI"); err != nil {
 		return nil
@@ -117,7 +117,7 @@ func (a analyser) populatelastcheckresults() error {
 
 	logger.Println("Deleting check results info keys from Redis")
 
-	database.RedisConn{rcon}.DeleteKeyPattern(checkkey + "*")
+	database.RedisConn{Conn:rcon}.DeleteKeyPattern(checkkey + "*")
 
 	if err := rcon.Send("MULTI"); err != nil {
 		return nil
@@ -164,7 +164,7 @@ func (a analyser) populatean001() error {
 	defer rcon.Close()
 
 	logger.Println("AN001: Deleting keys from Redis")
-	database.RedisConn{rcon}.DeleteKeyPattern(an001 + "*")
+	database.RedisConn{Conn:rcon}.DeleteKeyPattern(an001 + "*")
 
 	if err := rcon.Send("MULTI"); err != nil {
 		return nil
@@ -201,7 +201,7 @@ func (a analyser) populatean002() error {
 	defer rcon.Close()
 
 	logger.Println("AN002: Deleting keys from Redis")
-	database.RedisConn{rcon}.DeleteKeyPattern(an002 + "*")
+	database.RedisConn{Conn:rcon}.DeleteKeyPattern(an002 + "*")
 
 	if err := rcon.Send("MULTI"); err != nil {
 		return nil
@@ -237,7 +237,7 @@ func (a analyser) populatean003() error {
 	defer rcon.Close()
 
 	logger.Println("AN003: Deleting keys from Redis")
-	database.RedisConn{rcon}.DeleteKeyPattern(an003 + "*")
+	database.RedisConn{Conn:rcon}.DeleteKeyPattern(an003 + "*")
 
 	if err := rcon.Send("MULTI"); err != nil {
 		return nil
@@ -279,7 +279,7 @@ func (a analyser) populatebs001() error {
 	defer rcon.Close()
 
 	logger.Println("BS001: Deleting keys from Redis")
-	database.RedisConn{rcon}.DeleteKeyPattern(bs001 + "*")
+	database.RedisConn{Conn:rcon}.DeleteKeyPattern(bs001 + "*")
 
 	if err := rcon.Send("MULTI"); err != nil {
 		return nil

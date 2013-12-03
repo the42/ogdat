@@ -77,7 +77,7 @@ func redispublishint(key string, num int) error {
 	c, err := database.GetRedisConnection(getredisconnect())
 	if err != nil {
 		rcon := database.RedisConn{Conn: c}
-		rcon.Publish(AppID+":"+key, fmt.Sprintf("%s", num))
+		rcon.Publish(AppID+":"+key, fmt.Sprintf("%d", num))
 		rcon.Flush()
 		rcon.Close()
 	}
