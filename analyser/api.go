@@ -151,6 +151,45 @@ func (a *analyser) GetDataset(request *restful.Request, response *restful.Respon
 	response.WriteEntity(ds)
 }
 
+func (a *analyser) GetCheckResult(request *restful.Request, response *restful.Response) {
+
+	id := request.PathParameter("id")
+
+	var reply []interface{}
+	var err error
+
+	rcon := a.pool.Get()
+	defer rcon.Close()
+
+	reply, err = redis.Values(rcon.Do("HGETALL", checkkey+":"+id))
+	if err != nil {
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+	if len(reply) == 0 {
+		response.WriteError(http.StatusInternalServerError, fmt.Errorf("Record not found"))
+		return
+	}
+
+	var is internalCheckRecord
+	if err = redis.ScanStruct(reply, &is); err != nil {
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	checkrecord := CheckRecord{Publisher: is.Publisher, CKANID: is.CKANID, Hittime: is.Hittime}
+	if len(is.CheckStatus) > 0 {
+		var checkStatus []CheckStatus
+		if err := json.Unmarshal([]byte(is.CheckStatus), &checkStatus); err != nil {
+			response.WriteError(http.StatusInternalServerError, err)
+			return
+		}
+		checkrecord.CheckStatus = checkStatus
+	}
+
+	response.WriteEntity(checkrecord)
+}
+
 func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 	ws := new(restful.WebService)
 	ws.Path(apibasepath()).
@@ -201,6 +240,11 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Doc("retourniert Metadateninformationen zum Datensatz mit id").
 		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
 		Writes(struct{ Datasets []Dataset }{}))
+
+	ws.Route(ws.GET("/check/{id}").To(an.GetCheckResult).
+		Doc("retourniert Informationen des Checkergebnisses zum Datensatz mit id").
+		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
+		Writes(struct{ CheckRecord []CheckRecord }{}))
 
 	// 	ws.Route(ws.POST("/").To(saveApplication).
 	// 		// for documentation
