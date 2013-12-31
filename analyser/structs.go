@@ -60,6 +60,13 @@ type CheckRecord struct {
 	CheckStatus []CheckStatus
 }
 
+type internalCheckRecord struct {
+	Publisher   string
+	CKANID      string
+	Hittime     time.Time
+	CheckStatus string
+}
+
 type URLCheckRecord struct {
 	Publisher   string
 	CKANID      string
