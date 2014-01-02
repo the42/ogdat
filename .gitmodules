@@ -1,0 +1,3 @@
+[submodule "analyser/swagger-ui"]
+	path = analyser/swagger-ui
+	url = git@github.com:the42/swagger-ui.git
