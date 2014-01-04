@@ -73,7 +73,6 @@ func (a analyser) populatedatasets() error {
 			if err = rcon.Send("SADD", datasetskey+":"+topokey+":"+toponym, set.CKANID); err != nil {
 				return err
 			}
-
 		}
 
 		// populate category count
@@ -132,7 +131,12 @@ func (a analyser) populatelastcheckresults() error {
 		if err != nil {
 			return err
 		}
-		if err = rcon.Send("HMSET", checkkey+":"+checkresult.CKANID, "CKANID", checkresult.CKANID, "Hittime", checkresult.Hittime, "CheckStatus", record); err != nil {
+		if err = rcon.Send("HMSET", checkkey+":"+checkresult.CKANID, "CKANID", checkresult.CKANID, "Hittime", checkresult.Hittime, "CheckStatus", record, "Publisher", checkresult.Publisher); err != nil {
+			return err
+		}
+
+		// populate count of check results per entity
+		if err = rcon.Send("ZINCRBY", checkkey+":"+entkey, len(checkresult.CheckStatus), checkresult.Publisher); err != nil {
 			return err
 		}
 
