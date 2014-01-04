@@ -127,7 +127,7 @@ func main() {
 		ApiPath:         "/swaggerdoc",
 		SwaggerPath:     "/doc/",
 		SwaggerFilePath: "swagger-ui/dist/",
-		WebServices:     restful.RegisteredWebServices()} // you control what services are visible
+		WebServices:     restful.RegisteredWebServices()}
 	swagger.InstallSwaggerService(config)
 
 	logger.Printf("analyser (%s) listening on port %s\n", AppID, portbinding())
