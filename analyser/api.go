@@ -250,6 +250,12 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
 		Writes(struct{ Datasets []Dataset }{}))
 
+	ws.Route(ws.GET("/check/taxonomy/entities").To(an.GetSortedSet("check:entities")).
+		Doc("Retourniert für die Verwaltungseinheiten die Anzahl der verfügbaren Checkergebnisse").
+		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der Checkergebnisse retourniert werden soll. Leer für alle")).
+		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
+		Writes(struct{ Entities []IDNums }{}))
+
 	ws.Route(ws.GET("/check/{id}").To(an.GetCheckResult).
 		Doc("retourniert Informationen des Checkergebnisses zum Datensatz mit id").
 		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
