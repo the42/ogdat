@@ -35,17 +35,6 @@ type internalDataset struct {
 	GeoToponym  string
 }
 
-type CKANIDUrl struct {
-	Publisher string
-	CKANID    string
-	Url       string
-}
-
-type CKANIDTime struct {
-	CKANID string
-	time.Time
-}
-
 type CheckStatus struct {
 	Reason_Text string
 	FieldID     int
@@ -63,7 +52,7 @@ type CheckRecord struct {
 type internalCheckRecord struct {
 	Publisher   string
 	CKANID      string
-	Hittime     time.Time
+	Hittime     string
 	CheckStatus string
 }
 
@@ -73,4 +62,15 @@ type URLCheckRecord struct {
 	Reason_Text []string
 	FieldID     int
 	Hittime     time.Time
+}
+
+type CKANIDTime struct {
+	CKANID string
+	time.Time
+}
+
+type CKANIDUrl struct {
+	Publisher string
+	CKANID    string
+	Url       string
 }

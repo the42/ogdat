@@ -7,6 +7,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func (a *analyser) GetSortedSet(key string) func(request *restful.Request, response *restful.Response) {
@@ -177,7 +178,7 @@ func (a *analyser) GetCheckResult(request *restful.Request, response *restful.Re
 		return
 	}
 
-	checkrecord := CheckRecord{Publisher: is.Publisher, CKANID: is.CKANID, Hittime: is.Hittime}
+	checkrecord := CheckRecord{Publisher: is.Publisher, CKANID: is.CKANID}
 	if len(is.CheckStatus) > 0 {
 		var checkStatus []CheckStatus
 		if err := json.Unmarshal([]byte(is.CheckStatus), &checkStatus); err != nil {
@@ -185,6 +186,14 @@ func (a *analyser) GetCheckResult(request *restful.Request, response *restful.Re
 			return
 		}
 		checkrecord.CheckStatus = checkStatus
+	}
+	if len(is.Hittime) > 0 {
+		hittime, err := time.Parse(RedigoTimestamp, is.Hittime)
+		if err != nil {
+			response.WriteError(http.StatusInternalServerError, err)
+			return
+		}
+		checkrecord.Hittime = hittime
 	}
 
 	response.WriteEntity(checkrecord)

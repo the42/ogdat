@@ -5,6 +5,8 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+const RedigoTimestamp = "2006-01-02 15:04:05.999999 -0700 MST"
+
 func (a analyser) listenredischannel(which string) chan []byte {
 	pubsubcon := redis.PubSubConn{a.pool.Get()}
 	pubsubcon.Subscribe(which)
