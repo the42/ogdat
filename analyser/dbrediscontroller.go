@@ -157,7 +157,7 @@ func (a analyser) populatelastcheckresults() error {
 func (a analyser) populatean001() error {
 	const an001 = "an001"
 
-	logger.Println("AN001: What publishers have multiple metadata sets, but within distinct sets point to the same data")
+	logger.Println("AN001: Welche Publisher haben unterschiedliche Metadaten, die auf gleiche Daten verweisen?")
 
 	logger.Println("AN001: SQL: Retrieving data")
 	sets, err := a.dbcon.GetAN001Data()
@@ -194,7 +194,7 @@ func (a analyser) populatean001() error {
 func (a analyser) populatean002() error {
 	const an002 = "an002"
 
-	logger.Println("AN002: What publishers have multiple metadata sets, but within distinct sets point to the same data")
+	logger.Println("AN002: Welche Publisher haben Metadaten, die mehrere Ressourceeinträge haben und dabei auf gleiche Daten verweisen?")
 
 	logger.Println("AN002: SQL: Retrieving data")
 	sets, err := a.dbcon.GetAN002Data()
