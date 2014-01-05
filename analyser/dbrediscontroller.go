@@ -131,7 +131,7 @@ func (a analyser) populatelastcheckresults() error {
 		if err != nil {
 			return err
 		}
-		if err = rcon.Send("HMSET", checkkey+":"+checkresult.CKANID, "CKANID", checkresult.CKANID, "Hittime", checkresult.Hittime, "CheckStatus", record, "Publisher", checkresult.Publisher); err != nil {
+		if err = rcon.Send("HMSET", checkkey+":"+checkresult.CKANID, "CKANID", checkresult.CKANID, "Hittime", checkresult.Hittime, "CheckStatus", record); err != nil {
 			return err
 		}
 

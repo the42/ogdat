@@ -43,14 +43,14 @@ type CheckStatus struct {
 }
 
 type CheckRecord struct {
-	Publisher   string
+	Publisher   string `redis:"-"`
 	CKANID      string
 	Hittime     time.Time
 	CheckStatus []CheckStatus
 }
 
 type internalCheckRecord struct {
-	Publisher   string
+	Publisher   string `redis:"-"`
 	CKANID      string
 	Hittime     string
 	CheckStatus string

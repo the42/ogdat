@@ -178,7 +178,7 @@ func (a *analyser) GetCheckResult(request *restful.Request, response *restful.Re
 		return
 	}
 
-	checkrecord := CheckRecord{Publisher: is.Publisher, CKANID: is.CKANID}
+	checkrecord := CheckRecord{CKANID: is.CKANID}
 	if len(is.CheckStatus) > 0 {
 		var checkStatus []CheckStatus
 		if err := json.Unmarshal([]byte(is.CheckStatus), &checkStatus); err != nil {
@@ -246,7 +246,7 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Writes(struct{ Datasets []Dataset }{}))
 
 	ws.Route(ws.GET("/dataset/{id}").To(an.GetDataset).
-		Doc("retourniert Metadateninformationen zum Datensatz mit id").
+		Doc("Retourniert Metadateninformationen zum Datensatz mit id").
 		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
 		Writes(struct{ Datasets []Dataset }{}))
 
@@ -257,7 +257,7 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Writes(struct{ Entities []IDNums }{}))
 
 	ws.Route(ws.GET("/check/{id}").To(an.GetCheckResult).
-		Doc("retourniert Informationen des Checkergebnisses zum Datensatz mit id").
+		Doc("Retourniert Informationen des Checkergebnisses zum Datensatz mit id").
 		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
 		Writes(struct{ CheckRecord []CheckRecord }{}))
 
