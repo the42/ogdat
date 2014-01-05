@@ -152,7 +152,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
 						OGDID: desc.ID,
-						Text:  resourceno + fmt.Sprintf("'%s' ist keine gültiger dreistelliger Sprachcode nach  ISO 639-2", *lang)})
+						Text:  resourceno + fmt.Sprintf("'%s' ist kein gültiger dreistelliger Sprachcode nach  ISO 639-2", *lang)})
 				}
 			case "resource_encoding":
 				resencoding := element.Encoding
