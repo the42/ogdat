@@ -42,18 +42,23 @@ type CheckStatus struct {
 	Fieldstatus int
 }
 
-type CheckRecord struct {
-	Publisher   string `redis:"-"`
+type dbCheckRecord struct {
+	Publisher   string `redis:"-" json:"-"`
 	CKANID      string
 	Hittime     time.Time
 	CheckStatus []CheckStatus
 }
 
-type internalCheckRecord struct {
-	Publisher   string `redis:"-"`
+type redisCheckRecord struct {
 	CKANID      string
 	Hittime     string
 	CheckStatus string
+}
+
+type CheckRecord struct {
+	CKANID      string
+	Hittime     time.Time
+	CheckStatus []CheckStatus
 }
 
 type URLCheckRecord struct {

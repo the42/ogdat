@@ -172,7 +172,7 @@ func (a *analyser) GetCheckResult(request *restful.Request, response *restful.Re
 		return
 	}
 
-	var is internalCheckRecord
+	var is redisCheckRecord
 	if err = redis.ScanStruct(reply, &is); err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
 		return

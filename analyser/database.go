@@ -95,7 +95,7 @@ func (conn *analyserdb) Getckanidurl(query string) ([]CKANIDUrl, error) {
 	return datasets, nil
 }
 
-func (conn *analyserdb) GetLastCheckResults() ([]CheckRecord, error) {
+func (conn *analyserdb) GetLastCheckResults() ([]dbCheckRecord, error) {
 	const sqlquery = `
 SELECT publisher, ckanid, outers.field_id, outers.hittime, outers.fieldstatus, outers.reason_text, outers.status
 FROM status outers
@@ -120,7 +120,7 @@ ORDER BY hittime DESC`
 		return nil, err
 	}
 
-	var checkrecord []CheckRecord
+	var checkrecord []dbCheckRecord
 	var (
 		publisher   *string
 		ckanid      *string
@@ -137,7 +137,7 @@ ORDER BY hittime DESC`
 			return nil, err
 		}
 		if ckanid != nil && oldckaind != *ckanid {
-			checkrecord = append(checkrecord, CheckRecord{Publisher: *publisher, CKANID: *ckanid, Hittime: t})
+			checkrecord = append(checkrecord, dbCheckRecord{Publisher: *publisher, CKANID: *ckanid, Hittime: t})
 			oldckaind = *ckanid
 		}
 
