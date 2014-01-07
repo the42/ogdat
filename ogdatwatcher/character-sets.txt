@@ -1,1 +1,1 @@
-../ogdatv21/character-sets.txt
+../data/character-sets.txt

@@ -1,1 +1,1 @@
-../ogdatv21/ISO-639-2_utf-8.txt
+../data/ISO-639-2_utf-8.txt
