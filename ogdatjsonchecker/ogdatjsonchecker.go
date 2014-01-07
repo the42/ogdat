@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/the42/ogdat"
 	"github.com/the42/ogdat/ogdatv21"
+	"github.com/the42/ogdat/ogdatv22"
 	"io"
 	"io/ioutil"
 	"log"
@@ -42,6 +43,9 @@ func mymain() int {
 	case "V20", "V21":
 		set = ogdat.GetOGDSetForVersion(ogdatv21.Version)
 		md = &ogdatv21.MetaData{}
+	case "V22":
+		set = ogdat.GetOGDSetForVersion(ogdatv22.Version)
+		md = &ogdatv22.MetaData{}
 	default:
 		log.Printf("Nicht unterstützte OGD Version: '%s'\n", *version)
 		return 2
