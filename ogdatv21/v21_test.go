@@ -2,7 +2,6 @@ package ogdatv21
 
 import (
 	"encoding/json"
-	// "fmt"
 	"github.com/the42/ogdat"
 	"io/ioutil"
 	"os"

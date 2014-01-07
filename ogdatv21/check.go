@@ -114,7 +114,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				if created == nil {
 					continue
 				}
-				if created.Format != CustomTimeSpecifier2 {
+				if created.Format != ogdat.CustomTimeSpecifier2 {
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
 						OGDID: desc.ID,
@@ -126,7 +126,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				if modified == nil {
 					continue
 				}
-				if modified.Format != CustomTimeSpecifier2 {
+				if modified.Format != ogdat.CustomTimeSpecifier2 {
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
 						OGDID: desc.ID,
@@ -222,7 +222,7 @@ nextbeschreibung:
 					Text:  fmt.Sprintf("Feldwert vom Typ UUID erwartet, Wert ist aber keine UUID: '%s'", md.Extras.Metadata_Identifier.Raw)})
 			}
 		case "metadata_modified":
-			if md.Extras.Metadata_Modified != nil && md.Extras.Metadata_Modified.Format != CustomTimeSpecifier2 {
+			if md.Extras.Metadata_Modified != nil && md.Extras.Metadata_Modified.Format != ogdat.CustomTimeSpecifier2 {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
@@ -261,7 +261,7 @@ nextbeschreibung:
 					OGDID: elm.ID,
 					Text:  "Die Kategorisierung darf zwar mit Kardinalität 'N' optional auftreten, jedoch sollte zumindest eine Zuordnung getroffen werden"})
 			} else {
-				if cat.isstring {
+				if cat.IsString {
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Info | ogdat.StructuralError,
 						OGDID: elm.ID,
@@ -310,7 +310,7 @@ nextbeschreibung:
 				}
 			}
 		case "begin_datetime":
-			if md.Extras.Begin_DateTime != nil && md.Extras.Begin_DateTime.Format != CustomTimeSpecifier1 {
+			if md.Extras.Begin_DateTime != nil && md.Extras.Begin_DateTime.Format != ogdat.CustomTimeSpecifier1 {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
@@ -369,7 +369,7 @@ nextbeschreibung:
 			if linkage == nil {
 				continue
 			}
-			if !linkage.isarray {
+			if !linkage.IsArray {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Info | ogdat.StructuralError,
 					OGDID: elm.ID,
@@ -463,7 +463,7 @@ nextbeschreibung:
 			if endtime == nil {
 				continue
 			}
-			if endtime.Format != CustomTimeSpecifier1 {
+			if endtime.Format != ogdat.CustomTimeSpecifier1 {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
