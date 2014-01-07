@@ -1,7 +1,9 @@
 .*
 !.gitignore
 !.godir
+!.gitmodules
 *.local
 *.pdf
 *.html*
 !ogdat_spec-2.1.html
+!ogdat_spec-2.2.html
