@@ -265,7 +265,7 @@ var checkTests = []checkTest{
 			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 14},
 			{Type: ogdat.Info | ogdat.FetchableUrl | ogdat.FetchSuccess, OGDID: 14},
 			{Type: ogdat.Info | ogdat.FetchableUrl, OGDID: 14},
-			{Type: ogdat.Info | ogdat.FetchableUrl | ogdat.FetchSuccess, OGDID: 14},
+			{Type: ogdat.Info | ogdat.FetchableUrl | ogdat.NoDataatUrlError, OGDID: 14},
 			{Type: ogdat.Warning, OGDID: 15},
 			{Type: ogdat.Error, OGDID: 5},
 			{Type: ogdat.Error, OGDID: 9},
