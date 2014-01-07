@@ -1,26 +1,26 @@
 package ogdatv22
 
 import (
-	// "daviddengcn/go-algs/ed" // levenshtein distance for similarity
 	"fmt"
 	"github.com/the42/ogdat"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
-// copmpare input against a slice of check strings.
-// input will first be converted to lower-case, and any occurence of "-" is removed.
-// The slice of checks will be iterated over,
-// individual elements of check will not be converted or have their "-" removed.
-func checkEncodingString(input string, check []string) bool {
-	input = strings.ToLower(strings.Replace(input, "-", "", -1))
-	for _, val := range check {
-		if input == val {
-			return true
-		}
+// POLYGON ((-180.00 -90.00,180.00 -90.00,180.00 90.00, -180.00 90.00, -180.00 -90.00))
+var regexpbboxWKT = regexp.MustCompile(`^POLYGON\s{0,1}\(\([-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+,\s{0,1}[-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+,\s{0,1}[-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+,\s{0,1}[-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+,\s{0,1}[-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+\s{0,1}\)\)$`)
+
+func checkOGDBBox(str string) (bool, error) {
+	if !utf8.ValidString(str) {
+		return false, &ogdat.CheckInfo{ogdat.Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
-	return false
+	if idx := regexpbboxWKT.FindStringIndex(str); idx == nil {
+		return false, &ogdat.CheckInfo{ogdat.Error, -1, fmt.Sprintf("Keine gültige WKT-Angabe einer BoundingBox: '%s'", str)}
+	}
+	return true, nil
 }
 
 func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, err error) {
@@ -160,7 +160,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 					continue
 				}
 				// the specification mentions only these encodings as valid
-				if checkEncodingString(*resencoding, []string{"utf8", "utf16", "utf32"}) {
+				if ogdat.CheckEncodingString(*resencoding, []string{"utf8", "utf16", "utf32"}) {
 					continue
 				}
 
@@ -358,7 +358,7 @@ nextbeschreibung:
 				continue
 			}
 			const ogdschemacharacterset = "utf8"
-			if !checkEncodingString(*charset, []string{"utf8"}) {
+			if !ogdat.CheckEncodingString(*charset, []string{"utf8"}) {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,
@@ -452,7 +452,7 @@ nextbeschreibung:
 			if bbox == nil {
 				continue
 			}
-			if ok, err := ogdat.CheckOGDBBox(*bbox); !ok {
+			if ok, err := checkOGDBBox(*bbox); !ok {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
 					OGDID: elm.ID,

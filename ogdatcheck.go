@@ -46,6 +46,20 @@ func CheckISOLanguage(lang string) bool {
 	return ok
 }
 
+// copmpare input against a slice of check strings.
+// input will first be converted to lower-case, and any occurence of "-" is removed.
+// The slice of checks will be iterated over,
+// individual elements of check will not be converted or have their "-" removed.
+func CheckEncodingString(input string, check []string) bool {
+	input = strings.ToLower(strings.Replace(input, "-", "", -1))
+	for _, val := range check {
+		if input == val {
+			return true
+		}
+	}
+	return false
+}
+
 func loadisolanguagefile(filename string) (isolangfilemap map[string]*ISO6392Lang, _ error) {
 
 	reader, err := os.Open(filename)
@@ -193,18 +207,6 @@ func CheckOGDTextStringForSaneCharacters(str string) (ok bool, _ error) {
 	}
 	if idx := regexpposixescape.FindStringIndex(str); idx != nil {
 		return false, &CheckInfo{Warning, idx[0], fmt.Sprintf("Mögliche Posix-Escapes: '%s'", strrange(-6, 6, idx[0], str))}
-	}
-	return true, nil
-}
-
-var regexpbboxWKT = regexp.MustCompile(`^POLYGON\s{0,1}\({1,2}\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+,\s{0,2}[-+]?[0-9]*\.?[0-9]+\s{1,2}[-+]?[0-9]*\.?[0-9]+\s{0,2}\){1,2}$`)
-
-func CheckOGDBBox(str string) (bool, error) {
-	if !utf8.ValidString(str) {
-		return false, &CheckInfo{Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
-	}
-	if idx := regexpbboxWKT.FindStringIndex(str); idx == nil {
-		return false, &CheckInfo{Error, -1, fmt.Sprintf("Keine gültige WKT-Angabe einer BoundingBox: '%s'", str)}
 	}
 	return true, nil
 }
