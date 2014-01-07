@@ -24,19 +24,12 @@ type Extras struct {
 	Maintainer_Link       *ogdat.Url             `json:"maintainer_link" ogdat:"ID:13"`
 	Publisher             *string                `json:"publisher" ogdat:"ID:20"`
 	Geographich_Toponym   *string                `json:"geographic_toponym" ogdat:"ID:22"`
-
-	/*  ON/EN/ISO 19115:2003: westBL (344) & eastBL (345) & southBL (346) & northBL (347)
-	 * Specifiaction says a WKT of POLYGON should be used, which would make a
-	 * POLYGON ((-180.00 -90.00, 180.00 90.00)) but Example states
-	 * POLYGON (-180.00 -90.00, 180.00 90.00)
-	 * The situation is currently erroneous but unambigous, so we support both formats
-	 */
-	Geographic_BBox  *string      `json:"geographic_bbox" ogdat:"ID:23"`
-	End_DateTime     *ogdat.Time  `json:"end_datetime" ogdat:"ID:25"`
-	Update_Frequency *ogdat.Cycle `json:"update_frequency" ogdat:"ID:26"`
-	Lineage_Quality  *string      `json:"lineage_quality" ogdat:"ID:27"`
-	EnTitleDesc      *string      `json:"en_title_and_desc" ogdat:"ID:28"`
-	License_Citation *string      `json:"license_citation" ogdat:"ID:30"`
+	Geographic_BBox       *string                `json:"geographic_bbox" ogdat:"ID:23"`
+	End_DateTime          *ogdat.Time            `json:"end_datetime" ogdat:"ID:25"`
+	Update_Frequency      *ogdat.Cycle           `json:"update_frequency" ogdat:"ID:26"`
+	Lineage_Quality       *string                `json:"lineage_quality" ogdat:"ID:27"`
+	EnTitleDesc           *string                `json:"en_title_and_desc" ogdat:"ID:28"`
+	License_Citation      *string                `json:"license_citation" ogdat:"ID:30"`
 }
 
 type Resource struct {
@@ -59,11 +52,6 @@ type Resource struct {
 	 */
 	Size     *string `json:"size" ogdat:"ID:29"`
 	Language *string `json:"language" ogdat:"ID:31"`
-	/* Here we have a problem in spec 2.1. which says "nach ISO\IEC 10646-1", which means utf-8, utf-16 and utf-32.
-	 * We would certainly support more encodings, as eg.
-	 * ISO 19115 / B.5.10 MD_CharacterSetCode<> or
-	 * http://www.iana.org/assignments/character-sets/character-sets.xml
-	 */
 	Encoding *string `json:"characterset" ogdat:"ID:32"`
 }
 
