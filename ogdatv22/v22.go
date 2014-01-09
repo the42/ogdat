@@ -78,6 +78,33 @@ func (md *MetaData) GetBeschreibungForFieldName(name string) *ogdat.Beschreibung
 	return nil
 }
 
+func (md *MetaData) MinimalMetadata() *ogdat.MinimalMetaData {
+
+	minimd := &ogdat.MinimalMetaData{Description: md.Description,
+		Extras: ogdat.Extras{Schema_Name: md.Schema_Name,
+			Publisher:           md.Publisher,
+			Geographic_BBox:     md.Geographic_BBox,
+			Geographich_Toponym: md.Geographich_Toponym}}
+
+	if md.Metadata_Identifier != nil {
+		s := md.Metadata_Identifier.String()
+		minimd.Metadata_Identifier = &s
+	}
+	if md.Maintainer_Link != nil {
+		s := md.Maintainer_Link.String()
+		minimd.Maintainer_Link = &s
+	}
+
+	var cats []string
+	if md.Categorization != nil {
+		for _, cat := range md.Categorization.Kategorie {
+			cats = append(cats, cat.ID)
+		}
+		minimd.Categorization = cats
+	}
+	return minimd
+}
+
 func init() {
 	ogdat.RegisterFromCSVFile(Version, specfile)
 }

@@ -31,7 +31,7 @@ func mymain() int {
 	flag.Parse()
 	var reader io.Reader
 	var set *ogdat.OGDSet
-	var md ogdat.Checker
+	var md ogdat.Metadater
 
 	if flag.NFlag() == 0 {
 		fmt.Println("Keine Kommandozeilenparamter angegeben. Verwendung:")

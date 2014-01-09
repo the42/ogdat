@@ -7,7 +7,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/the42/ogdat"
 	"github.com/the42/ogdat/database"
-	"github.com/the42/ogdat/ogdatv21"
 	"time"
 )
 
@@ -112,7 +111,7 @@ func DBStringLen(in string, length int) string {
 	return string(rs[:min(length, len(rs))])
 }
 
-func (conn *watcherdb) InsertOrUpdateMetadataInfo(ckanid string, md *ogdatv21.MetaData) (database.DBID, bool, error) {
+func (conn *watcherdb) InsertOrUpdateMetadataInfo(ckanid string, md *ogdat.MinimalMetaData) (database.DBID, bool, error) {
 	// insertorupdatemetadatainfo(id character varying, pub character varying, cont character varying, descr text, vers character varying, category json, stime timestamp with time zone)
 	const stmt = "SELECT * FROM insertorupdatemetadatainfo($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
 
@@ -128,11 +127,11 @@ func (conn *watcherdb) InsertOrUpdateMetadataInfo(ckanid string, md *ogdatv21.Me
 	var id, maint *string
 	if md.Metadata_Identifier != nil {
 		id = new(string)
-		*id = DBStringLen(md.Metadata_Identifier.String(), 255)
+		*id = DBStringLen(*md.Metadata_Identifier, 255)
 	}
 	if md.Maintainer_Link != nil {
 		maint = new(string)
-		*maint = DBStringLen(md.Maintainer_Link.String(), 255)
+		*maint = DBStringLen(*md.Maintainer_Link, 255)
 	}
 
 	pub := md.Publisher
@@ -157,13 +156,7 @@ func (conn *watcherdb) InsertOrUpdateMetadataInfo(ckanid string, md *ogdatv21.Me
 		*geotoponym = DBStringLen(*geotoponym, 255)
 	}
 
-	var cats []string
-	if cat := md.Categorization; cat != nil {
-		for _, cat := range cat.Kategorie {
-			cats = append(cats, cat.ID)
-		}
-	}
-	cat, _ := json.Marshal(cats)
+	cat, _ := json.Marshal(md.Categorization)
 
 	t := time.Now().UTC()
 

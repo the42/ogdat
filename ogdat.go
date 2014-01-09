@@ -4,8 +4,11 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 	"encoding/json"
 	"errors"
+	"io"
+	"io/ioutil"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -383,6 +386,53 @@ func GetIDFromMetaDataStructField(val reflect.StructField) int {
 		}
 	}
 	return -1
+}
+
+type Extras struct {
+	Metadata_Identifier *string  `json:"metadata_identifier"`
+	Schema_Name         *string  `json:"schema_name"`
+	Maintainer_Link     *string  `json:"maintainer_link"`
+	Publisher           *string  `json:"publisher"`
+	Geographic_BBox     *string  `json:"geographic_bbox"`
+	Geographich_Toponym *string  `json:"geographic_toponym"`
+	Categorization      []string `json:"categorization"`
+}
+
+type MinimalMetaData struct {
+	Description *string `json:"notes"`
+	Extras      `json:"extras"`
+}
+
+type Metadater interface {
+	Check(bool) ([]CheckMessage, error)
+	MinimalMetadata() *MinimalMetaData
+}
+
+func MinimalMetaDataforJSONStream(jsondata io.Reader) (*MinimalMetaData, error) {
+	bytedata, err := ioutil.ReadAll(jsondata)
+	if err != nil {
+		return nil, err
+	}
+
+	data := &MinimalMetaData{}
+	if err := json.Unmarshal(bytedata, data); err != nil {
+		if len(bytedata) > 0 && bytedata[0] == '"' {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return data, nil
+}
+
+const versionextractorregexp = `(\d+(?:\.\d+)*)`
+
+func OGDVersionfromString(match string) (version string) {
+	r := regexp.MustCompile(versionextractorregexp)
+	s := r.FindAllString(match, 2)
+	if len(s) == 1 {
+		return s[0]
+	}
+	return
 }
 
 func init() {

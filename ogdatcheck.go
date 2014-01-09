@@ -279,10 +279,6 @@ type CheckMessage struct {
 	Context string
 }
 
-type Checker interface {
-	Check(bool) ([]CheckMessage, error)
-}
-
 func AppendcheckerrorTocheckmessage(msgs []CheckMessage, checkresults []CheckInfo, ID int, prepend string) []CheckMessage {
 	for _, result := range checkresults {
 		msgs = append(msgs, CheckMessage{
