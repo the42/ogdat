@@ -8,6 +8,7 @@ import (
 	"github.com/the42/ogdat/ckan"
 	"github.com/the42/ogdat/database"
 	"github.com/the42/ogdat/ogdatv21"
+	"github.com/the42/ogdat/ogdatv22"
 	"github.com/the42/ogdat/schedule"
 	"log"
 	"os"
@@ -164,7 +165,15 @@ func ifaceslicetostring(ifs []interface{}) []string {
 func processmetadataids(conn *watcherdb, processids []string) error {
 
 	nums := len(processids)
+	var md ogdat.Metadater
+	var jsonparseerror error
+	var messages []ogdat.CheckMessage
+
 	for idx, id := range processids {
+
+		md = nil
+		jsonparseerror = nil
+		messages = nil
 
 		logger.Printf("%4d / %4d : processing %v\n", idx+1, nums, id)
 
@@ -173,23 +182,46 @@ func processmetadataids(conn *watcherdb, processids []string) error {
 			return fmt.Errorf("Cannot fetch JSON for ID %v: %s", id, err)
 		}
 
-		md, err := ogdatv21.MetadatafromJSONStream(mdjson)
+		mmd, err := ogdat.MinimalMetaDataforJSONStream(mdjson)
 		if err != nil {
-			return fmt.Errorf("Cannot access metadata for ID %v: %s", id, err)
+			return fmt.Errorf("Cannot access minimal metadata for ID %v: %s", id, err)
 		}
-		if md == nil {
-			fmt.Printf("Metadata for ID %v could not be parsed, error returned?\n", id)
+		if mmd == nil {
+			logger.Printf("Info: Minimal Metadata for ID %v could not be parsed, error returned?\n", id)
 			continue
 		}
+		var version string
+		if mmd.Schema_Name != nil {
+			version = ogdat.OGDVersionfromString(*mmd.Schema_Name)
+		}
 
-		dbdatasetid, isnew, err := conn.InsertOrUpdateMetadataInfo(id, md)
+		dbdatasetid, isnew, err := conn.InsertOrUpdateMetadataInfo(id, mmd)
 		if err != nil {
 			return fmt.Errorf("InsertOrUpdateMetadataInfo: database error at id %v: %s", id, err)
 		}
 
-		messages, err := md.Check(true)
-		if err != nil {
-			return fmt.Errorf("Metadata check error for id %v: %s", id, err)
+		switch version {
+		case "2.0", "2.1":
+			md, jsonparseerror = ogdatv21.MetadatafromJSONStream(mdjson)
+		case "2.2":
+			md, jsonparseerror = ogdatv22.MetadatafromJSONStream(mdjson)
+		case "":
+			logger.Printf("No Metadata Schema given for ID %v, skipping", id)
+			messages = []ogdat.CheckMessage{{Type: ogdat.Info, Text: "Kein Schema spezifiziert, Metadaten können nicht überprüft werden", OGDID: -1}}
+		default:
+			logger.Printf("Identified Metadata Version %s but no checker implemented", version)
+			s := fmt.Sprintf("Für die Metadatenversion %s ist keine Überprüfung implementiert", version)
+			messages = []ogdat.CheckMessage{{Type: ogdat.Info, Text: s, OGDID: -1}}
+		}
+
+		if jsonparseerror != nil {
+			return fmt.Errorf("Cannot parse metadata for ID %v: %s", id, jsonparseerror)
+		}
+		if messages == nil {
+			messages, err = md.Check(true)
+			if err != nil {
+				return fmt.Errorf("Metadata check error for id %v: %s", id, err)
+			}
 		}
 
 		if err = conn.ProtocollCheck(dbdatasetid, isnew, messages); err != nil {
