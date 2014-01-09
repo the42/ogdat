@@ -30,6 +30,9 @@ type Extras struct {
 	Lineage_Quality       *string                `json:"lineage_quality" ogdat:"ID:27"`
 	EnTitleDesc           *string                `json:"en_title_and_desc" ogdat:"ID:28"`
 	License_Citation      *string                `json:"license_citation" ogdat:"ID:30"`
+
+	// new as of V2.2
+	Metadata_OriginalPortal *ogdat.Url `json:"metadata_original_portal" ogdat:"ID:33"`
 }
 
 type Resource struct {
@@ -62,6 +65,9 @@ type MetaData struct {
 	Schlagworte []ogdat.Tags `json:"tags" ogdat:"ID:11"`
 	Maintainer  *string      `json:"maintainer" ogdat:"ID:19"`
 	License     *string      `json:"license" ogdat:"ID:21"` // Sollte URI des Lizenzdokuments sein
+
+	// Optional, new as of V2.2
+	Maintainer_Email *ogdat.Url `json:"maintainer_email" ogdat:"ID:34"`
 
 	// nested structs
 	Extras   `json:"extras"`

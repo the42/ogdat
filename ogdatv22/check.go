@@ -519,6 +519,35 @@ nextbeschreibung:
 						Text:  fmt.Sprintf(invalidchars, cerr.Position, cerr)})
 				}
 			}
+		// neu ab version 2.2
+		case "metadata_original_portal":
+			mdorigportal := md.Extras.Metadata_OriginalPortal
+			if mdorigportal == nil {
+				continue
+			}
+			if mdorigportal.URL == nil {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Error,
+					OGDID: elm.ID,
+					Text:  fmt.Sprintf(expectedlink, mdorigportal.Raw)})
+			} else {
+				_, checkresult := ogdat.CheckUrl(mdorigportal.Raw, followhttplinks)
+				message = ogdat.AppendcheckerrorTocheckmessage(message, checkresult, elm.ID, "")
+			}
+		case "maintainer_email":
+			maintainermail := md.Maintainer_Email
+			if maintainermail == nil {
+				continue
+			}
+			if maintainermail.URL == nil {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Error,
+					OGDID: elm.ID,
+					Text:  fmt.Sprintf(expectedlink, maintainermail.Raw)})
+			} else {
+				_, checkresult := ogdat.CheckUrl(maintainermail.Raw, followhttplinks)
+				message = ogdat.AppendcheckerrorTocheckmessage(message, checkresult, elm.ID, "")
+			}
 		}
 	}
 	return
