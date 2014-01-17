@@ -156,7 +156,13 @@ func (conn *watcherdb) InsertOrUpdateMetadataInfo(ckanid string, md *ogdat.Minim
 		*geotoponym = DBStringLen(*geotoponym, 255)
 	}
 
-	cat, _ := json.Marshal(md.Categorization)
+	var cats []string
+	if cat := md.Categorization; cat != nil {
+		for _, cat := range cat.Kategorie {
+			cats = append(cats, cat.ID)
+		}
+	}
+	cat, _ := json.Marshal(cats)
 
 	t := time.Now().UTC()
 
