@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"github.com/the42/ogdat/ogdatv21"
 	"github.com/the42/ogdat/ogdatv22"
 	"github.com/the42/ogdat/schedule"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -178,11 +180,14 @@ func processmetadataids(conn *watcherdb, processids []string) error {
 		logger.Printf("%4d / %4d : processing %v\n", idx+1, nums, id)
 
 		mdjson, err := portal.GetDatasetStreamforID(id, true)
+		minimaljsonbuffer := &bytes.Buffer{}
+		io.Copy(minimaljsonbuffer, mdjson)
+
 		if err != nil {
 			return fmt.Errorf("Cannot fetch JSON for ID %v: %s", id, err)
 		}
 
-		mmd, err := ogdat.MinimalMetaDataforJSONStream(mdjson)
+		mmd, err := ogdat.MinimalMetaDataforJSONStream(minimaljsonbuffer)
 		if err != nil {
 			return fmt.Errorf("Cannot access minimal metadata for ID %v: %s", id, err)
 		}
