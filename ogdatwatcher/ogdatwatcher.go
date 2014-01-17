@@ -5,19 +5,20 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"github.com/the42/ogdat"
-	"github.com/the42/ogdat/ckan"
-	"github.com/the42/ogdat/database"
-	"github.com/the42/ogdat/ogdatv21"
-	"github.com/the42/ogdat/ogdatv22"
-	"github.com/the42/ogdat/schedule"
-	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/the42/ogdat"
+	"github.com/the42/ogdat/ckan"
+	"github.com/the42/ogdat/database"
+	"github.com/the42/ogdat/ogdatv21"
+	"github.com/the42/ogdat/ogdatv22"
+	"github.com/the42/ogdat/schedule"
 )
 
 const AppID = "a6545f8f-e0c9-4917-83c7-3e47bd1e0247"
@@ -179,9 +180,10 @@ func processmetadataids(conn *watcherdb, processids []string) error {
 
 		logger.Printf("%4d / %4d : processing %v\n", idx+1, nums, id)
 
-		mdjson, err := portal.GetDatasetStreamforID(id, true)
-		minimaljsonbuffer := &bytes.Buffer{}
-		io.Copy(minimaljsonbuffer, mdjson)
+		mdjsonreader, err := portal.GetDatasetStreamforID(id, true)
+		buf, _ := ioutil.ReadAll(mdjsonreader)
+		minimaljsonbuffer := bytes.NewBuffer(buf)
+		mdjson := bytes.NewBuffer(buf)
 
 		if err != nil {
 			return fmt.Errorf("Cannot fetch JSON for ID %v: %s", id, err)
@@ -204,7 +206,7 @@ func processmetadataids(conn *watcherdb, processids []string) error {
 		if err != nil {
 			return fmt.Errorf("InsertOrUpdateMetadataInfo: database error at id %v: %s", id, err)
 		}
-		mdjson, err = portal.GetDatasetStreamforID(id, true)
+
 		switch version {
 		case "2.0", "2.1":
 			md, jsonparseerror = ogdatv21.MetadatafromJSONStream(mdjson)
