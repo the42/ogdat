@@ -92,12 +92,30 @@ func heartbeat(interval int) chan bool {
 }
 
 func main() {
+
 	dbcon, err := database.GetDatabaseConnection()
 	if err != nil {
 		logger.Panicln(err)
 	}
 	defer dbcon.Close()
 	analyser := NewAnalyser(dbcon, redis.NewPool(func() (redis.Conn, error) { return database.GetRedisConnection(getredisconnect()) }, 10))
+	
+	restful.DefaultResponseMimeType = restful.MIME_JSON
+	restful.DefaultContainer.EnableContentEncoding(true)
+	restful.Add(NewAnalyseOGDATRESTService(analyser))
+
+	config := swagger.Config{
+		WebServicesUrl:  discoveryhost(),
+		ApiPath:         "/swaggerdoc",
+		SwaggerPath:     "/doc/",
+		SwaggerFilePath: "swagger-ui/dist/",
+		WebServices:     restful.RegisteredWebServices()}
+	swagger.InstallSwaggerService(config)
+
+	logger.Printf("analyser (%s) listening on port %s\n", AppID, portbinding())
+	go func() {
+		logger.Fatal(http.ListenAndServe(":"+portbinding(), nil))
+	}()
 
 	var datachange, urlchange chan []byte
 	var heartbeatchannel chan bool
@@ -118,22 +136,6 @@ func main() {
 		urlchange = analyser.listenredischannel(watcherappid + ":UrlChange")
 	}
 
-	restful.DefaultResponseMimeType = restful.MIME_JSON
-	restful.DefaultContainer.EnableContentEncoding(true)
-	restful.Add(NewAnalyseOGDATRESTService(analyser))
-
-	config := swagger.Config{
-		WebServicesUrl:  discoveryhost(),
-		ApiPath:         "/swaggerdoc",
-		SwaggerPath:     "/doc/",
-		SwaggerFilePath: "swagger-ui/dist/",
-		WebServices:     restful.RegisteredWebServices()}
-	swagger.InstallSwaggerService(config)
-
-	logger.Printf("analyser (%s) listening on port %s\n", AppID, portbinding())
-	go func() {
-		logger.Fatal(http.ListenAndServe(":"+portbinding(), nil))
-	}()
 
 	for {
 		select {
