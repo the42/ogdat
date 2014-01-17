@@ -101,13 +101,7 @@ func (md *MetaData) MinimalMetadata() *ogdat.MinimalMetaData {
 		minimd.Maintainer_Link = &s
 	}
 
-	var cats []string
-	if md.Categorization != nil {
-		for _, cat := range md.Categorization.Kategorie {
-			cats = append(cats, cat.ID)
-		}
-		minimd.Categorization = cats
-	}
+	minimd.Categorization = md.Categorization
 	return minimd
 }
 

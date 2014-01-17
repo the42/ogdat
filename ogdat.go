@@ -395,7 +395,7 @@ type Extras struct {
 	Publisher           *string  `json:"publisher"`
 	Geographic_BBox     *string  `json:"geographic_bbox"`
 	Geographich_Toponym *string  `json:"geographic_toponym"`
-	Categorization      []string `json:"categorization"`
+	Categorization      *MetaDataKategorie `json:"categorization"`
 }
 
 type MinimalMetaData struct {
