@@ -204,7 +204,7 @@ func processmetadataids(conn *watcherdb, processids []string) error {
 		if err != nil {
 			return fmt.Errorf("InsertOrUpdateMetadataInfo: database error at id %v: %s", id, err)
 		}
-
+		mdjson, err = portal.GetDatasetStreamforID(id, true)
 		switch version {
 		case "2.0", "2.1":
 			md, jsonparseerror = ogdatv21.MetadatafromJSONStream(mdjson)
