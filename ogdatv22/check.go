@@ -10,16 +10,46 @@ import (
 	"unicode/utf8"
 )
 
+func strfloatequals(s1, s2 string, epsilon float64) (bool, error) {
+	f1, err := strconv.ParseFloat(s1, 64)
+	if err != nil {
+		return false, err
+	}
+	f2, err := strconv.ParseFloat(s2, 64)
+	if err != nil {
+		return false, err
+	}
+	compval := f1 - f2
+	if compval < 0.0 {
+		compval *= -1
+	}
+	if compval > epsilon {
+		return false, nil
+	}
+	return true, nil
+}
+
 // POLYGON ((-180.00 -90.00,180.00 -90.00,180.00 90.00, -180.00 90.00, -180.00 -90.00))
-var regexpbboxWKT = regexp.MustCompile(`^POLYGON\s{0,1}\(\([-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+,\s{0,1}[-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+,\s{0,1}[-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+,\s{0,1}[-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+,\s{0,1}[-+]?[0-9]*\.?[0-9]+ [-+]?[0-9]*\.?[0-9]+\s{0,1}\)\)$`)
+const wktregexppolygon = `^POLYGON\s{0,1}\(\(([-+]?\d*\.?\d+) ([-+]?\d*\.?\d+),\s{0,1}(?:[-+]?\d*\.?\d+ [-+]?\d*\.?\d+,\s{0,1}){3}([-+]?\d*\.?\d+) ([-+]?\d*\.?\d+)\s{0,1}\)\)$`
+
+var regexpbboxWKT = regexp.MustCompile(wktregexppolygon)
 
 func checkOGDBBox(str string) (bool, error) {
+	const epsilon = 0.00000001
 	if !utf8.ValidString(str) {
 		return false, &ogdat.CheckInfo{ogdat.Error, -1, "Zeichenfolge ist nicht durchgängig gültig als UTF8 kodiert"}
 	}
-	if idx := regexpbboxWKT.FindStringIndex(str); idx == nil {
-		return false, &ogdat.CheckInfo{ogdat.Error, -1, fmt.Sprintf("Keine gültige WKT-Angabe einer BoundingBox: '%s'", str)}
+	idxnum := regexpbboxWKT.FindAllStringSubmatchIndex(str, 4)
+	if idxnum == nil || len(idxnum[0]) < 10 {
+		return false, &ogdat.CheckInfo{ogdat.Error, -1, fmt.Sprintf("Keine gültige POLYGON WKT Boundingbox-Angabe: %s", str)}
+
 	}
+	match1, err1 := strfloatequals(str[idxnum[0][2]:idxnum[0][3]], str[idxnum[0][6]:idxnum[0][7]], epsilon)
+	match2, err2 := strfloatequals(str[idxnum[0][4]:idxnum[0][5]], str[idxnum[0][8]:idxnum[0][9]], epsilon)
+	if err1 != nil || !match1 || err2 != nil || !match2 {
+		return false, &ogdat.CheckInfo{ogdat.Error, -1, fmt.Sprintf("Beginn und Ende des Polygons ergeben kein geschlossenes Polygon: %s", str)}
+	}
+
 	return true, nil
 }
 
@@ -531,7 +561,7 @@ nextbeschreibung:
 					OGDID: elm.ID,
 					Text:  fmt.Sprintf(expectedlink, mdorigportal.Raw)})
 			} else {
-				_, checkresult := ogdat.CheckUrl(mdorigportal.Raw, followhttplinks)
+				_, checkresult := ogdat.CheckDataPortalUrl(mdorigportal.Raw, followhttplinks)
 				message = ogdat.AppendcheckerrorTocheckmessage(message, checkresult, elm.ID, "")
 			}
 		case "maintainer_email":
@@ -547,7 +577,7 @@ nextbeschreibung:
 			} else {
 				_, checkresult := ogdat.CheckUrl(maintainermail.Raw, followhttplinks)
 				message = ogdat.AppendcheckerrorTocheckmessage(message, checkresult, elm.ID, "")
-			}
+			}			
 		}
 	}
 	return

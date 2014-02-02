@@ -272,6 +272,18 @@ func CheckUrl(url string, followhttplink bool) (bool, []CheckInfo) {
 	return false, checkmessages
 }
 
+func CheckDataPortalUrl(url string, followhttplink bool) (bool, []CheckInfo) {
+	const checkDataPortalUrlstrpart = `://data.`
+
+	ok1, checkmessages := CheckUrl(url, followhttplink)
+	ok2 := strings.Contains(url, checkDataPortalUrlstrpart)
+	if !ok2 {
+		checkmessages = append(checkmessages, CheckInfo{Status: Warning, Position: -1, Context: fmt.Sprintf("Link zum ursprünglichen Datenportal folgt nicht der Konvention ress://data.[....]: %s (Auszug)", url[:min(20, len(url))])})
+	}
+
+	return ok1 == true && ok2 == true, checkmessages
+}
+
 type CheckMessage struct {
 	Type    int // 1 = Info, 2 = Warning, 4 = Error, ...
 	Text    string
