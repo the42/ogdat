@@ -389,12 +389,12 @@ func GetIDFromMetaDataStructField(val reflect.StructField) int {
 }
 
 type Extras struct {
-	Metadata_Identifier *string  `json:"metadata_identifier"`
-	Schema_Name         *string  `json:"schema_name"`
-	Maintainer_Link     *string  `json:"maintainer_link"`
-	Publisher           *string  `json:"publisher"`
-	Geographic_BBox     *string  `json:"geographic_bbox"`
-	Geographich_Toponym *string  `json:"geographic_toponym"`
+	Metadata_Identifier *string            `json:"metadata_identifier"`
+	Schema_Name         *string            `json:"schema_name"`
+	Maintainer_Link     *string            `json:"maintainer_link"`
+	Publisher           *string            `json:"publisher"`
+	Geographic_BBox     *string            `json:"geographic_bbox"`
+	Geographich_Toponym *string            `json:"geographic_toponym"`
 	Categorization      *MetaDataKategorie `json:"categorization"`
 }
 

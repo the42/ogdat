@@ -86,8 +86,8 @@ var checkminimalMetadataEncodingTest = []minimalMetadataEncodingTest{
 			Publisher:           pstr("Stadt Linz"),
 			Geographic_BBox:     pstr("POLYGON"),
 			Geographich_Toponym: pstr("Linz"),
-			Categorization:      &MetaDataKategorie {Kategorie: []Kategorie{WirtTourism}}}},
-		},
+			Categorization:      &MetaDataKategorie{Kategorie: []Kategorie{WirtTourism}}}},
+	},
 }
 
 func stringifyminimalmetadata(mmd *MinimalMetaData) (ms string) {
