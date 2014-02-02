@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-const Version = "OGD Austria Metadata 2.2" // Version 2.2: 15.10.2012
+const Version = "OGD Austria Metadata 2.2" // Version 2.2: 15.10.2013
 const specfile = "ogdat_spec-2.2.csv"
 
 type Extras struct {
