@@ -171,7 +171,17 @@ func strrange(minrange, maxrange, idx int, s string) string {
 	} else {
 		postpone = "..."
 	}
-	return prepend + s[start:end] + postpone
+	middle := s[start:end]
+	if !utf8.ValidString(middle) {
+		var s string
+		for len(middle) > 0 {
+			r, size := utf8.DecodeRuneInString(middle)
+			s += string(r)
+			middle = middle[size:]		
+		}
+		middle = s
+	}
+	return prepend + middle + postpone
 }
 
 var regexphtmlcodecheck = regexp.MustCompile(`</{0,1}\w+.*('|"|)>`)
