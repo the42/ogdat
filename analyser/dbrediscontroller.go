@@ -21,6 +21,9 @@ const (
 	verskey = "versions"
 	entkey  = "entities"
 	topokey = "toponyms"
+
+	an002 = "an002"
+	an003 = "an003"
 )
 
 func (a analyser) populatedatasets() error {
@@ -192,8 +195,6 @@ func (a analyser) populatean001() error {
 }
 
 func (a analyser) populatean002() error {
-	const an002 = "an002"
-
 	logger.Println("AN002: Welche Publisher haben Metadaten, die mehrere Ressourceeinträge haben und dabei auf gleiche Daten verweisen?")
 
 	logger.Println("AN002: SQL: Retrieving data")
@@ -220,6 +221,16 @@ func (a analyser) populatean002() error {
 		if err = rcon.Send("ZINCRBY", an002+":"+entkey+":"+set.Publisher, 1, set.CKANID); err != nil {
 			return err
 		}
+
+		// populate count of check results per entity
+		if err = rcon.Send("ZINCRBY", an002+":"+entkey, 1, set.Publisher); err != nil {
+			return err
+		}
+
+		// associate entity with ckanid
+		if err = rcon.Send("SADD", an002+":"+entkey+":"+set.Publisher, set.CKANID); err != nil {
+			return err
+		}
 	}
 	logger.Println("AN002: Committing data to Redis")
 	if _, err := rcon.Do("EXEC"); err != nil {
@@ -229,7 +240,6 @@ func (a analyser) populatean002() error {
 }
 
 func (a analyser) populatean003() error {
-	const an003 = "an003"
 
 	logger.Println("AN003: Which Links could not be checked and why? Also returns publisher information and check-time")
 	logger.Println("AN003: SQL: Retrieving data")
@@ -249,12 +259,28 @@ func (a analyser) populatean003() error {
 	}
 
 	for _, set := range sets {
+
 		urlcheckerrors, _ := json.Marshal(set.Reason_Text)
 		fieldkey := fmt.Sprintf("FieldID:%d", set.FieldID)
 		if err = rcon.Send("HSET", an003+":"+set.CKANID, fieldkey, urlcheckerrors); err != nil {
 			return err
 		}
+		checktime, _ := set.Hittime.MarshalText()
+		if err = rcon.Send("HSET", an003+":"+set.CKANID, "CheckTimeStamp", string(checktime)); err != nil {
+			return err
+		}
+
 		if err = rcon.Send("ZINCRBY", an003+":"+entkey+":"+set.Publisher, len(set.Reason_Text), set.CKANID); err != nil {
+			return err
+		}
+
+		// populate count of check results per entity
+		if err = rcon.Send("ZINCRBY", an003+":"+entkey, 1, set.Publisher); err != nil {
+			return err
+		}
+
+		// associate entity with ckanid
+		if err = rcon.Send("SADD", an003+":"+entkey+":"+set.Publisher, set.CKANID); err != nil {
 			return err
 		}
 	}

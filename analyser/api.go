@@ -261,6 +261,18 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
 		Writes(struct{ CheckRecord []CheckRecord }{}))
 
+	ws.Route(ws.GET("/analyse/" + an002 + "/entities").To(an.GetSortedSet(an002 + ":entities")).
+		Doc("Welche Verwaltungseinheiten haben innerhalb eines Datensatzes identische Ressourcen?").
+		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der identischen Ressourcen innerhalb eines Datensatzes retourniert werden soll. Leer für alle")).
+		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
+		Writes(struct{ Entities []IDNums }{}))
+
+	ws.Route(ws.GET("/analyse/" + an003 + "/entities").To(an.GetSortedSet(an003 + ":entities")).
+		Doc("Welche Verwaltungseinheiten haben Datensätze mit URLs, die nicht aufgelöst werden können?").
+		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der nicht auflösbaren URLs retourniert werden soll. Leer für alle")).
+		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
+		Writes(struct{ Entities []IDNums }{}))
+
 	// 	ws.Route(ws.POST("/").To(saveApplication).
 	// 		// for documentation
 	// 		Doc("Create or update the Application node").
