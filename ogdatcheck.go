@@ -177,7 +177,7 @@ func strrange(minrange, maxrange, idx int, s string) string {
 		for len(middle) > 0 {
 			r, size := utf8.DecodeRuneInString(middle)
 			s += string(r)
-			middle = middle[size:]		
+			middle = middle[size:]
 		}
 		middle = s
 	}

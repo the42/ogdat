@@ -577,7 +577,7 @@ nextbeschreibung:
 			} else {
 				_, checkresult := ogdat.CheckUrl(maintainermail.Raw, followhttplinks)
 				message = ogdat.AppendcheckerrorTocheckmessage(message, checkresult, elm.ID, "")
-			}			
+			}
 		}
 	}
 	return

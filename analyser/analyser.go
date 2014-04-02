@@ -99,7 +99,7 @@ func main() {
 	}
 	defer dbcon.Close()
 	analyser := NewAnalyser(dbcon, redis.NewPool(func() (redis.Conn, error) { return database.GetRedisConnection(getredisconnect()) }, 10))
-	
+
 	restful.DefaultResponseMimeType = restful.MIME_JSON
 	restful.DefaultContainer.EnableContentEncoding(true)
 	restful.Add(NewAnalyseOGDATRESTService(analyser))
@@ -135,7 +135,6 @@ func main() {
 		datachange = analyser.listenredischannel(watcherappid + ":DataChange")
 		urlchange = analyser.listenredischannel(watcherappid + ":UrlChange")
 	}
-
 
 	for {
 		select {
