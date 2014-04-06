@@ -24,17 +24,6 @@ type Dataset struct {
 	GeoToponym  string
 }
 
-type internalDataset struct {
-	ID, CKANID  string
-	Publisher   string
-	Contact     string
-	Description string
-	Version     string
-	Category    string
-	GeoBBox     string
-	GeoToponym  string
-}
-
 type CheckStatus struct {
 	Reason_Text string
 	FieldID     int
@@ -42,27 +31,15 @@ type CheckStatus struct {
 	Fieldstatus int
 }
 
-type dbCheckRecord struct {
+type CheckRecord struct {
 	Publisher   string `redis:"-" json:"-"`
 	CKANID      string
 	Hittime     time.Time
 	CheckStatus []CheckStatus
 }
 
-type redisCheckRecord struct {
-	CKANID      string
-	Hittime     string
-	CheckStatus string
-}
-
-type CheckRecord struct {
-	CKANID      string
-	Hittime     time.Time
-	CheckStatus []CheckStatus
-}
-
 type URLCheckRecord struct {
-	Publisher   string
+	Publisher   string `redis:"-" json:"-"`
 	CKANID      string
 	Reason_Text []string
 	FieldID     int

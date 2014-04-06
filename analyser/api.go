@@ -73,6 +73,16 @@ func (a *analyser) GetTaxonomyDatasets(request *restful.Request, response *restf
 	rcon := a.pool.Get()
 	defer rcon.Close()
 
+	type internalDataset struct {
+		ID, CKANID  string
+		Publisher   string
+		Contact     string
+		Description string
+		Version     string
+		Category    string
+		GeoBBox     string
+		GeoToponym  string
+	}
 	var internalsets []internalDataset
 	reply, err = redis.Values(rcon.Do("SORT", datasetskey+":"+taxonomy+":"+subset,
 		"BY", "nosort",
@@ -96,7 +106,14 @@ func (a *analyser) GetTaxonomyDatasets(request *restful.Request, response *restf
 
 	var responseset []Dataset
 	for _, is := range internalsets {
-		ds := Dataset{ID: is.ID, CKANID: is.CKANID, Publisher: is.Publisher, Contact: is.Contact, Description: is.Description, Version: is.Version, GeoBBox: is.GeoBBox, GeoToponym: is.GeoToponym}
+		ds := Dataset{ID: is.ID,
+			CKANID:      is.CKANID,
+			Publisher:   is.Publisher,
+			Contact:     is.Contact,
+			Description: is.Description,
+			Version:     is.Version,
+			GeoBBox:     is.GeoBBox,
+			GeoToponym:  is.GeoToponym}
 
 		var strcats []string
 		if len(is.Category) > 0 {
@@ -108,7 +125,42 @@ func (a *analyser) GetTaxonomyDatasets(request *restful.Request, response *restf
 		ds.Category = strcats
 		responseset = append(responseset, ds)
 	}
+	response.WriteEntity(responseset)
+}
 
+func (a *analyser) GetAN003Data(request *restful.Request, response *restful.Response) {
+
+	id := request.PathParameter("id")
+
+	var reply []interface{}
+	var err error
+
+	rcon := a.pool.Get()
+	defer rcon.Close()
+
+	reply, err = redis.Values(rcon.Do("LRANGE", an003+":"+id, 0, -1))
+
+	if err != nil {
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var responseset []URLCheckRecord
+	var s string
+
+	for len(reply) > 0 {
+		if reply, err = redis.Scan(reply, &s); err != nil {
+			response.WriteError(http.StatusInternalServerError, err)
+			return
+		}
+		var item URLCheckRecord
+		if err := json.Unmarshal([]byte(s), &item); err != nil {
+			response.WriteError(http.StatusInternalServerError, err)
+			return
+		}
+
+		responseset = append(responseset, item)
+	}
 	response.WriteEntity(responseset)
 }
 
@@ -122,7 +174,16 @@ func (a *analyser) GetDataset(request *restful.Request, response *restful.Respon
 	rcon := a.pool.Get()
 	defer rcon.Close()
 
-	reply, err = redis.Values(rcon.Do("HGETALL", datasetkey+":"+id))
+	reply, err = redis.Values(rcon.Do("HMGET", datasetkey+":"+id,
+		"ID",
+		"CKANID",
+		"Publisher",
+		"Contact",
+		"Description",
+		"Version",
+		"Category",
+		"GeoBBox",
+		"GeoToponym"))
 	if err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
 		return
@@ -132,17 +193,43 @@ func (a *analyser) GetDataset(request *restful.Request, response *restful.Respon
 		return
 	}
 
-	var is internalDataset
-	if err = redis.ScanStruct(reply, &is); err != nil {
+	var (
+		ID, CKANID  string
+		Publisher   string
+		Contact     string
+		Description string
+		Version     string
+		Category    string
+		GeoBBox     string
+		GeoToponym  string
+	)
+
+	if _, err = redis.Scan(reply,
+		&ID,
+		&CKANID,
+		&Publisher,
+		&Contact,
+		&Description,
+		&Version,
+		&Category,
+		&GeoBBox,
+		&GeoToponym); err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ds := Dataset{ID: is.ID, CKANID: is.CKANID, Publisher: is.Publisher, Contact: is.Contact, Description: is.Description, Version: is.Version, GeoBBox: is.GeoBBox, GeoToponym: is.GeoToponym}
+	ds := Dataset{ID: ID,
+		CKANID:      CKANID,
+		Publisher:   Publisher,
+		Contact:     Contact,
+		Description: Description,
+		Version:     Version,
+		GeoBBox:     GeoBBox,
+		GeoToponym:  GeoToponym}
 
-	if len(is.Category) > 0 {
+	if len(Category) > 0 {
 		var strcats []string
-		if err := json.Unmarshal([]byte(is.Category), &strcats); err != nil {
+		if err := json.Unmarshal([]byte(Category), &strcats); err != nil {
 			response.WriteError(http.StatusInternalServerError, err)
 			return
 		}
@@ -162,7 +249,7 @@ func (a *analyser) GetCheckResult(request *restful.Request, response *restful.Re
 	rcon := a.pool.Get()
 	defer rcon.Close()
 
-	reply, err = redis.Values(rcon.Do("HGETALL", checkkey+":"+id))
+	reply, err = redis.Values(rcon.Do("HMGET", checkkey+":"+id, "CheckStatus", "CKANID", "Hittime"))
 	if err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
 		return
@@ -172,23 +259,29 @@ func (a *analyser) GetCheckResult(request *restful.Request, response *restful.Re
 		return
 	}
 
-	var is redisCheckRecord
-	if err = redis.ScanStruct(reply, &is); err != nil {
+	var (
+		CKANID  string
+		Hittime string
+		Status  string
+	)
+
+	if _, err = redis.Scan(reply, &Status, &CKANID, &Hittime); err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
 
-	checkrecord := CheckRecord{CKANID: is.CKANID}
-	if len(is.CheckStatus) > 0 {
-		var checkStatus []CheckStatus
-		if err := json.Unmarshal([]byte(is.CheckStatus), &checkStatus); err != nil {
+	var checkStatus []CheckStatus
+	checkrecord := CheckRecord{CKANID: CKANID}
+	if len(Status) > 0 {
+
+		if err := json.Unmarshal([]byte(Status), &checkStatus); err != nil {
 			response.WriteError(http.StatusInternalServerError, err)
 			return
 		}
 		checkrecord.CheckStatus = checkStatus
 	}
-	if len(is.Hittime) > 0 {
-		hittime, err := time.Parse(RedigoTimestamp, is.Hittime)
+	if len(Hittime) > 0 {
+		hittime, err := time.Parse(RedigoTimestamp, Hittime)
 		if err != nil {
 			response.WriteError(http.StatusInternalServerError, err)
 			return
@@ -272,6 +365,11 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der nicht auflösbaren URLs retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
+
+	ws.Route(ws.GET("/analyse/" + an003 + "/{id}").To(an.GetAN003Data).
+		Doc("Retourniert detailierte Informationen zum URL-Check für den Datensatz mit id").
+		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
+		Writes(struct{ CheckRecord []URLCheckRecord }{}))
 
 	// 	ws.Route(ws.POST("/").To(saveApplication).
 	// 		// for documentation

@@ -2,8 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"github.com/the42/ogdat/database"
 	"strings"
 )
@@ -90,13 +88,17 @@ func (a analyser) populatedatasets() error {
 		}
 
 		// populate the dataset
-		// use the flat, internal representation as .AddFlat will use Print(#v)
-		// to fomat the slice of Category, which can not be meaningful parsed back
-		is := internalDataset{ID: set.ID, CKANID: set.CKANID, Publisher: set.Publisher, Contact: set.Contact, Description: set.Description, Version: set.Version, GeoBBox: set.GeoBBox, GeoToponym: set.GeoToponym}
-
 		rv, err := json.Marshal(set.Category)
-		is.Category = string(rv)
-		if err = rcon.Send("HMSET", redis.Args{}.Add("dataset:"+set.CKANID).AddFlat(&is)...); err != nil {
+		if err = rcon.Send("HMSET", "dataset:"+set.CKANID,
+			"ID", set.ID,
+			"CKANID", set.CKANID,
+			"Publisher", set.Publisher,
+			"Contact", set.Contact,
+			"Description", set.Description,
+			"Version", set.Version,
+			"Category", string(rv),
+			"GeoBBox", set.GeoBBox,
+			"GeoToponym", set.GeoToponym); err != nil {
 			return err
 		}
 	}
@@ -258,31 +260,26 @@ func (a analyser) populatean003() error {
 		return nil
 	}
 
-	for _, set := range sets {
-
-		urlcheckerrors, _ := json.Marshal(set.Reason_Text)
-		fieldkey := fmt.Sprintf("FieldID:%d", set.FieldID)
-		if err = rcon.Send("HSET", an003+":"+set.CKANID, fieldkey, urlcheckerrors); err != nil {
-			return err
-		}
-		checktime, _ := set.Hittime.MarshalText()
-		if err = rcon.Send("HSET", an003+":"+set.CKANID, "CheckTimeStamp", string(checktime)); err != nil {
+	for len(sets) > 0 {
+		serial, _ := json.Marshal(sets[0])
+		if err = rcon.Send("LPUSH", an003+":"+sets[0].CKANID, string(serial)); err != nil {
 			return err
 		}
 
-		if err = rcon.Send("ZINCRBY", an003+":"+entkey+":"+set.Publisher, len(set.Reason_Text), set.CKANID); err != nil {
+		if err = rcon.Send("ZINCRBY", an003+":"+entkey+":"+sets[0].Publisher, len(sets[0].Reason_Text), sets[0].CKANID); err != nil {
 			return err
 		}
 
 		// populate count of check results per entity
-		if err = rcon.Send("ZINCRBY", an003+":"+entkey, 1, set.Publisher); err != nil {
+		if err = rcon.Send("ZINCRBY", an003+":"+entkey, 1, sets[0].Publisher); err != nil {
 			return err
 		}
 
 		// associate entity with ckanid
-		if err = rcon.Send("SADD", an003+":"+entkey+":"+set.Publisher, set.CKANID); err != nil {
+		if err = rcon.Send("SADD", an003+":"+entkey+":"+sets[0].Publisher, sets[0].CKANID); err != nil {
 			return err
 		}
+		sets = sets[1:]
 	}
 
 	logger.Println("AN003: Committing data to Redis")
