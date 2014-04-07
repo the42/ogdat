@@ -305,69 +305,81 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 
 	ws.Route(ws.GET("/taxonomy/entities").To(an.GetSortedSet("taxonomy:entities")).
 		Doc("Retouriert Open Data anbietende Verwaltungseinheiten und deren Anzahl an Datensätze").
+		Operation("getentitiescount").
 		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
 	ws.Route(ws.GET("/taxonomy/versions").To(an.GetSortedSet("taxonomy:versions")).
 		Doc("Retourniert welche Version der Metadatenbeschreibung für OGD verwendet wird").
+		Operation("getversioncount").
 		Param(ws.QueryParameter("id", "Version der Metadatenbeschreibung, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Version der Metadatenbeschreibung nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
 	ws.Route(ws.GET("/taxonomy/toponyms").To(an.GetSortedSet("taxonomy:toponyms")).
 		Doc("Retourniert welche geographischen Abdeckungen in den OGD-Datensätzen spezifiziert sind").
+		Operation("gettoponymscount").
 		Param(ws.QueryParameter("id", "Geographische Abdeckung, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der geographischen Abdeckung nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
 	ws.Route(ws.GET("/taxonomy/categories").To(an.GetSortedSet("taxonomy:categories")).
 		Doc("Retourniert welche Kategorien in den OGD-Datensätzen spezifiziert sind").
+		Operation("getcategoriescount").
 		Param(ws.QueryParameter("id", "Kategorie, für die Anzahl der Datensätze retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Kategorien nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
 	ws.Route(ws.GET("/datasets/taxonomy/{which}/{subset}").To(an.GetTaxonomyDatasets).
 		Doc("Retourniert innerhalb der Taxonomie which die Datensätze nach subset").
+		Operation("getdatasetsfortaxonomy").
 		Param(ws.PathParameter("which", "Taxonomie nach der die Datensätze retourniert werden sollen")).
 		Param(ws.PathParameter("subset", "Subset der Datensätze innerhalb der Taxonomie")).
 		Writes(struct{ Datasets []Dataset }{}))
 
 	ws.Route(ws.GET("/datasets/taxonomy/{which}").To(an.GetTaxonomyDatasets).
 		Doc("Retourniert innerhalb der Taxonomie which jene Datensätze, die als Zeichenlänge 0 haben").
+		Operation("getemptytaxonomydatasets").
 		Param(ws.PathParameter("which", "Taxonomie nach der die Datensätze retourniert werden sollen")).
 		Writes(struct{ Datasets []Dataset }{}))
 
 	ws.Route(ws.GET("/dataset/{id}").To(an.GetDataset).
 		Doc("Retourniert Metadateninformationen zum Datensatz mit id").
+		Operation("getdatasetdetails").
 		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
 		Writes(struct{ Datasets []Dataset }{}))
 
 	ws.Route(ws.GET("/check/taxonomy/entities").To(an.GetSortedSet("check:entities")).
 		Doc("Retourniert für die Verwaltungseinheiten die Anzahl der verfügbaren Checkergebnisse").
+		Operation("getcheckentities").
 		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der Checkergebnisse retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
 	ws.Route(ws.GET("/check/{id}").To(an.GetCheckResult).
 		Doc("Retourniert Informationen des Checkergebnisses zum Datensatz mit id").
+		Operation("getcheckdetails").
 		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
 		Writes(struct{ CheckRecord []CheckRecord }{}))
 
 	ws.Route(ws.GET("/analyse/" + an002 + "/entities").To(an.GetSortedSet(an002 + ":entities")).
 		Doc("Welche Verwaltungseinheiten haben innerhalb eines Datensatzes identische Ressourcen?").
+		Operation("getanalyse002entities").
 		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der identischen Ressourcen innerhalb eines Datensatzes retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
 	ws.Route(ws.GET("/analyse/" + an003 + "/entities").To(an.GetSortedSet(an003 + ":entities")).
 		Doc("Welche Verwaltungseinheiten haben Datensätze mit URLs, die nicht aufgelöst werden können?").
+		Operation("getanalyse003entities").
 		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der nicht auflösbaren URLs retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
 		Writes(struct{ Entities []IDNums }{}))
 
 	ws.Route(ws.GET("/analyse/" + an003 + "/{id}").To(an.GetAN003Data).
 		Doc("Retourniert detailierte Informationen zum URL-Check für den Datensatz mit id").
+		Operation("getanalyse003details").
 		Param(ws.PathParameter("id", "Eindeutige Kennung des Datensatzes")).
 		Writes(struct{ CheckRecord []URLCheckRecord }{}))
 
