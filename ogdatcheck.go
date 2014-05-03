@@ -243,9 +243,9 @@ func FetchHead(url string) (bool, CheckInfo) {
 	}
 
 	if err != nil {
-		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("'%s': URL kann nicht aufgelöst werden: '%s'", url, err)}
+		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("%s URL kann nicht aufgelöst werden: %s", url, err)}
 	} else if sc := resp.StatusCode; sc != 200 {
-		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("'%s': Request liefert nicht-OK Statuscode '%d'", url, sc)}
+		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("%s liefert nicht-OK Status-Code '%d'", url, sc)}
 	} else {
 		info = CheckInfo{Status: Info | FetchableUrl | FetchSuccess, Position: -1, Context: url}
 	}
