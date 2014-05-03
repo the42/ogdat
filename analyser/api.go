@@ -164,6 +164,58 @@ func (a *analyser) GetAN003Data(request *restful.Request, response *restful.Resp
 	response.WriteEntity(responseset)
 }
 
+func (a *analyser) GetAN003TaxonomyData(taxonomy string) func(request *restful.Request, response *restful.Response) {
+
+	return func(request *restful.Request, response *restful.Response) {
+
+		subset := request.PathParameter("subset")
+		var keyreply, datareply []interface{}
+		var err error
+
+		rcon := a.pool.Get()
+		defer rcon.Close()
+
+		keyreply, err = redis.Values(rcon.Do("ZRANGE", an003+":"+taxonomy+":"+subset, 0, -1))
+
+		if err != nil {
+			response.WriteError(http.StatusInternalServerError, err)
+			return
+		}
+
+		var key string
+		var responseset []URLCheckRecord
+
+		// TODO: Nested redis calls. Better to use MULTI here?
+		for len(keyreply) > 0 {
+			if keyreply, err = redis.Scan(keyreply, &key); err != nil {
+				response.WriteError(http.StatusInternalServerError, err)
+				return
+			}
+			datareply, err = redis.Values(rcon.Do("LRANGE", an003+":"+key, 0, -1))
+			if err != nil {
+				response.WriteError(http.StatusInternalServerError, err)
+				return
+			}
+
+			var data string
+			for len(datareply) > 0 {
+				if datareply, err = redis.Scan(datareply, &data); err != nil {
+					response.WriteError(http.StatusInternalServerError, err)
+					return
+				}
+
+				var item URLCheckRecord
+				if err = json.Unmarshal([]byte(data), &item); err != nil {
+					response.WriteError(http.StatusInternalServerError, err)
+					return
+				}
+				responseset = append(responseset, item)
+			}
+		}
+		response.WriteEntity(responseset)
+	}
+}
+
 func (a *analyser) GetDataset(request *restful.Request, response *restful.Response) {
 
 	id := request.PathParameter("id")
@@ -375,6 +427,12 @@ func NewAnalyseOGDATRESTService(an *analyser) *restful.WebService {
 		Operation("getanalyse003entities").
 		Param(ws.QueryParameter("id", "Verwaltungseinheit, für die Anzahl der nicht auflösbaren URLs retourniert werden soll. Leer für alle")).
 		Param(ws.QueryParameter("sortorder", "Sortierung der Verwaltungseinheiten nach Anzahl Datensätze. 'asc' für aufsteigend, 'desc' für absteigend (standard)")).
+		Writes(struct{ Entities []IDNums }{}))
+
+	ws.Route(ws.GET("/analyse/" + an003 + "/entities/{subset}").To(an.GetAN003TaxonomyData("entities")).
+		Doc("Retourniere die ermittleten Fehler für jene Datensätze von Verwaltungseinheit {subset} wo Links nicht aufgelöst werden konnten").
+		Operation("getanalyse003entitiesdata").
+		Param(ws.PathParameter("subset", "Verwaltungseinheit, für welche die Daten retourniert werden sollen")).
 		Writes(struct{ Entities []IDNums }{}))
 
 	ws.Route(ws.GET("/analyse/" + an003 + "/{id}").To(an.GetAN003Data).
