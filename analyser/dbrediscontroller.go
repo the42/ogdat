@@ -261,7 +261,10 @@ func (a analyser) populatean003() error {
 	}
 
 	for len(sets) > 0 {
-		serial, _ := json.Marshal(sets[0])
+		serial, err := json.Marshal(sets[0])
+		if err != nil {
+			return err
+		}
 		if err = rcon.Send("LPUSH", an003+":"+sets[0].CKANID, string(serial)); err != nil {
 			return err
 		}
