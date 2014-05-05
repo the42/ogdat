@@ -216,6 +216,8 @@ ORDER BY publisher`
 }
 
 // AN003: Welche Links konnten nicht überprüft werden und warum? Mit Info zu Publisher und Check-Zeitpunkt
+// TODO: Hier wäre es u.U. gut auch die Metadatenversion zu laden, um einen roundtrip zur Datenbank zu
+// vermeiden nur um festzustellen, welche Metadatenversion der Datensatz hat (um den Fehler zu interpretieren)
 func (conn *analyserdb) GetAN003Data() ([]URLCheckRecord, error) {
 	const sqlquery = `
 SELECT publisher, ckanid, outers.field_id, outers.reason_text, outers.hittime
