@@ -2,16 +2,17 @@ package main
 
 import (
 	"database/sql"
-	restful "github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/swagger"
-	"github.com/garyburd/redigo/redis"
-	"github.com/the42/ogdat/database"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	restful "github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/swagger"
+	"github.com/garyburd/redigo/redis"
+	"github.com/the42/ogdat/database"
 )
 
 const AppID = "5bcbfc24-8e7e-4105-99c4-dd47e7e5094a"
