@@ -22,10 +22,13 @@ const (
 )
 
 const (
-	StructuralError  = 0x8000
+	FetchSuccess = 0x1000
+	FetchableUrl = 0x2000
+
 	NoDataatUrlError = 0x4000
-	FetchableUrl     = 0x2000
-	FetchSuccess     = 0x1000
+	StructuralError  = 0x8000
+
+	EmptyData = 0x16000
 )
 
 var isolangfilemap map[string]*ISO6392Lang = nil

@@ -2,12 +2,13 @@ package ogdatv22
 
 import (
 	"fmt"
-	"github.com/the42/ogdat"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/the42/ogdat"
 )
 
 func strfloatequals(s1, s2 string, epsilon float64) (bool, error) {
@@ -59,6 +60,7 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 	const wrongtimevalueCT1 = "Feldwert vom Typ ÖNORM ISO 8601 TM_Primitive 'YYYY-MM-DDThh:mm:ss' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
 	const wrongtimevalueCT2 = "Feldwert vom Typ ÖNORM ISO 8601 'YYYY-MM-DD' erwartet, Wert entspricht aber nicht diesem Typ: '%s'"
 	const expectedlink = "Gültigen Verweis (Link) erwartet, der Wert '%s' stellt keinen gültigen Link dar"
+	const emptystring = "Zeichenkette mit Länge 0 an dieser Stelle nicht sinnvoll"
 
 	if md == nil {
 		return nil, fmt.Errorf("Verweis auf Metadaten ist nil")
@@ -131,6 +133,13 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				if resname == nil {
 					continue
 				}
+				if len(*resname) == 0 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  ogdat.Info | ogdat.EmptyData,
+						OGDID: desc.ID,
+						Text:  resourceno + emptystring})
+					continue
+				}
 				if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*resname); !ok {
 					if cerr, ok := err.(*ogdat.CheckInfo); ok {
 						message = append(message, ogdat.CheckMessage{
@@ -142,6 +151,13 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 			case "resource_created":
 				created := element.Created
 				if created == nil {
+					continue
+				}
+				if len(created.Raw) == 0 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  ogdat.Info | ogdat.EmptyData,
+						OGDID: desc.ID,
+						Text:  resourceno + emptystring})
 					continue
 				}
 				if created.Format != ogdat.CustomTimeSpecifier2 {
@@ -156,6 +172,13 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				if modified == nil {
 					continue
 				}
+				if len(modified.Raw) == 0 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  ogdat.Info | ogdat.EmptyData,
+						OGDID: desc.ID,
+						Text:  resourceno + emptystring})
+					continue
+				}
 				if modified.Format != ogdat.CustomTimeSpecifier2 {
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
@@ -165,6 +188,13 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 			case "resource_size":
 				size := element.Size
 				if size == nil {
+					continue
+				}
+				if len(*size) == 0 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  ogdat.Info | ogdat.EmptyData,
+						OGDID: desc.ID,
+						Text:  resourceno + emptystring})
 					continue
 				}
 				if _, err := strconv.Atoi(*size); err != nil {
@@ -178,6 +208,13 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				if lang == nil {
 					continue
 				}
+				if len(*lang) == 0 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  ogdat.Info | ogdat.EmptyData,
+						OGDID: desc.ID,
+						Text:  resourceno + emptystring})
+					continue
+				}
 				if !ogdat.CheckISOLanguage(*lang) {
 					message = append(message, ogdat.CheckMessage{
 						Type:  ogdat.Error,
@@ -189,11 +226,17 @@ func (md *MetaData) Check(followhttplinks bool) (message []ogdat.CheckMessage, e
 				if resencoding == nil {
 					continue
 				}
+				if len(*resencoding) == 0 {
+					message = append(message, ogdat.CheckMessage{
+						Type:  ogdat.Info | ogdat.EmptyData,
+						OGDID: desc.ID,
+						Text:  resourceno + emptystring})
+					continue
+				}
 				// the specification mentions only these encodings as valid
 				if ogdat.CheckEncodingString(*resencoding, []string{"utf8", "utf16", "utf32"}) {
 					continue
 				}
-
 				// ... but this is unfortunate, as certainly more encodings may be valid for OGD AT
 				if ogdat.CheckIANAEncoding(*resencoding) {
 					message = append(message, ogdat.CheckMessage{
@@ -352,6 +395,13 @@ nextbeschreibung:
 			if schemaname == nil {
 				continue
 			}
+			if len(*schemaname) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
+				continue
+			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*schemaname); !ok {
 				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
@@ -375,6 +425,13 @@ nextbeschreibung:
 			if lang == nil {
 				continue
 			}
+			if len(*lang) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
+				continue
+			}
 			const ogdschemalanguage = "ger"
 			if ogdschemalanguage != strings.ToLower(*lang) {
 				message = append(message, ogdat.CheckMessage{
@@ -385,6 +442,13 @@ nextbeschreibung:
 		case "schema_characterset":
 			charset := md.Extras.Schema_Characterset
 			if charset == nil {
+				continue
+			}
+			if len(*charset) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
 				continue
 			}
 			const ogdschemacharacterset = "utf8"
@@ -456,6 +520,13 @@ nextbeschreibung:
 			if publisher == nil {
 				continue
 			}
+			if len(*publisher) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
+				continue
+			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*publisher); !ok {
 				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
@@ -467,6 +538,13 @@ nextbeschreibung:
 		case "geographic_toponym":
 			toponym := md.Extras.Geographich_Toponym
 			if toponym == nil {
+				continue
+			}
+			if len(*toponym) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*toponym); !ok {
@@ -482,6 +560,13 @@ nextbeschreibung:
 			if bbox == nil {
 				continue
 			}
+			if len(*bbox) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
+				continue
+			}
 			if ok, err := checkOGDBBox(*bbox); !ok {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Error,
@@ -491,6 +576,13 @@ nextbeschreibung:
 		case "end_datetime":
 			endtime := md.Extras.End_DateTime
 			if endtime == nil {
+				continue
+			}
+			if len(endtime.Raw) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
 				continue
 			}
 			if endtime.Format != ogdat.CustomTimeSpecifier1 {
@@ -504,6 +596,13 @@ nextbeschreibung:
 			if frequency == nil {
 				continue
 			}
+			if len(frequency.Raw) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
+				continue
+			}
 			if frequency.NumID == -1 {
 				message = append(message, ogdat.CheckMessage{
 					Type:  ogdat.Warning,
@@ -513,6 +612,13 @@ nextbeschreibung:
 		case "lineage_quality":
 			quality := md.Extras.Lineage_Quality
 			if quality == nil {
+				continue
+			}
+			if len(*quality) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*quality); !ok {
@@ -528,6 +634,13 @@ nextbeschreibung:
 			if en_desc == nil {
 				continue
 			}
+			if len(*en_desc) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
+				continue
+			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*en_desc); !ok {
 				if cerr, ok := err.(*ogdat.CheckInfo); ok {
 					message = append(message, ogdat.CheckMessage{
@@ -539,6 +652,13 @@ nextbeschreibung:
 		case "license_citation":
 			licensecit := md.Extras.License_Citation
 			if licensecit == nil {
+				continue
+			}
+			if len(*licensecit) == 0 {
+				message = append(message, ogdat.CheckMessage{
+					Type:  ogdat.Info | ogdat.EmptyData,
+					OGDID: elm.ID,
+					Text:  emptystring})
 				continue
 			}
 			if ok, err := ogdat.CheckOGDTextStringForSaneCharacters(*licensecit); !ok {
