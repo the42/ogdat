@@ -111,8 +111,7 @@ WHERE NOT EXISTS (
   SELECT 1
   FROM status AS s
   WHERE s.datasetid = outers.datasetid
-  AND s.status = 'deleted'
-  AND s.hittime >= outers.hittime)
+  AND s.status = 'deleted')
 ORDER BY hittime DESC`
 
 	rows, err := conn.Query(sqlquery)
