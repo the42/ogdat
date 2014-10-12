@@ -110,6 +110,25 @@ func DBStringLen(in string, length int) string {
 	return string(rs[:min(length, len(rs))])
 }
 
+func (conn *watcherdb) MarkDatasetDeleted(ckanid string) (database.DBID, error) {
+	const stmt = "SELECT * FROM markdatasetdeleted($1, $2)"
+
+	dbs, err := conn.Prepare(stmt)
+	if err != nil {
+		return -1, err
+	}
+
+	t := time.Now().UTC()
+
+	var sysid database.DBID
+	err = dbs.QueryRow(ckanid, t).Scan(&sysid)
+
+	if err != nil {
+		return -1, err
+	}
+	return sysid, nil
+}
+
 func (conn *watcherdb) InsertOrUpdateMetadataInfo(ckanid string, md *ogdat.MinimalMetaData) (database.DBID, bool, error) {
 	// insertorupdatemetadatainfo(id character varying, pub character varying, cont character varying, descr text, vers character varying, category json, stime timestamp with time zone)
 	const stmt = "SELECT * FROM insertorupdatemetadatainfo($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"

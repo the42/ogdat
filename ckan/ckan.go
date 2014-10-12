@@ -13,8 +13,18 @@ import (
 	"time"
 )
 
+const StatusNotFound = http.StatusNotFound
+
 type Portal struct {
 	*url.URL
+}
+
+type PortalError struct {
+	StatusCode int
+}
+
+func (err PortalError) Error() string {
+	return fmt.Sprintf("%s", err.StatusCode)
 }
 
 func (p *Portal) GetAllMetaDataIDs() ([]string, error) {
@@ -171,13 +181,23 @@ func getjson(url string, indent bool) (io.Reader, error) {
 	var err error
 
 	retry := 0
+
+endfor:
 	for ; retry < exhausted; retry++ {
 		resp, err = http.Get(url)
-		if err == nil {
-			break
+
+		switch {
+		// if getting the data succeeded, there is no need to repeatedly try to re-fetch the same document
+		case nil == err:
+			break endfor
+		// When the resource was not found, return; there is nothing to do
+		case resp != nil && resp.StatusCode == http.StatusNotFound:
+			return nil, PortalError{StatusCode: StatusNotFound}
 		}
 	}
-	if retry == exhausted {
+
+	// If retireving the JSON document after exhausted retries failed, return the error to the caller
+	if retry >= exhausted {
 		return nil, err
 	}
 	defer resp.Body.Close()

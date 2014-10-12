@@ -172,6 +172,7 @@ func processmetadataids(conn *watcherdb, processids []string) error {
 	var jsonparseerror error
 	var messages []ogdat.CheckMessage
 
+nextid:
 	for idx, id := range processids {
 
 		md = nil
@@ -181,6 +182,18 @@ func processmetadataids(conn *watcherdb, processids []string) error {
 		logger.Printf("%4d / %4d : processing %v\n", idx+1, nums, id)
 
 		mdjsonreader, err := portal.GetDatasetStreamforID(id, true)
+		// if the dataset could not be found, mark it as deleted
+		switch portalerror := err.(type) {
+		case ckan.PortalError:
+			if portalerror.StatusCode == ckan.StatusNotFound {
+				_, err := conn.MarkDatasetDeleted(id)
+				if err != nil {
+					return fmt.Errorf("Cannot mark dataset with ckanid %s as deleted: %s", id, err)
+				}
+				break nextid
+			}
+		}
+
 		buf, _ := ioutil.ReadAll(mdjsonreader)
 		minimaljsonbuffer := bytes.NewBuffer(buf)
 		mdjson := bytes.NewBuffer(buf)
