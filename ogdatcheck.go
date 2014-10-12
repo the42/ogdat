@@ -238,9 +238,7 @@ func FetchHead(url string) (bool, CheckInfo) {
 		} else {
 			resp, err = http.Get(url)
 		}
-		if err != nil || resp.StatusCode != 200 {
-			continue
-		} else {
+		if err == nil && resp.StatusCode == 200 {
 			break
 		}
 	}
