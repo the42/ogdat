@@ -231,12 +231,15 @@ func FetchHead(url string) (bool, CheckInfo) {
 	var info CheckInfo
 	var err error
 	var resp *http.Response
+	var s string
 
 	for i := 0; i < 2; i++ {
 		if i == 0 {
 			resp, err = http.Head(url)
+			s = "Head"
 		} else {
 			resp, err = http.Get(url)
+			s = "Get"
 		}
 		if err == nil && resp.StatusCode == 200 {
 			break
@@ -244,9 +247,9 @@ func FetchHead(url string) (bool, CheckInfo) {
 	}
 
 	if err != nil {
-		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("%s URL kann nicht aufgelöst werden: %s", url, err)}
+		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf(s + "%s URL kann nicht aufgelöst werden: %s (%s)", url, err, s)}
 	} else if sc := resp.StatusCode; sc != 200 {
-		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("%s liefert nicht-OK Status-Code '%d'", url, sc)}
+		info = CheckInfo{Status: Error | FetchableUrl | NoDataatUrlError, Position: -1, Context: fmt.Sprintf("%s liefert nicht-OK Status-Code '%d' (%s)", url, sc, s)}
 	} else {
 		info = CheckInfo{Status: Info | FetchableUrl | FetchSuccess, Position: -1, Context: url}
 	}
