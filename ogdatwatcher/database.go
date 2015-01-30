@@ -36,15 +36,20 @@ type DataUrl struct {
 }
 
 var getdataurlselect = fmt.Sprintf(`
+
 SELECT DISTINCT t.datasetid, t.field_id, t.fieldstatus, t.reason_text
 FROM status AS t
-WHERE t.hittime = (
-  SELECT MAX(hittime)
+JOIN (
+  SELECT datasetid, max(hittime) hittime
   FROM status
-  WHERE datasetid = t.datasetid
-  AND fieldstatus = %d
-)
-AND fieldstatus = %d
+  WHERE fieldstatus = x'2001'::int
+  -- get the available links by this date
+  -- and hittime < '2014-08-01'
+  GROUP BY datasetid
+) t2
+ON t2.datasetid = t.datasetid
+AND t.hittime = t2.hittime
+AND t.fieldstatus =  x'2001'::int
 -- dieser Datensatz darf nicht als gelöscht markiert worden sein
 AND NOT EXISTS (
   SELECT 1
