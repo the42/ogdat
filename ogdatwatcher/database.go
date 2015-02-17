@@ -42,14 +42,14 @@ FROM status AS t
 JOIN (
   SELECT datasetid, max(hittime) hittime
   FROM status
-  WHERE fieldstatus = x'2001'::int
+  WHERE fieldstatus = %d
   -- get the available links by this date
   -- and hittime < '2014-08-01'
   GROUP BY datasetid
 ) t2
 ON t2.datasetid = t.datasetid
 AND t.hittime = t2.hittime
-AND t.fieldstatus =  x'2001'::int
+AND t.fieldstatus =  %d
 -- dieser Datensatz darf nicht als gelöscht markiert worden sein
 AND NOT EXISTS (
   SELECT 1
