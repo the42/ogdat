@@ -153,16 +153,27 @@ SELECT publisher, ckanid, o.reason_text
 FROM status o
 INNER JOIN dataset
 ON dataset.sysid = o.datasetid
+JOIN (
+  select datasetid, max(hittime) hittime
+  from status
+  where fieldstatus = x'2001'::int
+  group by datasetid
+) t2
+ON t2.datasetid = o.datasetid
+and o.hittime = t2.hittime
 WHERE reason_text IN (
 	SELECT reason_text -- gültige, nicht gelöschte Datensätze, die gleiche Links haben
 	FROM status o
+	JOIN (
+	  select datasetid, max(hittime) hittime
+	  from status
+	  where fieldstatus = x'2001'::int
+	  group by datasetid
+	) t3
+	ON t3.datasetid = o.datasetid
+	and o.hittime = t3.hittime
 	WHERE o.field_id = 14 -- nur die felder mit resource_url
 	AND o.fieldstatus = x'2001'::int -- datensätze, die von einem check importiert wurden
-	AND hittime = ( -- letzer gültiger Datesatz nach einen check
-	  SELECT  max(hittime)
-	  FROM status
-	  WHERE datasetid = o.datasetid
-	  AND fieldstatus = x'2001'::int)
 	AND NOT EXISTS ( -- Datensatz wurde nicht gelöscht
 	  SELECT 1
 	  FROM status
@@ -171,11 +182,6 @@ WHERE reason_text IN (
 	  AND hittime >= o.hittime)
 	GROUP BY reason_text
 	HAVING COUNT(*) > 1)
-AND hittime = (
-  SELECT max(hittime)
-  FROM status
-  WHERE o.datasetid = datasetid
-  AND fieldstatus = x'2001'::int)
 AND field_id = 14
 AND fieldstatus = x'2001'::int
 ORDER BY publisher`
@@ -190,14 +196,17 @@ func (conn *analyserdb) GetAN002Data() ([]CKANIDUrl, error) {
 SELECT publisher, ckanid, reason_text
 FROM dataset
 INNER JOIN (
-  SELECT datasetid, reason_text
+  SELECT t.datasetid, reason_text
   FROM status AS t
-  WHERE hittime = ( -- letzter aktueller Datensatz
-    SELECT MAX(hittime)
-    FROM status
-    WHERE datasetid = t.datasetid
-    AND fieldstatus = (1 | x'2000'::int))
-  AND NOT EXISTS ( -- Datensatz wurde noch nicht gelöscht
+  JOIN (
+    select datasetid, max(hittime) hittime
+    from status
+    where fieldstatus = x'2001'::int
+    group by datasetid
+    ) t2
+    ON t2.datasetid = t.datasetid
+    AND t2.hittime = t.hittime
+  WHERE NOT EXISTS ( -- Datensatz wurde noch nicht gelöscht
     SELECT 1
     FROM status
     WHERE status.status = 'deleted'
@@ -223,19 +232,22 @@ SELECT publisher, ckanid, outers.field_id, outers.reason_text, outers.hittime
 FROM status as outers
 INNER JOIN dataset
   ON dataset.sysid = outers.datasetid
+JOIN (
+  select datasetid, max(hittime) hittime
+  from status
+  group by datasetid
+) t2
+ON t2.datasetid = outers.datasetid
+and outers.hittime = t2.hittime
 WHERE outers.fieldstatus = x'6004'::int
 -- und nicht gelöscht
-AND outers.hittime = (
-  SELECT MAX(hittime)
-  FROM status
-  WHERE datasetid = outers.datasetid)
 AND NOT EXISTS (
   SELECT 1
   FROM status
   WHERE status.status = 'deleted'
-  AND status.datasetid = outers.datasetid
-  AND status.hittime >= outers.hittime)
-ORDER BY publisher, datasetid, field_id`
+  AND status.datasetid = outers.datasetid)
+  -- AND status.hittime >= outers.hittime)
+ORDER BY publisher, outers.datasetid, field_id`
 
 	rows, err := conn.Query(sqlquery)
 	if err != nil {
