@@ -187,6 +187,7 @@ func (cyc *Cycle) UnmarshalJSON(data []byte) error {
 
 	if found {
 		*cyc = cycles[idx]
+		cyc.Raw = raw
 	} else {
 		cyc.NumID = -1
 		cyc.Raw = raw
