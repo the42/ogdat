@@ -271,6 +271,7 @@ var checkTests = []checkTest{
 			{Type: ogdat.Error, OGDID: 21},
 			{Type: ogdat.Error, OGDID: 24},
 			{Type: ogdat.Error, OGDID: 25},
+			{Type: ogdat.Info | ogdat.EmptyData, OGDID: 30},
 		}},
 	},
 	{ // This test is to check a metadata file in which every entry is OK
