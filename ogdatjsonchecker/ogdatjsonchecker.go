@@ -7,6 +7,7 @@ import (
 	"github.com/the42/ogdat"
 	"github.com/the42/ogdat/ogdatv21"
 	"github.com/the42/ogdat/ogdatv22"
+	"github.com/the42/ogdat/ogdatv23"
 	"io"
 	"io/ioutil"
 	"log"
@@ -19,7 +20,7 @@ var mdsource = flag.String("if", "", "Einzelne, CKAN-compatible, JSON-Beschreibu
 var of = flag.String("of", "", "Dateiname, unter dem die bezogenen Metadaten 1:1 gespeichert werden sollen.")
 var ofs = flag.String("ofs", "", "Dateiname, unter dem nur die relevanten OGD-Metadaten des JSON-streams gespeichert werden sollen.")
 var followlinks = flag.Bool("follow", false, "Sollen http(s)-Links in den Metadaten auf Verfügbarkeit überprüft werden? Werte: {true|false}, Standard: false")
-var version = flag.String("version", "", "Version, nach der das OGD Metadatendokument überprüft werden soll. Werte: {V20|V21}")
+var version = flag.String("version", "", "Version, nach der das OGD Metadatendokument überprüft werden soll. Werte: {V20|V21|V22|V23}")
 
 var labels = map[int]string{
 	ogdat.Info:    "Info",
@@ -46,6 +47,9 @@ func mymain() int {
 	case "V22":
 		set = ogdat.GetOGDSetForVersion(ogdatv22.Version)
 		md = &ogdatv22.MetaData{}
+	case "V23":
+		set = ogdat.GetOGDSetForVersion(ogdatv23.Version)
+		md = &ogdatv23.MetaData{}
 	default:
 		log.Printf("Nicht unterstützte OGD Version: '%s'\n", *version)
 		return 2
