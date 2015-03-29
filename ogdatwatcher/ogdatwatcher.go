@@ -18,6 +18,7 @@ import (
 	"github.com/the42/ogdat/database"
 	"github.com/the42/ogdat/ogdatv21"
 	"github.com/the42/ogdat/ogdatv22"
+	"github.com/the42/ogdat/ogdatv23"
 	"github.com/the42/ogdat/schedule"
 )
 
@@ -225,6 +226,8 @@ nextid:
 			md, jsonparseerror = ogdatv21.MetadatafromJSONStream(mdjson)
 		case "2.2":
 			md, jsonparseerror = ogdatv22.MetadatafromJSONStream(mdjson)
+		case "2.3":
+		  	md, jsonparseerror = ogdatv23.MetadatafromJSONStream(mdjson)
 		case "":
 			logger.Printf("No Metadata Schema given for ID %v, skipping", id)
 			messages = []ogdat.CheckMessage{{Type: ogdat.Info, Text: "Kein Schema spezifiziert, Metadaten können nicht überprüft werden", OGDID: -1}}
