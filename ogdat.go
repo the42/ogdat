@@ -1,9 +1,9 @@
 package ogdat
 
 import (
-	"code.google.com/p/go-uuid/uuid"
 	"encoding/json"
 	"errors"
+	"github.com/the42/ogdat/Godeps/_workspace/src/code.google.com/p/go-uuid/uuid"
 	"io"
 	"io/ioutil"
 	"net/url"
