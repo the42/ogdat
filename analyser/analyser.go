@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	restful "github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/swagger"
-	"github.com/garyburd/redigo/redis"
+	restful "github.com/the42/ogdat/Godeps/_workspace/src/github.com/emicklei/go-restful"
+	"github.com/the42/ogdat/Godeps/_workspace/src/github.com/emicklei/go-restful/swagger"
+	"github.com/the42/ogdat/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
 	"github.com/the42/ogdat/database"
 )
 

@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/lib/pq"
 	"github.com/the42/ogdat"
+	"github.com/the42/ogdat/Godeps/_workspace/src/github.com/lib/pq"
 	"github.com/the42/ogdat/database"
 	"time"
 )

@@ -3,8 +3,8 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"github.com/garyburd/redigo/redis"
-	"github.com/lib/pq"
+	"github.com/the42/ogdat/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
+	"github.com/the42/ogdat/Godeps/_workspace/src/github.com/lib/pq"
 	"net/url"
 	"os"
 	"strings"

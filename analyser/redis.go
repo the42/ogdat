@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/garyburd/redigo/redis"
+	"github.com/the42/ogdat/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
 )
 
 const RedigoTimestamp = "2006-01-02 15:04:05.999999 -0700 MST"

@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	restful "github.com/emicklei/go-restful"
-	"github.com/garyburd/redigo/redis"
+	restful "github.com/the42/ogdat/Godeps/_workspace/src/github.com/emicklei/go-restful"
+	"github.com/the42/ogdat/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
 	"net/http"
 	"strconv"
 	"time"
