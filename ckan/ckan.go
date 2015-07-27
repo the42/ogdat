@@ -14,6 +14,7 @@ import (
 )
 
 const StatusNotFound = http.StatusNotFound
+const StatusForbidden = http.StatusForbidden
 
 type Portal struct {
 	*url.URL
@@ -191,8 +192,8 @@ endfor:
 		case nil == err:
 			break endfor
 		// When the resource was not found, return; there is nothing to do
-		case resp != nil && resp.StatusCode == http.StatusNotFound:
-			return nil, PortalError{StatusCode: StatusNotFound}
+		case resp != nil && (resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusForbidden):
+			return nil, PortalError{StatusCode: resp.StatusCode}
 		}
 	}
 

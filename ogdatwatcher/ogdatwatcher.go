@@ -186,7 +186,10 @@ nextid:
 		// if the dataset could not be found, mark it as deleted
 		switch portalerror := err.(type) {
 		case ckan.PortalError:
-			if portalerror.StatusCode == ckan.StatusNotFound {
+			switch portalerror.StatusCode {
+			// If a dataset was once available but has been deleted, the server will return with access denied;
+			// if it is not available at all, we may also assume it is deleted
+			case ckan.StatusForbidden:
 				_, err := conn.MarkDatasetDeleted(id)
 				if err != nil {
 					return fmt.Errorf("Cannot mark dataset with ckanid %s as deleted: %s", id, err)
@@ -227,7 +230,7 @@ nextid:
 		case "2.2":
 			md, jsonparseerror = ogdatv22.MetadatafromJSONStream(mdjson)
 		case "2.3":
-		  	md, jsonparseerror = ogdatv23.MetadatafromJSONStream(mdjson)
+			md, jsonparseerror = ogdatv23.MetadatafromJSONStream(mdjson)
 		case "":
 			logger.Printf("No Metadata Schema given for ID %v, skipping", id)
 			messages = []ogdat.CheckMessage{{Type: ogdat.Info, Text: "Kein Schema spezifiziert, Metadaten können nicht überprüft werden", OGDID: -1}}
